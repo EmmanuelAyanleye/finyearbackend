@@ -1,0 +1,102 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <!-- Link to Static CSS Files using Django's static tag -->
+    <link rel="stylesheet" href="{% static 'css/mark.css' %}">
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+    
+    <!-- Bootstrap JS -->
+    <script defer src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+
+    <!-- BOOTSTRAP CDN LINKS (optional if you prefer to use the local files instead of CDN) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
+    <script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous"></script>
+</head>
+<body>
+    <div class="mx-auto rounded text-light p-3">
+        <div class="head-details text-primary">
+            <!-- Static Image link -->
+            <img src="{% static 'images/Espam logo.png' %}" alt="">
+            <div class="head-title">
+                <h4>Espam-Formation University</h4>
+                <p>Student Attendance Management System</p>
+            </div>
+        </div>
+        <div class="h5 text-center">Select Course Details Below</div>
+        <hr>
+
+        <div class="bg-danger text-center rounded px-2 my-2 d-none">
+            No classes are scheduled at this time. Please check your timetable and try again during your class period.
+        </div>
+
+        <form>
+            <div class="row">
+                <div class="mb-3 col-md-6">
+                    <label for="department" class="form-label">Department:</label>
+                    <select class="form-select" id="department" aria-label="Default select example">
+                        <option selected disabled>Select your Department...</option>
+                        <option value="1">Computer Science</option>
+                        <option value="2">Nursing</option>
+                        <option value="3">Business Administration</option>
+                        <option value="4">Political Science</option>
+                        <option value="5">Economics</option>
+                        <option value="6">Human Resources Management</option>
+                        <option value="7">International Relations</option>
+                        <option value="8">Mass Communication</option>
+                    </select>
+                </div>
+
+                <div class="mb-3 col-md-6">
+                    <label for="level" class="form-label">Level:</label>
+                    <select class="form-select" id="level" aria-label="Default select example">
+                        <option selected disabled>Select your Level...</option>
+                        <option value="1">100</option>
+                        <option value="2">200</option>
+                        <option value="3">300</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="course" class="form-label">Course:</label>
+                <select class="form-select" id="course" aria-label="Default select example">
+                    <option selected disabled>Select your Course title...</option>
+                    <option value="1">Computer Science</option>
+                    <option value="2">Nursing</option>
+                    <option value="3">Business Administration</option>
+                    <option value="4">Political Science</option>
+                    <option value="5">Economics</option>
+                    <option value="6">Human Resources Management</option>
+                    <option value="7">International Relations</option>
+                    <option value="8">Mass Communication</option>
+                    <option value="9">Business Administration</option>
+                    <option value="10">Political Science</option>
+                    <option value="11">Economics</option>
+                    <option value="12">Human Resources Management</option>
+                    <option value="13">International Relations</option>
+                    <option value="14">Mass Communication</option>
+                </select>
+            </div>
+            <button type="submit" class="w-100 btn btn-primary d-none">Submit</button>
+            <a href="verify.html" class="w-100 btn btn-primary">Submit</a>
+        </form>
+
+        <div class="btn-row">
+            <div>
+                <a href="\" class="btn btn-outline-light"><i class="fa-solid fa-house"></i> Homepage</a>
+            </div>
+
+            <div>
+                <a href="{% url 'login' %}" class="btn btn-primary"><i class="fas fa-sign-in"></i> Login</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

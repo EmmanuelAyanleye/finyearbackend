@@ -1,0 +1,110 @@
+body {
+  background-image: url(../Images/student-enroll.jpg);
+  background-size: cover;
+  background-position: center center;
+  background-attachment: fixed;
+  min-height: 100vh;
+  margin: auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* LOGIN PAGE STYLESHEET */
+/* LOGIN PAGE STYLESHEET */
+/* LOGIN PAGE STYLESHEET */
+/* LOGIN PAGE STYLESHEET */
+/* LOGIN PAGE STYLESHEET */
+/* LOGIN PAGE STYLESHEET */
+/* LOGIN PAGE STYLESHEET */
+/* LOGIN PAGE STYLESHEET */
+.mx-auto.rounded {
+  background-color: rgba(0, 0, 0, 0.7);
+  width: 600px;
+}
+
+.d-flex.justify-content-end button {
+  width: 100px;
+}
+
+/* MARK PAGE STYLESHEET */
+/* MARK PAGE STYLESHEET */
+/* MARK PAGE STYLESHEET */
+/* MARK PAGE STYLESHEET */
+/* MARK PAGE STYLESHEET */
+/* MARK PAGE STYLESHEET */
+/* MARK PAGE STYLESHEET */
+/* MARK PAGE STYLESHEET */
+body a {
+  text-decoration: none;
+  color: #fff;
+}
+
+.mx-auto.rounded {
+  background-color: rgba(0, 0, 0, 0.7);
+  width: 650px;
+}
+
+.head-details {
+  display: flex;
+  gap: 10px;
+  line-height: 0% !important;
+  justify-content: center;
+  margin-block-end: 15px;
+}
+
+.head-details img {
+  width: 47px;
+  height: 47px;
+}
+
+.btn-row {
+  margin-top: 20px !important;
+  display: flex;
+  justify-content: space-between;
+}
+.students-details {
+  width: 1500px;
+  margin-right: 50px;
+}
+
+@media (max-width: 787px) {
+  .head-details {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .head-title {
+    text-align: center !important;
+  }
+}
+
+/* FINGERPRINT PAGE STYLESHEET CODE */
+/* FINGERPRINT PAGE STYLESHEET CODE */
+/* FINGERPRINT PAGE STYLESHEET CODE */
+/* FINGERPRINT PAGE STYLESHEET CODE */
+/* FINGERPRINT PAGE STYLESHEET CODE */
+/* FINGERPRINT PAGE STYLESHEET CODE */
+/* FINGERPRINT PAGE STYLESHEET CODE */
+/* FINGERPRINT PAGE STYLESHEET CODE */
+
+.size {
+  width: 25%;
+}
+
+.col-md-3.h-100 img {
+  width: 100%;
+  height: 200px;
+}
+
+@media (max-width: 787px) {
+  p.text-sibtitle {
+    width: 100% !important;
+  }
+}
+
+@media (max-width: 1150px) and (min-width: 814px) {
+  .size {
+    width: 50% !important;
+  }
+}

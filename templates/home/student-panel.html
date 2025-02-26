@@ -1,0 +1,151 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.lineicons.com/4.0/lineicons.css" rel="stylesheet" />
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+    <script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script defer src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script defer src="{% static 'js/script.js' %}"></script>
+</head>
+<body class="d-flex flex-column vh-100">
+    <!-- Navbar -->
+    <header>
+        <nav class="navbar navbar-expand-sm bg-primary px-3">
+          <div class="container-fluid">
+            <a href="#" class="navbar-brand text-light">
+              <img src="{% static 'images/Espam logo.png' %}" alt="SCHOOL LOGO">
+              <span>ESPAM-FORMATION <span class="d-none d-md-inline">STUDENT DASHBOARD</span></span>
+            </a>
+            <div class="justify-content-end">
+                <div class="d-flex">
+                    <div class="nav-item text-light pt-2 px-3 d-none d-md-inline">
+                        Welcome back, <span id="name">Student</span>
+                    </div>
+                    <div class="d-none d-sm-inline">
+                        <ul class="navbar-nav ms-auto">
+                            <li class="nav-item">
+                                <a href="#" data-bs-toggle="dropdown" class="nav-icon pe-md-0">
+                                    <img src="{% static 'images/account.png' %}" class="avatar img-fluid" alt="User Account">
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+          </div>
+        </nav>
+    </header>
+
+    <!-- Content Section -->
+    <div class="d-flex flex-grow-1">
+        <!-- Sidebar -->
+        <aside id="sidebar">
+            <div class="d-flex">
+                <button class="toggle-btn" type="button">
+                    <i class="lni lni-grid-alt"></i>
+                </button>
+                <div class="sidebar-logo">
+                    <a href="#">Menu</a>
+                </div>
+            </div>
+            <ul class="sidebar-nav">
+                <li class="sidebar-item">
+                    <a href="{% url 'student_panel' %}" class="sidebar-link">
+                        <i class="lni lni-home"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="{% url 'student_report' %}" class="sidebar-link">
+                        <i class="lni lni-stats-up"></i>
+                        <span>View Reports</span>
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="{% url 'student_summary' %}" class="sidebar-link">
+                        <i class="lni lni-bar-chart"></i>
+                        <span>Attendance Summary</span>
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="{% url 'student_profile' %}" class="sidebar-link">
+                        <i class="lni lni-user"></i>
+                        <span>My Profile</span>
+                    </a>
+                </li>
+            </ul>
+            <div class="sidebar-footer">
+                <a href="#" class="sidebar-link" id="logout-link">
+                    <i class="lni lni-exit"></i>
+                    <span>Logout</span>
+                </a>
+            </div>
+
+            <form method="POST" action="{% url 'logout' %}" id="logout-form" style="display: none;">
+                {% csrf_token %}
+            </form>
+            
+            <script>
+                document.getElementById('logout-link').addEventListener('click', function(event) {
+                    event.preventDefault();  // Prevents the default link behavior
+                    document.getElementById('logout-form').submit();  // Submit the hidden form
+                });
+            </script>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-grow-1 overflow-auto">
+            <div class="container py-4" id="main-content">
+                <h3 class="fw-bold">Student Dashboard</h3>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-body">
+                                <h5>Total Classes Attended</h5>
+                                <p>10</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-body">
+                                <h5>Attendance Percentage</h5>
+                                <p>85%</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-body">
+                                <h5>Upcoming Classes</h5>
+                                <p>3</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <h3 class="fw-bold mt-5">Quick Links</h3>
+                <div class="card-container">
+                    <a class="card-1" href="{% url 'student_report' %}">
+                        <i class="lni lni-stats-up card-icon"></i>
+                        <h2 class="card-title">View Reports</h2>
+                    </a>
+                    <a class="card-1" href="{% url 'student_summary' %}">
+                        <i class="lni lni-bar-chart card-icon"></i>
+                        <h2 class="card-title">Attendance Summary</h2>
+                    </a>
+                    <a class="card-1" href="{% url 'student_profile' %}">
+                        <i class="lni lni-user card-icon"></i>
+                        <h2 class="card-title">Profile</h2>
+                    </a>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>
