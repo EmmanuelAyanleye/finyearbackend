@@ -58,3 +58,54 @@ class Lecturer(models.Model):
 
     def __str__(self):
         return self.full_name
+    
+
+
+
+
+
+from django.db import models
+
+class AcademicSession(models.Model):
+    name = models.CharField(max_length=50)
+
+    def __str__(self):
+        return self.name
+
+class Semester(models.Model):
+    name = models.CharField(max_length=50)
+
+    def __str__(self):
+        return self.name
+
+class Department(models.Model):
+    name = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.name
+    
+
+
+
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
+
+class Course(models.Model):
+    course_code = models.CharField(max_length=20)
+    course_title = models.CharField(max_length=100)
+    department = models.ForeignKey('Department', on_delete=models.CASCADE)
+    semester = models.ForeignKey('Semester', on_delete=models.CASCADE)
+    level = models.IntegerField(choices=[
+        (100, '100 Level'),
+        (200, '200 Level'),
+        (300, '300 Level'),
+        (400, '400 Level'),
+    ])
+    lecturer = models.ForeignKey('Lecturer', on_delete=models.CASCADE)
+    attendance_day = models.CharField(max_length=10)
+    attendance_start_time = models.TimeField()
+    attendance_end_time = models.TimeField()
+
+    def __str__(self):
+        return f"{self.course_code} - {self.course_title}"

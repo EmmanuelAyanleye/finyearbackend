@@ -1,6 +1,26 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
 
 
+/* Add this CSS to your static files or inside a `<style>` tag in your HTML */
+.message-error {
+    background-color: red;
+    color: white;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    text-align: center;
+}
+.message-success {
+    background-color: green;
+    color: white;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+
+
 /* NAVIGATION SECTION */
 .navbar-brand.text-light {
     display: flex;

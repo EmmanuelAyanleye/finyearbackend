@@ -33,3 +33,73 @@ class LecturerRegistrationForm(forms.ModelForm):
             'lecturer_id': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter lecturer ID'}),
             'full_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter full name'}),
         }
+
+
+
+from django import forms
+from django.contrib.auth import get_user_model
+from .models import Lecturer
+
+User = get_user_model()
+
+class LecturerProfileUpdateForm(forms.ModelForm):
+    email = forms.EmailField(required=True)
+    password = forms.CharField(widget=forms.PasswordInput(), required=False)
+    
+    class Meta:
+        model = Lecturer
+        fields = ['full_name', 'phone', 'profile_picture']
+    
+    def save(self, user, commit=True):
+        lecturer = super().save(commit=False)
+        user.email = self.cleaned_data['email']
+        
+        # Update password if provided
+        password = self.cleaned_data.get('password')
+        if password:
+            user.set_password(password)
+
+        if commit:
+            user.save()
+            lecturer.save()
+        return lecturer
+
+
+
+
+
+
+
+
+from django import forms
+from .models import AcademicSession, Semester, Department
+
+class AcademicSessionForm(forms.ModelForm):
+    class Meta:
+        model = AcademicSession
+        fields = ['name']
+
+class SemesterForm(forms.ModelForm):
+    class Meta:
+        model = Semester
+        fields = ['name']
+
+class DepartmentForm(forms.ModelForm):
+    class Meta:
+        model = Department
+        fields = ['name']
+
+
+from .models import Course, Department, Semester, Lecturer
+
+class CourseForm(forms.ModelForm):
+    class Meta:
+        model = Course
+        fields = ['course_code', 'course_title', 'department', 'semester', 'level', 'lecturer', 'attendance_day', 'attendance_start_time', 'attendance_end_time']
+        
+    department = forms.ModelChoiceField(queryset=Department.objects.all(), empty_label="Select a department", widget=forms.Select(attrs={'class': 'form-select'}))
+    semester = forms.ModelChoiceField(queryset=Semester.objects.all(), empty_label="Select a semester", widget=forms.Select(attrs={'class': 'form-select'}))
+    lecturer = forms.ModelChoiceField(queryset=Lecturer.objects.all(), empty_label="Select a lecturer", widget=forms.Select(attrs={'class': 'form-select'}))
+    attendance_day = forms.ChoiceField(choices=[('Monday', 'Monday'), ('Tuesday', 'Tuesday'), ('Wednesday', 'Wednesday'), ('Thursday', 'Thursday'), ('Friday', 'Friday')], widget=forms.Select(attrs={'class': 'form-select'}))
+    attendance_start_time = forms.TimeField(widget=forms.TimeInput(attrs={'class': 'form-control', 'type': 'time'}))
+    attendance_end_time = forms.TimeField(widget=forms.TimeInput(attrs={'class': 'form-control', 'type': 'time'}))

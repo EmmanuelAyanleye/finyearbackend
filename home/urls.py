@@ -18,18 +18,36 @@ urlpatterns = [
     path('add_lecturer/', add_lecturer, name='add_lecturer'),
 ]
 
+from django.urls import path
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.shortcuts import render, redirect
+
+
 # Append static URLs if in DEBUG mode
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+def is_admin(user):
+    return user.is_authenticated and user.role == 'admin'
+
+def is_lecturer(user):
+    return user.is_authenticated and user.role == 'lecturer'
+
+def is_student(user):
+    return user.is_authenticated and user.role == 'student'
+
+admin_dashboard_view = login_required(user_passes_test(is_admin, login_url='index')(lambda request: render(request, 'home/admin_dashboard.html')))
+student_panel_view = login_required(user_passes_test(is_student, login_url='index')(lambda request: render(request, 'home/student-panel.html')))
+lecturer_panel_view = login_required(user_passes_test(is_lecturer, login_url='index')(lambda request: render(request, 'home/lecturer-panel.html')))
 
 
 urlpatterns = [
     path('', views.index, name='index'), 
     # path('login/', views.login, name='login'),
     path('login/', views.login_view, name='login'),
-    path('admin_dashboard/', login_required(lambda request: render(request, 'home/admin_dashboard.html')), name='admin_dashboard'),
-    path('student_panel/', login_required(lambda request: render(request, 'home/student-panel.html')), name='student_panel'),
-    path('lecturer_panel/', login_required(lambda request: render(request, 'home/lecturer-panel.html')), name='lecturer_panel'),
+    path('admin_dashboard/', admin_dashboard_view, name='admin_dashboard'),
+    path('student_panel/', student_panel_view, name='student_panel'),
+    path('lecturer_panel/', lecturer_panel_view, name='lecturer_panel'),
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
 
 
@@ -38,26 +56,31 @@ urlpatterns = [
 
 
     path('mark/', views.mark, name='mark'),
-    path('report/', login_required(views.report), name='report'),
-    path('settings/', login_required(views.settings), name='settings'),
-    path('course/', login_required(views.course), name='course'),
-    path('admin_summary/', login_required(views.admin_summary), name='admin_summary'),
-    path('add_student/', login_required(views.add_student), name='add_student'),
-    path('add_lecturer/', login_required(views.add_lecturer), name='add_lecturer'),
-    path('modify_lecturer/', login_required(views.modify_lecturer), name='modify_lecturer'),
-    path('modify_lecturer_page/', login_required(views.modify_lecturer_page), name='modify_lecturer_page'),
-    path('modify_course/', login_required(views.modify_course), name='modify_course'),
-    path('modify_course_page/', login_required(views.modify_course_page), name='modify_course_page'),
-    path('modify_student/', login_required(views.modify_student), name='modify_student'),
-    path('modify_student_page/', login_required(views.modify_student_page), name='modify_student_page'),
-    path('lecturer_report/', login_required(views.lecturer_report), name='lecturer_report'),
-    path('lecturer_summary/', login_required(views.lecturer_summary), name='lecturer_summary'),
-    path('profile/', login_required(views.profile), name='profile'),
-    path('manage_class/', login_required(views.manage_class), name='manage_class'),
-    path('modify_class/', login_required(views.modify_class), name='modify_class'),
-    path('modify_profile/', login_required(views.modify_profile), name='modify_profile'),
-    path('student_report/', login_required(views.student_report), name='student_report'),
-    path('student_summary/', login_required(views.student_summary), name='student_summary'),
-    path('student_modify/', login_required(views.student_modify), name='student_modify'),
-    path('student_profile/', login_required(views.student_profile), name='student_profile'),
+    path('report/', views.report, name='report'),
+    path('settings/', views.settings, name='settings'),
+    path('course/', views.course, name='course'),
+    path('admin_summary/', views.admin_summary, name='admin_summary'),
+    path('add_student/', views.add_student, name='add_student'),
+    path('add_lecturer/', views.add_lecturer, name='add_lecturer'),
+    path('modify_lecturer/', views.modify_lecturer, name='modify_lecturer'),
+    path('modify_lecturer_page/', views.modify_lecturer_page, name='modify_lecturer_page'),
+    path('modify_course/', views.modify_course, name='modify_course'),
+    path('modify_course_page/', views.modify_course_page, name='modify_course_page'),
+    path('modify_student/', views.modify_student, name='modify_student'),
+    path('modify_student_page/', views.modify_student_page, name='modify_student_page'),
+    path('lecturer_report/', views.lecturer_report, name='lecturer_report'),
+    path('lecturer_summary/', views.lecturer_summary, name='lecturer_summary'),
+    path('profile/', views.profile, name='profile'),
+    path('manage_class/', views.manage_class, name='manage_class'),
+    path('modify_class/', views.modify_class, name='modify_class'),
+    path('modify_profile/', views.modify_profile, name='modify_profile'),
+    path('student_report/', views.student_report, name='student_report'),
+    path('student_summary/', views.student_summary, name='student_summary'),
+    path('student_modify/', views.student_modify, name='student_modify'),
+    path('student_profile/', views.student_profile, name='student_profile'),
 ]
+
+
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

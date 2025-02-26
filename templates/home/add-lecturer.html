@@ -176,57 +176,34 @@
                   <form method="POST" enctype="multipart/form-data" id="addLecturerForm">
                     {% csrf_token %}
                     <div class="mb-3">
-                      <!-- <label for="lecturer_id" class="form-label">Lecturer ID</label> -->
-                      <!-- <input type="text" class="form-control" id="lecturerID" placeholder="Enter lecturer ID" required> -->
                       <label for="{{ form.lecturer_id.id_for_label }}" class="form-label">Lecturer ID</label>
                       {{ form.lecturer_id }}
                     </div>
               
                     <div class="mb-3">
-                      <!-- <label for="lecturerName" class="form-label">Full Name</label> -->
-                      <!-- <input type="text" class="form-control" id="lecturerName" placeholder="Enter full name" required> -->
                       <label for="{{ form.full_name.id_for_label }}" class="form-label">Full Name</label>
                       {{ form.full_name }}
                     </div>
               
                     <!-- Email Address -->
                     <div class="mb-3">
-                      <!-- <label for="email" class="form-label">Email Address</label> -->
-                      <!-- <input
-                        type="email"
-                        class="form-control"
-                        id="email"
-                        placeholder="Enter email address"
-                        required /> -->
                         <label for="{{ form.email.id_for_label }}" class="form-label">Email Address</label>
                         {{ form.email }}
                     </div>
               
                     <!-- Password -->
                     <div class="mb-3">
-                      <!-- <label for="password" class="form-label">Password</label> -->
-                      <!-- <input
-                        type="password"
-                        class="form-control"
-                        id="password"
-                        placeholder="Enter password"
-                        required
-                      /> -->
                       <label for="{{ form.password.id_for_label }}" class="form-label">Password</label>
                       {{ form.password }}
                     </div>
               
                     <div class="mb-3">
-                      <!-- <label for="phone" class="form-label">Phone Number</label> -->
-                      <!-- <input type="tel" class="form-control" id="phone" placeholder="Enter phone number" required> -->
                       <label for="{{ form.phone.id_for_label }}" class="form-label">Phone Number</label>
                       {{ form.phone }}
                     </div>
               
                     <!-- Profile Picture Upload -->
                     <div class="mb-3">
-                      <!-- <label for="profilePicture" class="form-label">Profile Picture</label> -->
-                      <!-- <input type="file" id="profilePicture" class="form-control" accept="image/*"> -->
                       <label for="{{ form.profile_picture.id_for_label }}" class="form-label">Profile Picture</label>
                       {{ form.profile_picture }}
                     </div>

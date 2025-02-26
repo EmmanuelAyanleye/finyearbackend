@@ -52,13 +52,26 @@
       <p>Kindly provide your login details to access all our services.</p>
       <hr>
 
+      <script>
+        // Check if a session is already active in this window
+        if (sessionStorage.getItem("activeUser")) {
+            alert("Another user is already logged in this window!");
+            window.location.href = "/";  // Redirect to home page
+        }
+    
+        // When user logs in, store their session in sessionStorage
+        function storeSession(username) {
+            sessionStorage.setItem("activeUser", username);
+        }
+    </script>
+
       {% if messages %}
                     {% for message in messages %}
                         <div class="alert alert-danger">{{ message }}</div>
                     {% endfor %}
       {% endif %}
 
-      <form method="POST" class="px-3 py-1">
+      <form method="POST" class="px-3 py-1" action="{% url 'login' %}" onsubmit="storeSession(document.getElementById('username').value)">
         {% csrf_token %}
         <div class="input-group mb-3">
           <span class="input-group-text bg-primary border border-primary text-light">

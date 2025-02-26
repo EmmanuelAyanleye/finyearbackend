@@ -30,7 +30,11 @@
                         <ul class="navbar-nav ms-auto">
                             <li class="nav-item">
                                 <a href="#" data-bs-toggle="dropdown" class="nav-icon pe-md-0">
-                                    <img src="{% static 'images/account.png' %}" class="avatar img-fluid" alt="">
+                                    {% if lecturer and lecturer.profile_picture %}
+                                    <img src="{{ lecturer.profile_picture.url }}" class="avatar img-fluid" alt="Profile Picture" style="border-radius: 50px;">
+                                {% else %}
+                                    <img src="{% static 'images/account.png' %}" class="avatar img-fluid" alt="Default Profile Picture" style="border-radius: 50px;">
+                                {% endif %}
                                 </a>
                             </li>
                         </ul>
@@ -111,45 +115,46 @@
                     <h2 class="text-center mb-4">Modify Profile</h2>
                     <div> 
                 
-                        <form class="mt-4" id="updateProfileForm">
+                        <form class="mt-4" id="updateProfileForm" method="POST" enctype="multipart/form-data">
+                            {% csrf_token %}
                             
                             <div class="mb-3">
                                 <label for="lecturerID" class="form-label">Lecturer ID</label>
-                                <input type="text" class="form-control" id="lecturerID" value="L12345" readonly>
-                            </div>
-                            <div class="mb-3">
-                                <label for="lecturerName" class="form-label">Full Name</label>
-                                <input type="text" class="form-control" id="lecturerName" value="John Doe" required>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="email" class="form-label">Email</label>
-                                    <input type="email" class="form-control" id="email" value="johndoe@example.com" required>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="phone" class="form-label">Phone Number</label>
-                                    <input type="tel" class="form-control" id="phone" value="123-456-7890" required>
-                                </div>
+                                <input type="text" class="form-control" id="lecturerID" name="lecturer_id" value="{{ lecturer.lecturer_id }}" readonly>
                             </div>
                             
                             <div class="mb-3">
-                                <label for="password" class="form-label">New Password</label>
-                                <input type="password" class="form-control" id="password" placeholder="Enter new password">
+                                <label for="lecturerName" class="form-label">Full Name</label>
+                                <input type="text" class="form-control" id="lecturerName" name="full_name" value="{{ lecturer.full_name }}" required>
                             </div>
+                            
                             <div class="mb-3">
-                                <label for="confirmPassword" class="form-label">Confirm Password</label>
-                                <input type="password" class="form-control" id="confirmPassword" placeholder="Confirm new password">
+                                <label for="email" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="email" name="email" value="{{ lecturer.user.email }}" required>
                             </div>
+                            
+                            <div class="mb-3">
+                                <label for="phone" class="form-label">Phone Number</label>
+                                <input type="tel" class="form-control" id="phone" name="phone" value="{{ lecturer.phone }}" required>
+                            </div>
+                        
+                            <div class="mb-3">
+                                <label for="password" class="form-label">New Password</label>
+                                <input type="password" class="form-control" id="password" name="password" placeholder="Enter new password">
+                            </div>
+                            
                             <!-- Profile Picture Upload -->
                             <div class="mb-3">
                                 <label for="profilePicture" class="form-label">Profile Picture</label>
-                                <input type="file" id="profilePicture" class="form-control mt-2" accept="image/*">
+                                <input type="file" id="profilePicture" class="form-control mt-2" name="profile_picture" accept="image/*">
                             </div>
+                            
                             <div class="d-flex justify-content-between">
                                 <button type="reset" class="btn btn-secondary">Reset</button>
                                 <button type="submit" class="btn btn-primary">Save Changes</button>
                             </div>
                         </form>
+                        
                     </div>
                 </div>
                 

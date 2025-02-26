@@ -30,7 +30,11 @@
                         <ul class="navbar-nav ms-auto">
                             <li class="nav-item">
                                 <a href="#" data-bs-toggle="dropdown" class="nav-icon pe-md-0">
-                                    <img src="{% static 'images/account.png' %}" class="avatar img-fluid" alt="">
+                                    {% if lecturer and lecturer.profile_picture %}
+                                    <img src="{{ lecturer.profile_picture.url }}" class="avatar img-fluid" alt="Profile Picture" style="border-radius: 50px;">
+                                {% else %}
+                                    <img src="{% static 'images/account.png' %}" class="avatar img-fluid" alt="Default Profile Picture" style="border-radius: 50px;">
+                                {% endif %}
                                 </a>
                             </li>
                         </ul>
@@ -108,32 +112,33 @@
         <main class="flex-grow-1 overflow-auto">
             <div class="container py-4" id="main-content">
               
-    <div class="container">
-        <h2 class="text-center mb-4">My Profile</h2>
-        <div class="row justify-content-center">
-            <div class="col-md-4 text-center">
-                <div class="profile-picture mb-5">
-                    <img src="{% static 'images/account.png' %}" class="rounded-circle img-thumbnail" width="200" alt="Profile Picture">
+                <div class="container">
+                    <h2 class="text-center mb-4">My Profile</h2>
+                    <div class="row justify-content-center">
+                        <div class="col-md-4 text-center">
+                            <div class="profile-picture mb-5">
+                                {% if lecturer and lecturer.profile_picture %}
+                                    <img src="{{ lecturer.profile_picture.url }}" class="rounded-circle img-thumbnail" width="200" alt="Profile Picture" style="height: 200px;">
+                                {% else %}
+                                    <img src="{% static 'images/account.png' %}" class="rounded-circle img-thumbnail" width="200" alt="Default Profile Picture" style="height: 200px;">
+                                {% endif %}
+                            </div>
+                            <h4 class="fw-bold">{{ lecturer.full_name }}</h4>
+                            <p class="text-muted">{{ lecturer.lecturer_id }}</p>
+                            <a class="btn btn-primary w-100 mt-3" href="{% url 'modify_profile' %}">Modify Profile</a>
+                        </div>
+                        <div class="col-md-6 mt-5">
+                            <div class="profile-details p-4 rounded shadow-sm">
+                                <h5 class="fw-bold">Personal Information</h5>
+                                <hr>
+                                <p><strong>Email:</strong> {{ request.user.email }}</p>
+                                <p><strong>Phone Number:</strong> {% if lecturer %}{{ lecturer.phone }}{% else %}N/A{% endif %}</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <h4 class="fw-bold">John Doe</h4>
-                <p class="text-muted">S123456</p>
-                <a class="btn btn-primary w-100 mt-3" href="{% url 'modify_profile' %}">Modify Profile</a>
-            </div>
-            <div class="col-md-6 mt-5">
-                <div class="profile-details p-4 rounded shadow-sm">
-                    <h5 class="fw-bold">Personal Information</h5>
-                    <hr>
-                    <p><strong>Email:</strong> johndoe@example.com</p>
-                    <p><strong>Phone Number:</strong> 123-456-7890</p>
-                    <!-- <h5 class="fw-bold mt-4">Academic Details</h5>
-                    <hr>
-                    <p><strong>Department:</strong> Computer Science</p>
-                    <p><strong>Session:</strong> 2024/2025</p>
-                    <p><strong>Level:</strong> 300</p> -->
-                </div>
-            </div>
-        </div>
-    </div>
+
+                
             </div>
         </main>
     </div>
