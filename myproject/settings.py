@@ -128,6 +128,8 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 LOGIN_URL = '/login/'
 LOGOUT_REDIRECT_URL = '/' 
 AUTH_USER_MODEL = 'home.CustomUser'  # Ensure this is correct
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+
 
 
 # Default primary key field type

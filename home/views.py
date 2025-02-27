@@ -13,6 +13,10 @@ from .models import Lecturer
 from .forms import CourseForm
 
 from django.shortcuts import redirect
+from django.shortcuts import render, get_object_or_404
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+import json
 from .models import Course 
 
 from .forms import LecturerProfileUpdateForm
@@ -168,22 +172,147 @@ def add_student(request):
 
 @user_passes_test(is_admin)
 def modify_lecturer(request):
-    return render(request, 'home/modify-lecturer.html')
+    search_query = request.GET.get('search', '')  # Get search query from URL parameters
+    lecturers = Lecturer.objects.all()
+
+    if search_query:
+        lecturers = lecturers.filter(
+            full_name__icontains=search_query) | lecturers.filter(
+            user__email__icontains=search_query) | lecturers.filter(
+            lecturer_id__icontains=search_query
+        )
+
+    return render(request, 'home/modify-lecturer.html', {'lecturers': lecturers})
+
+@user_passes_test(is_admin)
+def delete_lecturer(request, lecturer_id):
+    if request.method == "POST":
+        try:
+            # Fetch the Lecturer object
+            lecturer = Lecturer.objects.get(id=lecturer_id)
+            
+            # Fetch the associated User object and delete it
+            user = lecturer.user
+            user.delete()
+            
+            # Now delete the Lecturer object
+            lecturer.delete()
+
+            return JsonResponse({"success": True})
+        except Lecturer.DoesNotExist:
+            return JsonResponse({"success": False, "error": "Lecturer not found"})
+        except Exception as e:
+            return JsonResponse({"success": False, "error": str(e)})
+    
+    return JsonResponse({"success": False, "error": "Invalid request"})
 
 
 @user_passes_test(is_admin)
-def modify_lecturer_page(request):
-    return render(request, 'home/modify-lecturer-page.html')
+def modify_lecturer_page(request, lecturer_id):
+    lecturer = get_object_or_404(Lecturer, lecturer_id=lecturer_id)
+
+    if request.method == "POST":
+        full_name = request.POST.get('full_name')
+        email = request.POST.get('email')
+        phone = request.POST.get('phone')
+        password = request.POST.get('password')
+        
+        # Update lecturer details
+        lecturer.full_name = full_name
+        lecturer.phone = phone
+        lecturer.user.email = email
+
+        if password:
+            # Set password if provided
+            lecturer.user.set_password(password)
+
+        # Handle profile picture upload
+        profile_picture = request.FILES.get('profile_picture')
+        if profile_picture:
+            lecturer.profile_picture = profile_picture
+
+        # Save the changes
+        lecturer.user.save()
+        lecturer.save()
+
+        # Show success message
+        messages.success(request, "Lecturer details updated successfully!")
+        return redirect('modify_lecturer_page', lecturer_id=lecturer_id)
+
+    return render(request, 'home/modify-lecturer-page.html', {'lecturer': lecturer})
 
 
 @user_passes_test(is_admin)
 def modify_course(request):
-    return render(request, 'home/modify-course.html')
+    search_query = request.GET.get('search', '')  # Get search query from URL parameters
+    courses = Course.objects.all()
+
+    if search_query:
+        courses = courses.filter(
+            course_title__icontains=search_query) | courses.filter(
+            course_code__icontains=search_query) | courses.filter(
+            lecturer__full_name__icontains=search_query
+        )
+
+    return render(request, 'home/modify-course.html', {'courses': courses})
+
+@user_passes_test(is_admin)
+def delete_course(request, course_id):
+    if request.method == "POST":
+        try:
+            course = Course.objects.get(id=course_id)
+            course.delete()
+            return JsonResponse({"success": True})
+        except Course.DoesNotExist:
+            return JsonResponse({"success": False, "error": "Course not found"})
+    return JsonResponse({"success": False, "error": "Invalid request"})
 
 
 @user_passes_test(is_admin)
-def modify_course_page(request):
-    return render(request, 'home/modify-course-page.html')
+def modify_course_page(request, course_id):
+    course = get_object_or_404(Course, id=course_id)  # Get the course based on the ID
+
+    # Get the list of lecturers, departments, and semesters to populate the select fields
+    lecturers = Lecturer.objects.all()
+    departments = Department.objects.all()
+    semesters = Semester.objects.all()
+
+    if request.method == "POST":
+        # Handle form submission
+        course_code = request.POST.get('courseCode')
+        course_title = request.POST.get('courseTitle')
+        department_id = request.POST.get('department')
+        semester_id = request.POST.get('semester')
+        level = request.POST.get('level')
+        lecturer_id = request.POST.get('lecturers')
+        attendance_day = request.POST.get('attendanceDay')
+        attendance_start_time = request.POST.get('attendanceStartTime')
+        attendance_end_time = request.POST.get('attendanceEndTime')
+
+        try:
+            # Update the course information
+            course.course_code = course_code
+            course.course_title = course_title
+            course.department = Department.objects.get(id=department_id)
+            course.semester = Semester.objects.get(id=semester_id)
+            course.level = level
+            course.lecturer = Lecturer.objects.get(id=lecturer_id)
+            course.attendance_day = attendance_day
+            course.attendance_start_time = attendance_start_time
+            course.attendance_end_time = attendance_end_time
+            course.save()
+
+            # Success message
+            messages.success(request, 'Course updated successfully!')
+        except Exception as e:
+            messages.error(request, f"Error: {e}")
+        
+        # Debugging: ensure course_id is passed correctly
+        print(f"Course ID after saving: {course.id}")
+        return redirect('modify_course_page', course_id=course.id)  # Redirect to the same page with updated course
+
+    # If not POST, return the modify course page with the existing data
+    return render(request, 'home/modify-course-page.html', {'course': course, 'lecturers': lecturers, 'departments': departments, 'semesters': semesters})
 
 
 @user_passes_test(is_admin)
@@ -234,24 +363,43 @@ def lecturer_summary(request):
 
 @user_passes_test(is_lecturer)
 def manage_class(request):
-    try:
-        lecturer = Lecturer.objects.get(user=request.user)
-    except Lecturer.DoesNotExist:
-        lecturer = None
+    # Get the lecturer object
+    lecturer = Lecturer.objects.get(user=request.user)
 
-    return render(request, "home/manage-class.html", {"lecturer": lecturer}) 
+    # Fetch courses assigned to the logged-in lecturer
+    courses = Course.objects.filter(lecturer=lecturer)
+
+    return render(request, 'home/manage-class.html', {'courses': courses}) 
 
 
 @user_passes_test(is_lecturer)
-def modify_class(request):
-    
-    try:
-        lecturer = Lecturer.objects.get(user=request.user)
-    except Lecturer.DoesNotExist:
-        lecturer = None
+def modify_class(request, course_id):
+    course_allocation = get_object_or_404(Course, id=course_id)
 
-    return render(request, "home/modify-class.html", {"lecturer": lecturer}) 
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            new_day = data.get('day')
+            new_start_time = data.get('start_time')
+            new_end_time = data.get('end_time')
 
+            # Validate data
+            if not new_day or not new_start_time or not new_end_time:
+                return JsonResponse({'error': 'All fields are required'}, status=400)
+
+            # Update course allocation
+            course_allocation.attendance_day = new_day
+            course_allocation.attendance_start_time = new_start_time
+            course_allocation.attendance_end_time = new_end_time
+            course_allocation.save()
+
+            return JsonResponse({'message': 'Class updated successfully'})
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+
+    return render(request, 'home/modify-class.html', {
+        'course': course_allocation,  # ✅ Send course details to the template
+    })
 
 @user_passes_test(is_lecturer)
 def modify_profile(request):
@@ -353,11 +501,21 @@ from .forms import LecturerRegistrationForm
 def add_lecturer(request):
     if request.method == 'POST':
         form = LecturerRegistrationForm(request.POST, request.FILES)
+        
         if form.is_valid():
             email = form.cleaned_data['email']
-            if CustomUser.objects.filter(email=email).exists():
-                messages.error(request, "A lecturer with this email already exists.")  # ✅ Show specific error
+            lecturer_id = form.cleaned_data['lecturer_id']  # Grab the lecturer_id
+            
+            # Check if the email already exists
+            if CustomUser.objects.filter(email=user.email).exists():
+                form.add_error('email', 'A lecturer with this email already exists.')  # Add error to the email field
+                messages.error(request, 'A lecturer with this email already exists.')  # General error message
+            # Check if the lecturer_id already exists
+            elif Lecturer.objects.filter(lecturer_id=lecturer_id).exists():
+                form.add_error('lecturer_id', 'Lecturer ID already exists!')  # Add error to the lecturer_id field
+                messages.error(request, 'Lecturer ID already exists!')  # General error message
             else:
+                # If the email and lecturer_id are unique, proceed to save
                 user = CustomUser.objects.create_user(
                     email=email,
                     password=form.cleaned_data['password'],
@@ -367,8 +525,11 @@ def add_lecturer(request):
                 lecturer.user = user
                 lecturer.save()
                 messages.success(request, "Lecturer added successfully!")
-                return redirect('add_lecturer')  # ✅ Stay on the same page
+                
+                # Reset the form after success
+                form = LecturerRegistrationForm()  # Clear form after successful submission
         else:
+            # If the form is not valid, show the generic error message
             messages.error(request, "Error adding lecturer. Please check the form.")
 
     else:

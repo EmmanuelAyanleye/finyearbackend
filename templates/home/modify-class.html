@@ -112,93 +112,92 @@
         <main class="flex-grow-1 overflow-auto">
             <div class="container py-4" id="main-content">
               <div class="container">
-                <h2 class="text-center mb-4">Modify Class</h2>
-              
-                <!-- Add Course Form -->
-                <form id="addCourseForm">
-                  <div class="mb-3">
-                    <label for="courseCode" class="form-label">Course Code</label>
-                    <input type="text" class="form-control" id="courseCode" placeholder="Enter course code (e.g., CS101)" required readonly>
-                  </div>
-              
-                  <div class="mb-3">
-                    <label for="courseTitle" class="form-label">Course Title</label>
-                    <input type="text" class="form-control" id="courseTitle" placeholder="Enter course title (e.g., Introduction to Programming)" required readonly>
-                  </div>
-              
-                  <div class="mb-3">
-                    <label for="department" class="form-label">Department</label>
-                    <select class="form-select" id="department" required disabled>
-                      <option value="" selected disabled>Select a department</option>
-                      <option value="All Departments">All Departments</option>
-                      <option value="Computer Science">Computer Science</option>
-                      <option value="Information Technology">Information Technology</option>
-                      <option value="Business Administration">Business Administration</option>
-                    </select>
-                  </div>
-              
-                  <div class="row">
-                    <div class="col-md-6 mb-3">
-                      <label for="semester" class="form-label">Semester</label>
-                      <select class="form-select" id="semester" required disabled>
-                        <option value="" selected disabled>Select a semester</option>
-                        <option value="First">First</option>
-                        <option value="Second">Second</option>
-                      </select>
+                <h2 class="text-center mb-4">Update class details</h2>
+            
+                <form id="modifyClassForm">
+                    <div class="mb-3">
+                        <label for="courseCode" class="form-label">Course Code</label>
+                        <input type="text" class="form-control" id="courseCode" value="{{ course.course_code }}" required readonly>
                     </div>
-              
-                    <div class="col-md-6 mb-3">
-                      <label for="level" class="form-label">Level</label>
-                      <select class="form-select" id="level" required disabled>
-                        <option value="" selected disabled>Select a level</option>
-                        <option value="100">100</option>
-                        <option value="200">200</option>
-                        <option value="300">300</option>
-                        <option value="400">400</option>
-                      </select>
+            
+                    <div class="mb-3">
+                        <label for="courseTitle" class="form-label">Course Title</label>
+                        <input type="text" class="form-control" id="courseTitle" value="{{ course.course_title }}" required readonly>
                     </div>
-                  </div>
-              
-                  <div class="mb-3">
-                    <label for="lecturers" class="form-label">Lecturer</label>
-                    <select class="form-select" id="lecturers" required disabled>
-                      <option value="" selected disabled>Select a lecturer</option>
-                      <option value="L123">John Doe - Computer Science</option>
-                      <option value="L456">Jane Smith - Information Technology</option>
-                    </select>
-                  </div>
-              
-                  <!-- Attendance Time Range -->
-                  <div class="row">
-                    <div class="col-md-4 mb-3">
-                      <label for="attendanceDay" class="form-label">Select Day</label>
-                      <select class="form-control" id="attendanceDay" required>
-                        <option value="" disabled selected>Select a day</option>
-                        <option value="Monday">Monday</option>
-                        <option value="Tuesday">Tuesday</option>
-                        <option value="Wednesday">Wednesday</option>
-                        <option value="Thursday">Thursday</option>
-                        <option value="Friday">Friday</option>
-                      </select>
+
+                    <div class="mb-3">
+                        <label for="department" class="form-label">Department</label>
+                        <!-- Show the department name, non-editable -->
+                        <input type="text" class="form-control" id="department" value="{{ course.department.name }}" required readonly>
                     </div>
-              
-                    <div class="col-md-4 mb-3">
-                      <label for="attendanceStartTime" class="form-label">Attendance Start Time</label>
-                      <input type="time" class="form-control" id="attendanceStartTime" required>
+            
+                    <div class="mb-3">
+                        <label for="attendanceDay" class="form-label">Select Day</label>
+                        <select class="form-control" id="attendanceDay" required>
+                            <option value="" disabled>Select a day</option>
+                            <option value="Monday" {% if course.attendance_day == "Monday" %} selected {% endif %}>Monday</option>
+                            <option value="Tuesday" {% if course.attendance_day == "Tuesday" %} selected {% endif %}>Tuesday</option>
+                            <option value="Wednesday" {% if course.attendance_day == "Wednesday" %} selected {% endif %}>Wednesday</option>
+                            <option value="Thursday" {% if course.attendance_day == "Thursday" %} selected {% endif %}>Thursday</option>
+                            <option value="Friday" {% if course.attendance_day == "Friday" %} selected {% endif %}>Friday</option>
+                        </select>
                     </div>
-              
-                    <div class="col-md-4 mb-3">
-                      <label for="attendanceEndTime" class="form-label">Attendance End Time</label>
-                      <input type="time" class="form-control" id="attendanceEndTime" required>
+            
+                    <div class="mb-3">
+                        <label for="startTime" class="form-label">Start Time</label>
+                        <input type="time" class="form-control" id="startTime" value="{{ course.attendance_start_time|time:'H:i' }}" required>
                     </div>
-                  </div>
-              
-                  <div class="d-flex justify-content-between">
-                    <button type="reset" class="btn btn-secondary">Reset</button>
-                    <button type="submit" class="btn btn-primary">Save Changes</button>
-                  </div>
+            
+                    <div class="mb-3">
+                        <label for="endTime" class="form-label">End Time</label>
+                        <input type="time" class="form-control" id="endTime" value="{{ course.attendance_end_time|time:'H:i' }}" required>
+                    </div>
+            
+                    <div class="d-flex justify-content-between">
+                        <button type="reset" class="btn btn-secondary" onclick="resetForm()">Reset</button>
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </div>
                 </form>
-              </div>
+            </div>
+            
+            
+            <!-- JavaScript (Put this at the bottom before closing body tag) -->
+            <script>
+                
+                document.getElementById("modifyClassForm").addEventListener("submit", function (e) {
+                      e.preventDefault();
+
+                      let courseId = "{{ course.id }}";
+                      let newDay = document.getElementById("attendanceDay").value;
+                      let newStartTime = document.getElementById("startTime").value;
+                      let newEndTime = document.getElementById("endTime").value;
+
+                      fetch(`/modify_class/${courseId}/`, {
+                          method: "POST",
+                          headers: {
+                              "Content-Type": "application/json",
+                              "X-CSRFToken": "{{ csrf_token }}"
+                          },
+                          body: JSON.stringify({
+                              day: newDay,
+                              start_time: newStartTime,
+                              end_time: newEndTime
+                          })
+                      })
+                      .then(response => response.json())
+                      .then(data => {
+                          if (data.message) {
+                              alert("Class updated successfully!");
+                              location.reload();
+                          } else {
+                              alert("Error: " + data.error);
+                          }
+                      })
+                      .catch(error => console.error("Error:", error));
+                  });
+
+            </script>
+            
               
               
             </div>
