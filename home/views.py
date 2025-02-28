@@ -278,41 +278,41 @@ def modify_course_page(request, course_id):
     semesters = Semester.objects.all()
 
     if request.method == "POST":
-        # Handle form submission
-        course_code = request.POST.get('courseCode')
-        course_title = request.POST.get('courseTitle')
-        department_id = request.POST.get('department')
-        semester_id = request.POST.get('semester')
-        level = request.POST.get('level')
-        lecturer_id = request.POST.get('lecturers')
-        attendance_day = request.POST.get('attendanceDay')
-        attendance_start_time = request.POST.get('attendanceStartTime')
-        attendance_end_time = request.POST.get('attendanceEndTime')
-
         try:
-            # Update the course information
+            # Get form data
+            course_code = request.POST.get('courseCode')
+            course_title = request.POST.get('courseTitle')
+            department_id = request.POST.get('department')
+            semester_id = request.POST.get('semester')
+            level = request.POST.get('level')
+            lecturer_id = request.POST.get('lecturers')
+            attendance_day = request.POST.get('attendanceDay')
+            attendance_start_time = request.POST.get('attendanceStartTime')
+            attendance_end_time = request.POST.get('attendanceEndTime')
+
+            # Update course information
             course.course_code = course_code
             course.course_title = course_title
-            course.department = Department.objects.get(id=department_id)
-            course.semester = Semester.objects.get(id=semester_id)
+            course.department = get_object_or_404(Department, id=department_id)
+            course.semester = get_object_or_404(Semester, id=semester_id)
             course.level = level
-            course.lecturer = Lecturer.objects.get(id=lecturer_id)
+            course.lecturer = get_object_or_404(Lecturer, id=lecturer_id)
             course.attendance_day = attendance_day
             course.attendance_start_time = attendance_start_time
             course.attendance_end_time = attendance_end_time
             course.save()
 
-            # Success message
-            messages.success(request, 'Course updated successfully!')
-        except Exception as e:
-            messages.error(request, f"Error: {e}")
-        
-        # Debugging: ensure course_id is passed correctly
-        print(f"Course ID after saving: {course.id}")
-        return redirect('modify_course_page', course_id=course.id)  # Redirect to the same page with updated course
+            messages.success(request, "Course updated successfully!")
 
-    # If not POST, return the modify course page with the existing data
-    return render(request, 'home/modify-course-page.html', {'course': course, 'lecturers': lecturers, 'departments': departments, 'semesters': semesters})
+        except Exception as e:
+            messages.error(request, f"Error updating course: {e}")
+
+    return render(request, 'home/modify-course-page.html', {
+        "course": course,
+        "lecturers": lecturers,
+        "departments": departments,
+        "semesters": semesters
+    })
 
 
 @user_passes_test(is_admin)
@@ -403,8 +403,6 @@ def modify_class(request, course_id):
 
 @user_passes_test(is_lecturer)
 def modify_profile(request):
-    lecturer = Lecturer.objects.get(user=request.user)
-
     try:
         lecturer = Lecturer.objects.get(user=request.user)
     except Lecturer.DoesNotExist:
@@ -414,18 +412,19 @@ def modify_profile(request):
         form = LecturerProfileUpdateForm(request.POST, request.FILES, instance=lecturer)
         
         if form.is_valid():
-            form.save(user=request.user)
+            form.save(user=request.user)  # ✅ Pass 'user' explicitly
             messages.success(request, "Profile updated successfully!")
-            return redirect('lecturer_panel')
+            
+            # Reset the form with the updated lecturer instance
+            form = LecturerProfileUpdateForm(instance=lecturer)
 
         else:
-            messages.error(request, "There was an error updating your profile.")
-    
+            messages.error(request, "There was an error updating your profile. Please check the form.")
+
     else:
         form = LecturerProfileUpdateForm(instance=lecturer)
-    
-    return render(request, "home/modify-profile.html", {"form": form, "lecturer": lecturer})
 
+    return render(request, "home/modify-profile.html", {"form": form, "lecturer": lecturer})
 
 @user_passes_test(is_lecturer)
 def profile(request):
@@ -507,7 +506,7 @@ def add_lecturer(request):
             lecturer_id = form.cleaned_data['lecturer_id']  # Grab the lecturer_id
             
             # Check if the email already exists
-            if CustomUser.objects.filter(email=user.email).exists():
+            if CustomUser.objects.filter(email=email).exists():  # FIX: Use 'email' instead of 'user.email'
                 form.add_error('email', 'A lecturer with this email already exists.')  # Add error to the email field
                 messages.error(request, 'A lecturer with this email already exists.')  # General error message
             # Check if the lecturer_id already exists
@@ -536,9 +535,6 @@ def add_lecturer(request):
         form = LecturerRegistrationForm()
 
     return render(request, 'home/add-lecturer.html', {'form': form})
-
-
-
 
 
 
