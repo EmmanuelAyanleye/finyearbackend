@@ -103,3 +103,19 @@ class CourseForm(forms.ModelForm):
     attendance_day = forms.ChoiceField(choices=[('Monday', 'Monday'), ('Tuesday', 'Tuesday'), ('Wednesday', 'Wednesday'), ('Thursday', 'Thursday'), ('Friday', 'Friday')], widget=forms.Select(attrs={'class': 'form-select'}))
     attendance_start_time = forms.TimeField(widget=forms.TimeInput(attrs={'class': 'form-control', 'type': 'time'}))
     attendance_end_time = forms.TimeField(widget=forms.TimeInput(attrs={'class': 'form-control', 'type': 'time'}))
+
+
+
+from .models import Student
+class StudentForm(forms.ModelForm):
+    class Meta:
+        model = Student
+        fields = ['full_name', 'matric_number', 'department', 'level', 'session', 'profile_picture']
+        widgets = {
+            'full_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'matric_number': forms.TextInput(attrs={'class': 'form-control'}),
+            'department': forms.Select(attrs={'class': 'form-select'}),
+            'level': forms.Select(attrs={'class': 'form-select'}),
+            'session': forms.Select(attrs={'class': 'form-select'}),
+            'profile_picture': forms.FileInput(attrs={'class': 'form-control'}),
+        }

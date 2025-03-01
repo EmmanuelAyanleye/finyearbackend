@@ -152,48 +152,90 @@
         <!-- Main Content -->
         <main class="flex-grow-1 overflow-auto">
             <div class="container py-4" id="main-content">
-              <div class="container">
-                <h2 class="text-center mb-4">Manage Students</h2>
-              
-                <!-- Search Bar -->
-                <div class="search-bar d-flex justify-content-end mb-3">
-                  <input type="text" id="searchInput" class="form-control w-25 me-2" placeholder="Search for a student...">
-                  <button class="btn btn-primary" id="searchButton">Search</button>
+                <div class="container">
+                    <h2 class="text-center mb-4">Manage Students</h2>
+        
+                    <!-- Search Bar -->
+                    <div class="search-bar d-flex justify-content-end mb-3">
+                        <input type="text" id="searchInput" class="form-control w-25 me-2" placeholder="Search for a student...">
+                        <button class="btn btn-primary" id="searchButton">Search</button>
+                    </div>
+        
+                    <!-- Table Wrapper -->
+                    <div class="table-wrapper">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                                <tr class="highlight">
+                                    <th>#</th>
+                                    <th>Name</th>
+                                    <th>Matric No</th>
+                                    <th>Department</th>
+                                    <th>Level</th>
+                                    <th>Session</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="studentTable">
+                                {% for student in students %}
+                                <tr>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td>{{ student.full_name }}</td>
+                                    <td>{{ student.matric_number }}</td>
+                                    <td>{{ student.department.name }}</td>
+                                    <td>{{ student.level }}</td>
+                                    <td>{{ student.session.name }}</td>
+                                    <td>
+                                        <a class="btn btn-sm btn-warning" href="{% url 'modify_student_page' student.id %}">Modify</a>
+                                        <button class="btn btn-sm btn-danger delete-student" data-student-id="{{ student.id }}">Delete</button>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="7" class="text-center">No students found</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-              
-                <!-- Table Wrapper -->
-                <div class="table-wrapper">
-                  <table class="table table-striped table-hover">
-                    <thead>
-                      <tr class="highlight">
-                        <th>#</th>
-                        <th>Name</th>
-                        <th>Department</th>
-                        <th>Level</th>
-                        <th>Semester</th>
-                        <th>Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody id="studentTable">
-                      <!-- Example Row -->
-                      <tr>
-                        <td>1</td>
-                        <td>John Doe</td>
-                        <td>Computer Science</td>
-                        <td>300</td>
-                        <td>First</td>
-                        <td>
-                          <a class="btn btn-sm btn-primary" href="{% url 'modify_student_page' %}">Modify</a>
-                          <button class="btn btn-sm btn-danger">Delete</button>
-                        </td>
-                      </tr>
-                      <!-- Additional rows will go here -->
-                    </tbody>
-                  </table>
-                </div>
-              </div>
             </div>
         </main>
+        
+        <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // Search functionality
+            document.getElementById("searchInput").addEventListener("keyup", function() {
+                let value = this.value.toLowerCase();
+                let rows = document.querySelectorAll("#studentTable tr");
+        
+                rows.forEach(row => {
+                    let text = row.textContent.toLowerCase();
+                    row.style.display = text.includes(value) ? "" : "none";
+                });
+            });
+        
+            // Delete student (AJAX call)
+            document.querySelectorAll(".delete-student").forEach(button => {
+                button.addEventListener("click", function() {
+                    let studentId = this.getAttribute("data-student-id");
+                    if (confirm("Are you sure you want to delete this student?")) {
+                        fetch(`/delete_student/${studentId}/`, {
+                            method: "POST",
+                            headers: { "X-CSRFToken": "{{ csrf_token }}" }
+                        }).then(response => response.json())
+                          .then(data => {
+                              if (data.success) {
+                                  this.closest("tr").remove();
+                              } else {
+                                  alert("Error deleting student");
+                              }
+                          });
+                    }
+                });
+            });
+        });
+        </script>
+        
     </div>
 </body>
 </html>

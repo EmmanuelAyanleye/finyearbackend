@@ -2,22 +2,41 @@
 
 
 /* Add this CSS to your static files or inside a `<style>` tag in your HTML */
-.message-error {
-    background-color: red;
-    color: white;
+/* Base styles for messages */
+.message {
+    position: fixed;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80%;
+    max-width: 500px;
     padding: 10px;
     border-radius: 5px;
-    margin-bottom: 10px;
     text-align: center;
+    z-index: 9999;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.5s ease, visibility 0s linear 0.5s;
 }
+
+/* Styles for success and error messages */
 .message-success {
     background-color: green;
     color: white;
-    padding: 10px;
-    border-radius: 5px;
-    margin-bottom: 10px;
-    text-align: center;
 }
+
+.message-error {
+    background-color: red;
+    color: white;
+}
+
+/* Show message with smooth transition */
+.message.show {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.5s ease;
+}
+
 
 
 

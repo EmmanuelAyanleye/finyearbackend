@@ -5,7 +5,7 @@ from django.contrib import messages
 from .models import CustomUser
 from .forms import LecturerRegistrationForm
 from django.contrib.auth.decorators import user_passes_test
-
+from .forms import StudentForm
 from django.contrib.sessions.models import Session
 from django.utils import timezone
 
@@ -19,6 +19,8 @@ from django.views.decorators.csrf import csrf_exempt
 import json
 from .models import Course 
 
+
+from .models import CustomUser, Student, Department, AcademicSession
 from .forms import LecturerProfileUpdateForm
 
 
@@ -167,7 +169,51 @@ def admin_summary(request):
 
 @user_passes_test(is_admin)
 def add_student(request):
-    return render(request, 'home/add-student.html')
+    departments = Department.objects.all()
+    sessions = AcademicSession.objects.all()
+
+    if request.method == "POST":
+        full_name = request.POST.get("full_name")
+        matric_number = request.POST.get("matric_number")
+        email = request.POST.get("email")
+        password = request.POST.get("password")
+        session_id = request.POST.get("session")
+        department_id = request.POST.get("department")
+        level = request.POST.get("level")
+        profile_picture = request.FILES.get("profile_picture")
+        fingerprint_data = request.POST.get("fingerprint1")
+
+        # Check if email or matric number already exists
+        if CustomUser.objects.filter(email=email).exists():
+            messages.error(request, "Email already exists!")
+            return redirect("add_student")
+        
+        if Student.objects.filter(matric_number=matric_number).exists():
+            messages.error(request, "Matric number already exists!")
+            return redirect("add_student")
+
+        # Create user
+        user = CustomUser.objects.create_user(email=email, password=password, role="student")
+
+        # Create student record
+        session = AcademicSession.objects.get(id=session_id)
+        department = Department.objects.get(id=department_id)
+
+        student = Student.objects.create(
+            user=user,
+            full_name=full_name,
+            matric_number=matric_number,
+            session=session,
+            department=department,
+            level=level,
+            profile_picture=profile_picture,
+            fingerprint_data=fingerprint_data
+        )
+
+        messages.success(request, "Student added successfully!")
+        return redirect("add_student")
+
+    return render(request, "home/add-student.html", {"departments": departments, "sessions": sessions})
 
 
 @user_passes_test(is_admin)
@@ -317,12 +363,49 @@ def modify_course_page(request, course_id):
 
 @user_passes_test(is_admin)
 def modify_student(request):
-    return render(request, 'home/modify-student.html')
+    students = Student.objects.select_related('user', 'department', 'session').all()
+    return render(request, 'home/modify-student.html', {'students': students})
+
+
+@csrf_exempt
+@user_passes_test(is_admin)
+def delete_student(request, student_id):
+    try:
+        student = Student.objects.get(id=student_id)
+        student.user.delete()  # This will also delete the related student record
+        return JsonResponse({"success": True})
+    except Student.DoesNotExist:
+        return JsonResponse({"success": False, "error": "Student not found"})
 
 
 @user_passes_test(is_admin)
-def modify_student_page(request):
-    return render(request, 'home/modify-student-page.html')
+def modify_student_page(request, student_id):
+    student = get_object_or_404(Student, id=student_id)
+    
+    if request.method == "POST":
+        form = StudentForm(request.POST, request.FILES, instance=student)
+        if form.is_valid():
+            # Save the student instance first
+            updated_student = form.save()
+
+            # Now update the associated user's email if it's changed
+            email = request.POST.get('email')
+            if email != student.user.email:
+                student.user.email = email
+                student.user.save()
+
+            messages.success(request, "Student details updated successfully.")
+            return redirect("modify_student_page", student_id=student.id)
+        else:
+            messages.error(request, "Error updating student details. Please check the form.")
+    else:
+        form = StudentForm(instance=student)
+
+    return render(request, "home/modify-student-page.html", {
+        "form": form,
+        "student": student,
+        "departments": Department.objects.all(),  # Ensure departments are passed to the template
+    })
 
 
 

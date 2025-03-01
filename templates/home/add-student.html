@@ -164,94 +164,76 @@
                         Fill in the form below to add a new student to the system.
                       </p>
                     </div>
+                    {% for message in messages %}
+                            {% if message.tags == 'success' %}
+                                <div class="message message-success">
+                                    {{ message }}
+                                </div>
+                            {% else %}
+                                <div class="message message-error">
+                                    {{ message }}
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+
                 
                     <!-- Add Student Form -->
                     <div>
                       <div class="card-body">
-                        <form id="addStudentForm">
-                          <!-- Student Name -->
+                        <form method="POST" enctype="multipart/form-data">
+                          {% csrf_token %}
+                          
+                          <!-- Full Name -->
                           <div class="mb-3">
-                            <label for="studentName" class="form-label">Full Name</label>
-                            <input
-                              type="text"
-                              class="form-control"
-                              id="studentName"
-                              placeholder="Enter student name"
-                              required
-                            />
+                            <label for="full_name" class="form-label">Full Name</label>
+                            <input type="text" class="form-control" id="full_name" name="full_name" placeholder="Enter student name" required />
                           </div>
-                
+                        
                           <!-- Matric and Session Section -->
                           <div class="row">
-                            <!-- Student Matric Number -->
                             <div class="col-md-6 mb-3">
-                              <label for="matricNumber" class="form-label">Matric Number</label>
-                              <input
-                                type="text"
-                                class="form-control"
-                                id="matricNumber"
-                                placeholder="Enter matriculation number"
-                                required
-                              />
+                              <label for="matric_number" class="form-label">Matric Number</label>
+                              <input type="text" class="form-control" id="matric_number" name="matric_number" placeholder="Enter matriculation number" required />
                             </div>
-                
-                            <!-- Session -->
+                        
                             <div class="col-md-6 mb-3">
                               <label for="session" class="form-label">Session</label>
-                              <select class="form-select" id="session" required>
+                              <select class="form-select" id="session" name="session" required>
                                 <option selected disabled>Select Session</option>
-                                <option value="2024/2025">2024/2025</option>
-                                <option value="2025/2026">2025/2026</option>
-                                <option value="2026/2027">2026/2027</option>
-                                <option value="2027/2028">2027/2028</option>
+                                {% for session in sessions %}
+                                  <option value="{{ session.id }}">{{ session.name }}</option>
+                                {% endfor %}
                               </select>
                             </div>
                           </div>
-                
+                        
+                          <!-- Email & Password -->
                           <div class="row">
-                            <!-- Email Address -->
                             <div class="col-md-6 mb-3">
                               <label for="email" class="form-label">Email Address</label>
-                              <input
-                                type="email"
-                                class="form-control"
-                                id="email"
-                                placeholder="Enter email address"
-                                required
-                              />
+                              <input type="email" class="form-control" id="email" name="email" placeholder="Enter email address" required />
                             </div>
-                
-                            <!-- Password -->
                             <div class="col-md-6 mb-3">
                               <label for="password" class="form-label">Password</label>
-                              <input
-                                type="password"
-                                class="form-control"
-                                id="password"
-                                placeholder="Enter password"
-                                required
-                              />
+                              <input type="password" class="form-control" id="password" name="password" placeholder="Enter password" required />
                             </div>
                           </div>
-                
-                          <!-- Department and Level Section -->
+                        
+                          <!-- Department and Level -->
                           <div class="row">
-                            <!-- Department -->
                             <div class="col-md-6 mb-3">
                               <label for="department" class="form-label">Department</label>
-                              <select class="form-select" id="department" required>
+                              <select class="form-select" id="department" name="department" required>
                                 <option selected disabled>Select Department</option>
-                                <option value="Computer Science">Computer Science</option>
-                                <option value="Mathematics">Mathematics</option>
-                                <option value="Physics">Physics</option>
-                                <option value="Chemistry">Chemistry</option>
+                                {% for department in departments %}
+                                  <option value="{{ department.id }}">{{ department.name }}</option>
+                                {% endfor %}
                               </select>
                             </div>
-                
-                            <!-- Level -->
+                        
                             <div class="col-md-6 mb-3">
                               <label for="level" class="form-label">Level</label>
-                              <select class="form-select" id="level" required>
+                              <select class="form-select" id="level" name="level" required>
                                 <option selected disabled>Select Level</option>
                                 <option value="100">100 Level</option>
                                 <option value="200">200 Level</option>
@@ -260,33 +242,28 @@
                               </select>
                             </div>
                           </div>
-                
-                          <!-- Profile Picture Upload -->
+                        
+                          <!-- Profile Picture -->
                           <div class="mb-3">
-                            <label for="profilePicture" class="form-label">Profile Picture</label>
-                            <input type="file" id="profilePicture" class="form-control" accept="image/*">
+                            <label for="profile_picture" class="form-label">Profile Picture</label>
+                            <input type="file" id="profile_picture" name="profile_picture" class="form-control" accept="image/*">
                           </div>
-                
+                        
                           <!-- Fingerprint Enrollment -->
-                <div class="mb-3">
-                  <label class="form-label">Fingerprint Enrollment</label>
-                  <div class="mb-2">
-                    <button class="btn btn-secondary w-100 enroll-btn" type="button" data-finger="1">
-                      Enroll Finger 1
-                    </button>
-                    <input type="hidden" id="fingerprint1" name="fingerprint1">
-                  </div>
-                  
-                  <!-- Fingerprint Enrollment Buttons -->
-                  
-                </div>
-                
-                
+                          <div class="mb-3">
+                            <label class="form-label">Fingerprint Enrollment</label>
+                            <button class="btn btn-secondary w-100 enroll-btn" type="button" data-finger="1">
+                              Enroll Finger 1
+                            </button>
+                            <input type="hidden" id="fingerprint1" name="fingerprint1">
+                          </div>
+                        
                           <!-- Submit Button -->
                           <div class="d-grid">
                             <button type="submit" class="btn btn-primary">Add Student</button>
                           </div>
                         </form>
+                        
                       </div>
                     </div>
                   </div>

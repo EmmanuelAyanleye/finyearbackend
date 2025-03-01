@@ -41,3 +41,24 @@ admin.site.register(AcademicSession)
 admin.site.register(Semester)
 admin.site.register(Department)
 admin.site.register(Course)
+
+
+
+from django.contrib import admin
+from .models import Student
+
+class StudentAdmin(admin.ModelAdmin):
+    list_display = ('get_full_name', 'matric_number', 'user_email', 'department', 'session', 'level')
+    search_fields = ('matric_number', 'user__email', 'user__first_name', 'user__last_name')
+    
+    def get_full_name(self, obj):
+        return obj.user.get_full_name()
+    get_full_name.admin_order_field = 'user__first_name'
+    get_full_name.short_description = 'Full Name'
+
+    def user_email(self, obj):
+        return obj.user.email
+    user_email.admin_order_field = 'user__email'
+    user_email.short_description = 'Email'
+
+admin.site.register(Student, StudentAdmin)
