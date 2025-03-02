@@ -163,17 +163,13 @@
                       Fill in the form below to add a new lecturer to the system.
                     </p>
                   </div>
-                  {% for message in messages %}
-                            {% if message.tags == 'success' %}
-                                <div class="message message-success">
-                                    {{ message }}
-                                </div>
-                            {% else %}
-                                <div class="message message-error">
-                                    {{ message }}
-                                </div>
-                            {% endif %}
+                  {% if messages %}
+                    <div>
+                        {% for message in messages %}
+                        <div class="message-{{ message.tags }}">{{ message }}</div>
                         {% endfor %}
+                    </div>
+                {% endif %}
 
               
                   <!-- Add Lecturer Form -->

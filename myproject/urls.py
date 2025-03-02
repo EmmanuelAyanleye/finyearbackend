@@ -5,6 +5,7 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('api/', include('fingerprint.urls')),
     path('', include('home.urls')),  # Include the home app's URLs
 ]
 

@@ -164,17 +164,13 @@
                         Fill in the form below to add a new student to the system.
                       </p>
                     </div>
-                    {% for message in messages %}
-                            {% if message.tags == 'success' %}
-                                <div class="message message-success">
-                                    {{ message }}
-                                </div>
-                            {% else %}
-                                <div class="message message-error">
-                                    {{ message }}
-                                </div>
-                            {% endif %}
+                    {% if messages %}
+                    <div>
+                        {% for message in messages %}
+                        <div class="message-{{ message.tags }}">{{ message }}</div>
                         {% endfor %}
+                    </div>
+                {% endif %}
 
                 
                     <!-- Add Student Form -->
@@ -252,16 +248,55 @@
                           <!-- Fingerprint Enrollment -->
                           <div class="mb-3">
                             <label class="form-label">Fingerprint Enrollment</label>
-                            <button class="btn btn-secondary w-100 enroll-btn" type="button" data-finger="1">
-                              Enroll Finger 1
+                            <button class="btn btn-secondary w-100 enroll-btn" type="button" id="enrollFinger1Button" data-finger="1">
+                                Enroll Finger 1
                             </button>
                             <input type="hidden" id="fingerprint1" name="fingerprint1">
-                          </div>
+                        </div>
                         
                           <!-- Submit Button -->
                           <div class="d-grid">
                             <button type="submit" class="btn btn-primary">Add Student</button>
                           </div>
+                          <script>
+                            document.getElementById('enrollFinger1Button').addEventListener('click', function() {
+    const studentId = document.getElementById('matric_number').value;  // Get the matric number (or student ID)
+
+    if (!studentId) {
+        alert('Please enter the matriculation number');
+        return;
+    }
+
+    // Get CSRF token from the page
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+    // Send the request to the backend to start fingerprint enrollment
+    fetch('/api/enroll_fingerprint/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken,  // CSRF token is included here
+        },
+        body: JSON.stringify({
+            student_id: studentId,  // Pass the student ID here
+            fingerprint: fingerprint1  // Pass the fingerprint data in base64 format
+        }),
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.message) {
+            alert('Fingerprint enrollment successful');
+        } else {
+            alert('Enrollment failed: ' + data.error);
+        }
+    })
+    .catch(error => {
+        alert('Error: ' + error.message);
+    });
+});
+
+                            </script>
+                            
                         </form>
                         
                       </div>

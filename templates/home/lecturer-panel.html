@@ -30,12 +30,10 @@
                         <ul class="navbar-nav ms-auto">
                             <li class="nav-item">
                                 <a href="#" data-bs-toggle="dropdown" class="nav-icon pe-md-0">
-                                    {% if lecturer and lecturer.profile_picture %}
-                                        <img src="{{ lecturer.profile_picture.url }}" class="avatar img-fluid" alt="Profile Picture" style="border-radius: 50px;">
-                                    {% else %}
-                                        <img src="{% static 'images/account.png' %}" class="avatar img-fluid" alt="Default Profile Picture" style="border-radius: 50px;">
-                                    {% endif %}
+                                    <img src="{% if request.user.lecturer.profile_picture %}{{ request.user.lecturer.profile_picture.url }}{% else %}{% static 'images/account.png' %}{% endif %}" 
+                                         class="avatar img-fluid" alt="User Account" style="border-radius: 50px;">
                                 </a>
+                                
                             </li>
                         </ul>
                     </div>

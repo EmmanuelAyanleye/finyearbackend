@@ -155,17 +155,13 @@
               <div class="container">
                 <h2 class="text-center mb-4">Update course details</h2>
                 <!-- Display messages (success/error) -->
-                {% for message in messages %}
-                            {% if message.tags == 'success' %}
-                                <div class="message message-success">
-                                    {{ message }}
-                                </div>
-                            {% else %}
-                                <div class="message message-error">
-                                    {{ message }}
-                                </div>
-                            {% endif %}
+                {% if messages %}
+                    <div>
+                        {% for message in messages %}
+                        <div class="message-{{ message.tags }}">{{ message }}</div>
                         {% endfor %}
+                    </div>
+                {% endif %}
             
                 <!-- Modify Course Form -->
                 <form method="POST">

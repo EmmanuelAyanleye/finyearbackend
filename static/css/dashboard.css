@@ -13,21 +13,42 @@
     padding: 10px;
     border-radius: 5px;
     text-align: center;
-    z-index: 9999;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.5s ease, visibility 0s linear 0.5s;
-}
-
-/* Styles for success and error messages */
-.message-success {
-    background-color: green;
-    color: white;
 }
 
 .message-error {
     background-color: red;
     color: white;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.message-success {
+    background-color: green;
+    color: white;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.error {
+    background-color: red;
+    color: white;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.success {
+    background-color: green;
+    color: white;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    text-align: center;
 }
 
 /* Show message with smooth transition */

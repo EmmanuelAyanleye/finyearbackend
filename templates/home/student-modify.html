@@ -30,8 +30,10 @@
                         <ul class="navbar-nav ms-auto">
                             <li class="nav-item">
                                 <a href="#" data-bs-toggle="dropdown" class="nav-icon pe-md-0">
-                                    <img src="{% static 'images/account.png' %}" class="avatar img-fluid" alt="User Account">
+                                    <img src="{% if request.user.student.profile_picture %}{{ request.user.student.profile_picture.url }}{% else %}{% static 'images/account.png' %}{% endif %}" 
+                                         class="avatar img-fluid" alt="User Account" style="border-radius: 50px;">
                                 </a>
+                                
                             </li>
                         </ul>
                     </div>
@@ -101,66 +103,84 @@
         <!-- Main Content -->
         <main class="flex-grow-1 overflow-auto">
             <div class="container py-4" id="main-content">
-              <div class="container">
-                <div class="form-container">
-                  <h2 class="form-title text-center">Modify Student Details</h2>
-                  <form>
-                    <div class="mb-3">
-                      <label for="studentName" class="form-label">Student Name</label>
-                      <input type="text" class="form-control" id="studentName" placeholder="Enter student name" readonly>
+                <div class="container">
+                    <div class="form-container">
+                        <h2 class="form-title text-center">Modify Your Details</h2>
+                
+                        {% for message in messages %}
+                            {% if message.tags == 'success' %}
+                                <div class="alert alert-success">{{ message }}</div>
+                            {% else %}
+                                <div class="alert alert-danger">{{ message }}</div>
+                            {% endif %}
+                        {% endfor %}
+                
+                        <form method="POST" enctype="multipart/form-data">
+                            {% csrf_token %}
+                
+                            <!-- Full Name (Read-only) -->
+                            <div class="mb-3">
+                                <label class="form-label">Full Name</label>
+                                <input type="text" class="form-control" value="{{ student.full_name }}" readonly>
+                            </div>
+                
+                            <div class="row">
+                                <!-- Matric Number (Read-only) -->
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Matric Number</label>
+                                    <input type="text" class="form-control" value="{{ student.matric_number }}" readonly>
+                                </div>
+                
+                                <!-- Department (Read-only) -->
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Department</label>
+                                    <input type="text" class="form-control" value="{{ student.department.name }}" readonly>
+                                </div>
+                            </div>
+                
+                            <div class="row">
+                                <!-- Level (Read-only) -->
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Level</label>
+                                    <input type="text" class="form-control" value="{{ student.get_level_display }}" readonly>
+                                </div>
+                
+                                <!-- Session (Read-only) -->
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Session</label>
+                                    <input type="text" class="form-control" value="{{ student.session }}" readonly>
+                                </div>
+                            </div>
+                
+                            <!-- Email (Editable) -->
+                            <div class="mb-3">
+                                <label class="form-label">Email Address</label>
+                                <input type="email" class="form-control" name="email" value="{{ form.email.value }}" required>
+                            </div>
+                
+                            <!-- Password (Editable) -->
+                            <div class="mb-3">
+                                <label class="form-label">New Password (Leave blank if not changing)</label>
+                                <input type="password" class="form-control" name="password">
+                            </div>
+                
+                            <!-- Profile Picture Upload -->
+                            <div class="mb-3">
+                                <label class="form-label">Profile Picture</label>
+                                <input type="file" class="form-control" name="profile_picture" accept="image/*">
+                            </div>
+                
+                            <div class="d-flex justify-content-between">
+                                <button type="reset" class="btn btn-secondary">Reset</button>
+                                <button type="submit" class="btn btn-primary">Save Changes</button>
+                            </div>
+                        </form>
                     </div>
-            
-                    <div class="mb-3">
-                        <label for="department" class="form-label">Department</label>
-                        <select class="form-select" id="department" disabled>
-                          <option selected disabled>Select department</option>
-                          <option value="Computer Science">Computer Science</option>
-                          <option value="Information Technology">Information Technology</option>
-                          <option value="Engineering">Engineering</option>
-                          <option value="Business Administration">Business Administration</option>
-                        </select>
-                      </div>
-            
-                      <div class="mb-3">
-                        <label for="matricNumber" class="form-label">Matric Number</label>
-                        <input type="text" class="form-control" id="matricNumber" placeholder="Enter matric number" readonly>
-                      </div>
-                    
-            
-                      <div class="mb-3">
-                        <label for="level" class="form-label">Level</label>
-                        <select class="form-select" id="level" disabled>
-                          <option selected disabled>Select level</option>
-                          <option value="100">100</option>
-                          <option value="200">200</option>
-                          <option value="300">300</option>
-                          <option value="400">400</option>
-                        </select>
-                      </div>
-                      <div class="mb-3">
-                        <label for="semester" class="form-label">Semester</label>
-                        <select class="form-select" id="semester" disabled>
-                          <option selected disabled>Select semester</option>
-                          <option value="First">First</option>
-                          <option value="Second">Second</option>
-                        </select>
-                      </div>
-                    
-                    
-                    <!-- Profile Picture Upload -->
-                    <div class="mb-3">
-                      <label for="profilePicture" class="form-label">Profile Picture</label>
-                      <input type="file" id="profilePicture" class="form-control mt-2" accept="image/*">
-                  </div>
-            
-            
-                    <div class="d-flex justify-content-between">
-                      <button type="reset" class="btn btn-secondary">Reset</button>
-                      <button type="submit" class="btn btn-primary">Save Changes</button>
-                    </div>
-                  </form>
                 </div>
-              </div>
+                
+                
+            
+            
             </div>
         </main>
     </div>

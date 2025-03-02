@@ -52,7 +52,14 @@ class LecturerProfileUpdateForm(forms.ModelForm):
     
     def save(self, user, commit=True):
         lecturer = super().save(commit=False)
-        user.email = self.cleaned_data['email']
+
+        # Check if the email is being changed
+        new_email = self.cleaned_data['email']
+        if new_email and new_email != user.email:
+            # Ensure the new email does not already exist in the database
+            if User.objects.filter(email=new_email).exclude(id=user.id).exists():
+                raise forms.ValidationError("This email is already in use by another account.")
+            user.email = new_email  # Update the email only if it's not already in use
         
         # Update password if provided
         password = self.cleaned_data.get('password')
@@ -63,7 +70,6 @@ class LecturerProfileUpdateForm(forms.ModelForm):
             user.save()
             lecturer.save()
         return lecturer
-
 
 
 
@@ -108,6 +114,11 @@ class CourseForm(forms.ModelForm):
 
 from .models import Student
 class StudentForm(forms.ModelForm):
+    password = forms.CharField(
+        widget=forms.PasswordInput(attrs={'class': 'form-control'}),
+        required=False,  # Allow the password field to be empty
+    )
+
     class Meta:
         model = Student
         fields = ['full_name', 'matric_number', 'department', 'level', 'session', 'profile_picture']
@@ -119,3 +130,24 @@ class StudentForm(forms.ModelForm):
             'session': forms.Select(attrs={'class': 'form-select'}),
             'profile_picture': forms.FileInput(attrs={'class': 'form-control'}),
         }
+
+
+
+
+class StudentSelfUpdateForm(forms.ModelForm):
+    email = forms.EmailField(
+        widget=forms.EmailInput(attrs={'class': 'form-control'}),
+        required=True
+    )
+    password = forms.CharField(
+        widget=forms.PasswordInput(attrs={'class': 'form-control'}),
+        required=False  # Allow the password field to be empty
+    )
+    profile_picture = forms.ImageField(
+        widget=forms.FileInput(attrs={'class': 'form-control'}),
+        required=False
+    )
+
+    class Meta:
+        model = Student
+        fields = ['email', 'password', 'profile_picture']

@@ -16,9 +16,11 @@ from django.shortcuts import redirect
 from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.hashers import make_password
 import json
 from .models import Course 
 
+from .forms import StudentSelfUpdateForm
 
 from .models import CustomUser, Student, Department, AcademicSession
 from .forms import LecturerProfileUpdateForm
@@ -390,8 +392,14 @@ def modify_student_page(request, student_id):
 
             # Now update the associated user's email if it's changed
             email = request.POST.get('email')
-            if email != student.user.email:
+            if email and email != student.user.email:
                 student.user.email = email
+                student.user.save()
+
+            # Update password if provided
+            password = request.POST.get('password')
+            if password:
+                student.user.password = make_password(password)  # Hash the new password
                 student.user.save()
 
             messages.success(request, "Student details updated successfully.")
@@ -404,7 +412,7 @@ def modify_student_page(request, student_id):
     return render(request, "home/modify-student-page.html", {
         "form": form,
         "student": student,
-        "departments": Department.objects.all(),  # Ensure departments are passed to the template
+        "departments": Department.objects.all(),
     })
 
 
@@ -484,10 +492,12 @@ def modify_class(request, course_id):
         'course': course_allocation,  # ✅ Send course details to the template
     })
 
+from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
+
+User = get_user_model()
 @user_passes_test(is_lecturer)
 def modify_profile(request):
-    lecturer = Lecturer.objects.get(user=request.user)
-
     try:
         lecturer = Lecturer.objects.get(user=request.user)
     except Lecturer.DoesNotExist:
@@ -497,16 +507,20 @@ def modify_profile(request):
         form = LecturerProfileUpdateForm(request.POST, request.FILES, instance=lecturer)
         
         if form.is_valid():
-            form.save(user=request.user)
-            messages.success(request, "Profile updated successfully!")
-            return redirect('lecturer_panel')
+            try:
+                form.save(user=request.user)  # Pass the user argument
+                messages.success(request, "Profile updated successfully!")
+                # Stay on the same page instead of redirecting
+            except ValidationError as e:
+                form.add_error('email', e)  # Add error to the form instead of redirecting
+                messages.error(request, "This email is already in use by another account.")
 
         else:
             messages.error(request, "There was an error updating your profile.")
     
     else:
         form = LecturerProfileUpdateForm(instance=lecturer)
-    
+
     return render(request, "home/modify-profile.html", {"form": form, "lecturer": lecturer})
 
 
@@ -537,12 +551,42 @@ def student_report(request):
 
 @user_passes_test(is_student)
 def student_modify(request):
-    return render(request, 'home/student-modify.html')
+    student = request.user.student  # Get the logged-in student's profile
+
+    if request.method == "POST":
+        form = StudentSelfUpdateForm(request.POST, request.FILES, instance=student)
+        if form.is_valid():
+            # Check if the new email already exists
+            new_email = form.cleaned_data['email']
+            if request.user.email != new_email and CustomUser.objects.filter(email=new_email).exists():
+                messages.error(request, "Email already exists. Please use another email.")
+            else:
+                # Update user email
+                request.user.email = new_email
+                request.user.save()
+
+                # Update password only if provided
+                new_password = form.cleaned_data['password']
+                if new_password:
+                    request.user.set_password(new_password)
+                    request.user.save()
+                    messages.success(request, "Password updated successfully.")
+
+                # Save profile picture if changed
+                form.save()
+                messages.success(request, "Profile updated successfully!")
+                return redirect('student_modify')
+
+    else:
+        form = StudentSelfUpdateForm(instance=student, initial={'email': request.user.email})
+
+    return render(request, 'home/student-modify.html', {'form': form, 'student': student})
 
 
 @user_passes_test(is_student)
 def student_profile(request):
-    return render(request, 'home/student-profile.html')
+    student = get_object_or_404(Student, user=request.user)
+    return render(request, 'home/student-profile.html', {"student": student})
 
 
 @login_required(login_url='login')
@@ -578,7 +622,7 @@ def add_lecturer(request):
             lecturer_id = form.cleaned_data['lecturer_id']  # Grab the lecturer_id
             
             # Check if the email already exists
-            if CustomUser.objects.filter(email=user.email).exists():
+            if CustomUser.objects.filter(email=email).exists():
                 form.add_error('email', 'A lecturer with this email already exists.')  # Add error to the email field
                 messages.error(request, 'A lecturer with this email already exists.')  # General error message
             # Check if the lecturer_id already exists
