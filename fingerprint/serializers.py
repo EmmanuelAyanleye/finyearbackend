@@ -1,5 +1,7 @@
 from rest_framework import serializers
+from .models import FingerprintData
 
-class FingerprintSerializer(serializers.Serializer):
-    student_id = serializers.IntegerField()
-    fingerprint = serializers.CharField()  # This will hold the Base64 fingerprint string
+class FingerprintSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FingerprintData
+        fields = ['student', 'fingerprint_data']

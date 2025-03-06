@@ -137,6 +137,16 @@ LOGIN_URL = '/login/'
 LOGOUT_REDIRECT_URL = '/' 
 AUTH_USER_MODEL = 'home.CustomUser'  # Ensure this is correct
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+SESSION_ENGINE = "django.contrib.sessions.backends.cache"
+SESSION_CACHE_ALIAS = "default"
+
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        "LOCATION": "unique-snowflake",
+    }
+}
+
 
 
 

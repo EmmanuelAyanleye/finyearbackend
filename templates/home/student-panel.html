@@ -24,8 +24,10 @@
             <div class="justify-content-end">
                 <div class="d-flex">
                     <div class="nav-item text-light pt-2 px-3 d-none d-md-inline">
-                        Welcome back, <span id="name">Student</span>
+                        {% load custom_filters %}
+                        Welcome back, <span id="name">{{ request.user.student.full_name|split:" " }} </span>
                     </div>
+                    
                     <div class="d-none d-sm-inline">
                         <ul class="navbar-nav ms-auto">
                             <li class="nav-item">

@@ -24,7 +24,8 @@
             <div class="justify-content-end">
                 <div class="d-flex">
                     <div class="nav-item text-light pt-2 px-3 d-none d-md-inline">
-                        Welcome back, <span id="name">Lecturer</span>
+                        {% load custom_filters %}
+                        Welcome back, <span id="name">{{ request.user.lecturer.full_name|split:" " }} </span>
                     </div>
                     <div class="d-none d-sm-inline">
                         <ul class="navbar-nav ms-auto">
@@ -115,17 +116,13 @@
                     <h2 class="text-center mb-4">Modify Profile</h2>
                     <div> 
 
-                        {% for message in messages %}
-                            {% if message.tags == 'success' %}
-                                <div class="message message-success">
-                                    {{ message }}
-                                </div>
-                            {% else %}
-                                <div class="message message-error">
-                                    {{ message }}
-                                </div>
-                            {% endif %}
-                        {% endfor %}
+                        {% if messages %}
+                            <div>
+                                {% for message in messages %}
+                                <div class="message-{{ message.tags }}">{{ message }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
                 
                         <form class="mt-4" id="updateProfileForm" method="POST" enctype="multipart/form-data">
                             {% csrf_token %}

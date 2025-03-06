@@ -19,6 +19,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.hashers import make_password
 import json
 from .models import Course 
+from fingerprint.models import FingerprintData  # Import the FingerprintData model
+
 
 from .forms import StudentSelfUpdateForm
 
@@ -169,6 +171,12 @@ def admin_summary(request):
 #     return render(request, 'home/add-lecturer.html')
 
 
+import subprocess
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+
+
+
 @user_passes_test(is_admin)
 def add_student(request):
     departments = Department.objects.all()
@@ -185,19 +193,21 @@ def add_student(request):
         profile_picture = request.FILES.get("profile_picture")
         fingerprint_data = request.POST.get("fingerprint1")
 
-        # Check if email or matric number already exists
+        if not fingerprint_data:
+            messages.error(request, "Fingerprint data is required!")
+            return redirect("add_student")
+
+        # Check for duplicates
         if CustomUser.objects.filter(email=email).exists():
             messages.error(request, "Email already exists!")
             return redirect("add_student")
-        
+
         if Student.objects.filter(matric_number=matric_number).exists():
             messages.error(request, "Matric number already exists!")
             return redirect("add_student")
 
-        # Create user
+        # Create user and student record
         user = CustomUser.objects.create_user(email=email, password=password, role="student")
-
-        # Create student record
         session = AcademicSession.objects.get(id=session_id)
         department = Department.objects.get(id=department_id)
 
@@ -208,9 +218,10 @@ def add_student(request):
             session=session,
             department=department,
             level=level,
-            profile_picture=profile_picture,
-            fingerprint_data=fingerprint_data
+            profile_picture=profile_picture
         )
+
+        FingerprintData.objects.create(student=student, fingerprint_data=fingerprint_data)
 
         messages.success(request, "Student added successfully!")
         return redirect("add_student")
@@ -666,29 +677,43 @@ from .models import AcademicSession, Semester, Department
 from .forms import AcademicSessionForm, SemesterForm, DepartmentForm
 @user_passes_test(is_admin)
 def settings(request):
+    active_tab = 'sessions'
     if request.method == "POST":
         # Handle adding new sessions, semesters, or departments
         if 'add_session' in request.POST:
             session_name = request.POST.get('session_name')
-            AcademicSession.objects.create(name=session_name)
+            if session_name:
+                AcademicSession.objects.create(name=session_name)
         elif 'add_semester' in request.POST:
             semester_name = request.POST.get('semester_name')
-            Semester.objects.create(name=semester_name)
+            if semester_name:
+                Semester.objects.create(name=semester_name)
         elif 'add_department' in request.POST:
             department_name = request.POST.get('department_name')
-            Department.objects.create(name=department_name)
+            if department_name:
+                Department.objects.create(name=department_name)
 
-    # Handle modifications and deletions
+        return redirect('settings')  # Redirect to prevent duplicate form submissions
+
+    # Handle deletions
     if request.method == "GET":
         if 'delete_session' in request.GET:
             session_id = request.GET.get('delete_session')
-            AcademicSession.objects.get(id=session_id).delete()
+            session = get_object_or_404(AcademicSession, id=session_id)
+            session.delete()
+            return redirect('settings')
+
         elif 'delete_semester' in request.GET:
             semester_id = request.GET.get('delete_semester')
-            Semester.objects.get(id=semester_id).delete()
+            semester = get_object_or_404(Semester, id=semester_id)
+            semester.delete()
+            return redirect('settings')
+
         elif 'delete_department' in request.GET:
             department_id = request.GET.get('delete_department')
-            Department.objects.get(id=department_id).delete()
+            department = get_object_or_404(Department, id=department_id)
+            department.delete()
+            return redirect('settings')
 
     # Get all the sessions, semesters, and departments
     sessions = AcademicSession.objects.all()
@@ -698,5 +723,6 @@ def settings(request):
     return render(request, 'home/settings.html', {
         'sessions': sessions,
         'semesters': semesters,
-        'departments': departments
+        'departments': departments,
+        'active_tab': active_tab  # Pass the active tab to the template
     })

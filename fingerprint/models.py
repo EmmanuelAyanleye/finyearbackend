@@ -1,9 +1,9 @@
 from django.db import models
+from home.models import Student  # Importing Student from home app
 
-class Student(models.Model):
-    first_name = models.CharField(max_length=100)
-    last_name = models.CharField(max_length=100)
-    student_id = models.CharField(max_length=20)
+class FingerprintData(models.Model):
+    student = models.OneToOneField(Student, on_delete=models.CASCADE)
+    fingerprint_data = models.TextField()  # Storing Base64 fingerprint template
 
     def __str__(self):
-        return self.first_name + " " + self.last_name
+        return f"Fingerprint for {self.student.full_name}"

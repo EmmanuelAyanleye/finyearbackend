@@ -151,161 +151,144 @@
 
         <!-- Main Content -->
         <main class="flex-grow-1 overflow-auto">
-            <div class="container py-4" id="main-content">
+          <div class="container py-4" id="main-content">
               {% load static %}
-
-
+      
               <!-- Main Content -->
               <main class="content">
                   <div class="container">
-                    <div class="text-center">
-                      <h2 class="page-title">Add New Student</h2>
-                      <p class="text-muted">
-                        Fill in the form below to add a new student to the system.
-                      </p>
-                    </div>
-                    {% if messages %}
-                    <div>
-                        {% for message in messages %}
-                        <div class="message-{{ message.tags }}">{{ message }}</div>
-                        {% endfor %}
-                    </div>
-                {% endif %}
-
-                
-                    <!-- Add Student Form -->
-                    <div>
-                      <div class="card-body">
-                        <form method="POST" enctype="multipart/form-data">
-                          {% csrf_token %}
-                          
-                          <!-- Full Name -->
-                          <div class="mb-3">
-                            <label for="full_name" class="form-label">Full Name</label>
-                            <input type="text" class="form-control" id="full_name" name="full_name" placeholder="Enter student name" required />
-                          </div>
-                        
-                          <!-- Matric and Session Section -->
-                          <div class="row">
-                            <div class="col-md-6 mb-3">
-                              <label for="matric_number" class="form-label">Matric Number</label>
-                              <input type="text" class="form-control" id="matric_number" name="matric_number" placeholder="Enter matriculation number" required />
-                            </div>
-                        
-                            <div class="col-md-6 mb-3">
-                              <label for="session" class="form-label">Session</label>
-                              <select class="form-select" id="session" name="session" required>
-                                <option selected disabled>Select Session</option>
-                                {% for session in sessions %}
-                                  <option value="{{ session.id }}">{{ session.name }}</option>
-                                {% endfor %}
-                              </select>
-                            </div>
-                          </div>
-                        
-                          <!-- Email & Password -->
-                          <div class="row">
-                            <div class="col-md-6 mb-3">
-                              <label for="email" class="form-label">Email Address</label>
-                              <input type="email" class="form-control" id="email" name="email" placeholder="Enter email address" required />
-                            </div>
-                            <div class="col-md-6 mb-3">
-                              <label for="password" class="form-label">Password</label>
-                              <input type="password" class="form-control" id="password" name="password" placeholder="Enter password" required />
-                            </div>
-                          </div>
-                        
-                          <!-- Department and Level -->
-                          <div class="row">
-                            <div class="col-md-6 mb-3">
-                              <label for="department" class="form-label">Department</label>
-                              <select class="form-select" id="department" name="department" required>
-                                <option selected disabled>Select Department</option>
-                                {% for department in departments %}
-                                  <option value="{{ department.id }}">{{ department.name }}</option>
-                                {% endfor %}
-                              </select>
-                            </div>
-                        
-                            <div class="col-md-6 mb-3">
-                              <label for="level" class="form-label">Level</label>
-                              <select class="form-select" id="level" name="level" required>
-                                <option selected disabled>Select Level</option>
-                                <option value="100">100 Level</option>
-                                <option value="200">200 Level</option>
-                                <option value="300">300 Level</option>
-                                <option value="400">400 Level</option>
-                              </select>
-                            </div>
-                          </div>
-                        
-                          <!-- Profile Picture -->
-                          <div class="mb-3">
-                            <label for="profile_picture" class="form-label">Profile Picture</label>
-                            <input type="file" id="profile_picture" name="profile_picture" class="form-control" accept="image/*">
-                          </div>
-                        
-                          <!-- Fingerprint Enrollment -->
-                          <div class="mb-3">
-                            <label class="form-label">Fingerprint Enrollment</label>
-                            <button class="btn btn-secondary w-100 enroll-btn" type="button" id="enrollFinger1Button" data-finger="1">
-                                Enroll Finger 1
-                            </button>
-                            <input type="hidden" id="fingerprint1" name="fingerprint1">
-                        </div>
-                        
-                          <!-- Submit Button -->
-                          <div class="d-grid">
-                            <button type="submit" class="btn btn-primary">Add Student</button>
-                          </div>
-                          <script>
-                            document.getElementById('enrollFinger1Button').addEventListener('click', function() {
-    const studentId = document.getElementById('matric_number').value;  // Get the matric number (or student ID)
-
-    if (!studentId) {
-        alert('Please enter the matriculation number');
-        return;
-    }
-
-    // Get CSRF token from the page
-    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-
-    // Send the request to the backend to start fingerprint enrollment
-    fetch('/api/enroll_fingerprint/', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': csrfToken,  // CSRF token is included here
-        },
-        body: JSON.stringify({
-            student_id: studentId,  // Pass the student ID here
-            fingerprint: fingerprint1  // Pass the fingerprint data in base64 format
-        }),
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.message) {
-            alert('Fingerprint enrollment successful');
-        } else {
-            alert('Enrollment failed: ' + data.error);
-        }
-    })
-    .catch(error => {
-        alert('Error: ' + error.message);
-    });
-});
-
-                            </script>
-                            
-                        </form>
-                        
+                      <div class="text-center">
+                          <h2 class="page-title">Add New Student</h2>
+                          <p class="text-muted">Fill in the form below to add a new student to the system.</p>
                       </div>
-                    </div>
+                      {% if messages %}
+                      <div>
+                          {% for message in messages %}
+                          <div class="message-{{ message.tags }}">{{ message }}</div>
+                          {% endfor %}
+                      </div>
+                      {% endif %}
+      
+                      <!-- Add Student Form -->
+                      <div>
+                          <div class="card-body">
+                              <form method="POST" enctype="multipart/form-data">
+                                  {% csrf_token %}
+      
+                                  <!-- Full Name -->
+                                  <div class="mb-3">
+                                      <label for="full_name" class="form-label">Full Name</label>
+                                      <input type="text" class="form-control" id="full_name" name="full_name" placeholder="Enter student name" required />
+                                  </div>
+      
+                                  <!-- Matric and Session Section -->
+                                  <div class="row">
+                                      <div class="col-md-6 mb-3">
+                                          <label for="matric_number" class="form-label">Matric Number</label>
+                                          <input type="text" class="form-control" id="matric_number" name="matric_number" placeholder="Enter matriculation number" required />
+                                      </div>
+      
+                                      <div class="col-md-6 mb-3">
+                                          <label for="session" class="form-label">Session</label>
+                                          <select class="form-select" id="session" name="session" required>
+                                              <option selected disabled>Select Session</option>
+                                              {% for session in sessions %}
+                                              <option value="{{ session.id }}">{{ session.name }}</option>
+                                              {% endfor %}
+                                          </select>
+                                      </div>
+                                  </div>
+      
+                                  <!-- Email & Password -->
+                                  <div class="row">
+                                      <div class="col-md-6 mb-3">
+                                          <label for="email" class="form-label">Email Address</label>
+                                          <input type="email" class="form-control" id="email" name="email" placeholder="Enter email address" required />
+                                      </div>
+                                      <div class="col-md-6 mb-3">
+                                          <label for="password" class="form-label">Password</label>
+                                          <input type="password" class="form-control" id="password" name="password" placeholder="Enter password" required />
+                                      </div>
+                                  </div>
+      
+                                  <!-- Department and Level -->
+                                  <div class="row">
+                                      <div class="col-md-6 mb-3">
+                                          <label for="department" class="form-label">Department</label>
+                                          <select class="form-select" id="department" name="department" required>
+                                              <option selected disabled>Select Department</option>
+                                              {% for department in departments %}
+                                              <option value="{{ department.id }}">{{ department.name }}</option>
+                                              {% endfor %}
+                                          </select>
+                                      </div>
+      
+                                      <div class="col-md-6 mb-3">
+                                          <label for="level" class="form-label">Level</label>
+                                          <select class="form-select" id="level" name="level" required>
+                                              <option selected disabled>Select Level</option>
+                                              <option value="100">100 Level</option>
+                                              <option value="200">200 Level</option>
+                                              <option value="300">300 Level</option>
+                                              <option value="400">400 Level</option>
+                                          </select>
+                                      </div>
+                                  </div>
+      
+                                  <!-- Profile Picture -->
+                                  <div class="mb-3">
+                                      <label for="profile_picture" class="form-label">Profile Picture</label>
+                                      <input type="file" id="profile_picture" name="profile_picture" class="form-control" accept="image/*">
+                                  </div>
+      
+                                  <!-- Fingerprint Enrollment -->
+                                  <div class="mb-3">
+                                      <label class="form-label">Fingerprint Enrollment</label>
+                                      <input type="hidden" id="fingerprint1" name="fingerprint1">
+                                      <button type="button" class="btn btn-secondary w-100 mt-2" id="enrollFingerprintBtn">Enroll Fingerprint</button>
+                                  </div>
+      
+                                  <!-- Submit Button -->
+                                  <div class="d-grid">
+                                      <button type="submit" class="btn btn-primary">Add Student</button>
+                                  </div>
+                              </form>
+                          </div>
+                      </div>
                   </div>
-                </main>
-                
-            </div>
-        </main>
+              </main>
+          </div>
+      </main>
+      
+      <script>
+        document.getElementById("enrollFingerprintBtn").addEventListener("click", function() {
+        let studentId = document.getElementById("matric_number").value; // Get student ID from input
+
+        if (!studentId) {
+            alert("Please enter a valid matric number!");
+            return;
+        }
+
+        // Call the C# app with the student ID
+        fetch(`/api/start-fingerprint/?student_id=${studentId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === "success" && data.fingerprint) {
+                    alert("Fingerprint enrolled successfully!");
+
+                    // Store the fingerprint data in the hidden input field
+                    document.getElementById("fingerprint1").value = data.fingerprint; 
+
+                } else {
+                    alert("Error: " + data.message);
+                }
+            })
+            .catch(error => alert("Error: " + error));
+    });
+
+      </script>
+        
+      
     </div>
 </body>
 </html>
