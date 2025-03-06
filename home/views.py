@@ -120,6 +120,12 @@ def index(request):
 def mark(request):
     return render(request, 'home/mark.html')
 
+def verify(request):
+    return render(request, 'home/verify.html')
+
+def fingerprint(request):
+    return render(request, 'home/fingerprint.html')
+
 
 @user_passes_test(is_admin)
 def course(request):

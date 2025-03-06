@@ -51,10 +51,8 @@ urlpatterns = [
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
 
 
-
-
-
-
+    path('fingerprint/', views.fingerprint, name='fingerprint'),
+    path('verify/', views.verify, name='verify'),
     path('mark/', views.mark, name='mark'),
     path('report/', views.report, name='report'),
     path('settings/', views.settings, name='settings'),
