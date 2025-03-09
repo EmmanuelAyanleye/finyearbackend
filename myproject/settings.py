@@ -158,6 +158,8 @@ CACHES = {
 TIME_ZONE = 'Africa/Lagos'  # or your local timezone
 USE_TZ = True
 
+CORS_ALLOW_ALL_ORIGINS = True  # (For testing purposes)
+
 
 
 # Default primary key field type

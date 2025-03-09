@@ -49,7 +49,7 @@
 
         <button id="scan-button" class="btn btn-secondary w-100 mt-2">Scan Fingerprint</button>
         <input type="hidden" id="fingerprint1" name="fingerprint1">
-        <button id="done-button" class="btn btn-primary w-100 mt-2" disabled>Done</button>
+        <button id="done-button" class="btn btn-primary w-100 mt-2">Done</button>
     </div>
 
     <script>
@@ -60,14 +60,13 @@
     fetch("/api/start-fingerprint/", { 
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({})
+        body: JSON.stringify({ student_id: "STUDENT_ID_HERE", operation_mode: "verify" })
     })
     .then(response => response.json())
     .then(data => {
         if (data.status === "success") {
             document.getElementById("fingerprint1").value = data.fingerprint;
 
-            // Verify fingerprint
             return fetch("/api/verify_fingerprint/", {
                 method: "POST",
                 headers: {
@@ -77,7 +76,7 @@
                 body: JSON.stringify({ fingerprint: data.fingerprint })
             });
         } else {
-            throw new Error("Fingerprint not recognized.");
+            throw new Error("Fingerprint scanning failed.");
         }
     })
     .then(response => response.json())
@@ -92,7 +91,8 @@
 
             document.getElementById("done-button").disabled = false;
         } else {
-            alert("Fingerprint not recognized in database.");
+            alert("Fingerprint not recognized.");
+            document.getElementById("done-button").disabled = true;
         }
     })
     .catch(error => {
@@ -104,6 +104,14 @@
         this.innerHTML = "Scan Fingerprint";
     });
 });
+
+function getCsrfToken() {
+    return document.cookie
+        .split('; ')
+        .find(row => row.startsWith('csrftoken='))
+        ?.split('=')[1];
+}
+
 
     </script>
     

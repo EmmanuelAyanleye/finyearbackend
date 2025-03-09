@@ -38,40 +38,65 @@ logger = logging.getLogger(__name__)
 
 from django.core.exceptions import ObjectDoesNotExist
 
+logger = logging.getLogger(__name__)
+
+@csrf_exempt
+def receive_verification(request):
+    try:
+        data = json.loads(request.body.decode("utf-8"))  # Decode request body
+        print("Received Data in Django:", data)  # Debugging
+
+        if "fingerprint_data" not in data or "student_id" not in data:
+            return JsonResponse({"error": "Missing required fields"}, status=400)
+
+        return JsonResponse({"status": "Fingerprint received!"})
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "Invalid JSON"}, status=400)
+
+
+
 @api_view(['POST'])
+@csrf_exempt
 def verify_fingerprint(request):
     try:
-        data = request.data
+        data = json.loads(request.body)
         scanned_template = data.get("fingerprint")
 
         if not scanned_template:
             return JsonResponse({"status": "error", "message": "Missing fingerprint data."}, status=400)
 
-        # Retrieve all stored fingerprints
         stored_fingerprints = FingerprintData.objects.values_list("template", "student_id")
 
         for stored_template, student_id in stored_fingerprints:
             if scanned_template.strip() == stored_template.strip():
+                student = Student.objects.get(id=student_id)
+
                 return JsonResponse({
                     "status": "success",
                     "message": "Fingerprint matched!",
-                    "student_id": student_id
+                    "student_id": student.id,
+                    "name": student.full_name,
+                    "matric_number": student.matric_number,
+                    "department": student.department.name,
+                    "level": student.level,
+                    "gender": student.gender
                 })
 
         return JsonResponse({"status": "error", "message": "Fingerprint not recognized."}, status=401)
 
     except Exception as e:
-        logger.error(f"Error in verify_fingerprint: {e}")
         return JsonResponse({"status": "error", "message": str(e)}, status=500)
+
 
 
 @api_view(['GET'])
 def get_all_fingerprints(request):
-    try:
-        fingerprints = FingerprintData.objects.all().values("student_id", "template")
-        return JsonResponse({"status": "success", "fingerprints": list(fingerprints)}, status=200)
-    except Exception as e:
-        return JsonResponse({"status": "error", "message": str(e)}, status=500, safe=False)
+    fingerprints = FingerprintData.objects.all()
+    fingerprint_list = [
+        {"student_id": f.student.id, "template": f.template} for f in fingerprints
+    ]
+    
+    return JsonResponse({"status": "success", "fingerprints": fingerprint_list})
 
 
 
