@@ -4,51 +4,76 @@ import json
 import base64
 import subprocess
 from home.models import Student
-from .models import FingerprintData  # Fingerprint model is in fingerprint app
+from .models import FingerprintData  
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
 
-@csrf_exempt  # Disable CSRF for API testing (not recommended for production)
+@api_view(['POST'])
 def enroll_fingerprint(request):
-    if request.method == "POST":
-        try:
-            data = json.loads(request.body)  # Read JSON body
-            student_id = data.get("student_id")
-            fingerprint_data = data.get("fingerprint")
+    print("Received Data:", request.body)  # Debugging line
 
-            if not student_id or not fingerprint_data:
-                return JsonResponse({"status": "error", "message": "Missing student_id or fingerprint"}, status=400)
+    try:
+        data = request.data
+        print("Parsed Data:", data)  # Debugging line
 
-            student = Student.objects.get(id=student_id)
-            fp_entry, created = FingerprintData.objects.get_or_create(student=student)
-            fp_entry.fingerprint_data = fingerprint_data
-            fp_entry.save()
+        student_id = data.get('student_id')
+        fingerprint_data = data.get('fingerprint')  # Fix field name here
 
-            return JsonResponse({"status": "success", "message": "Fingerprint enrolled!"})
+        if not student_id or not fingerprint_data:
+            return Response({"error": "Missing required fields"}, status=400)
 
-        except Student.DoesNotExist:
-            return JsonResponse({"status": "error", "message": "Student not found"}, status=404)
-        except json.JSONDecodeError:
-            return JsonResponse({"status": "error", "message": "Invalid JSON data"}, status=400)
+        # Save to database
+        FingerprintData.objects.create(student_id=student_id, template=fingerprint_data)
 
-    return JsonResponse({"status": "error", "message": "Invalid request method"}, status=405)
+        return Response({"message": "Fingerprint enrolled successfully"}, status=201)
+
+    except Exception as e:
+        print("Error:", str(e))  # Debugging line
+        return Response({"error": str(e)}, status=400)
 
 
-@csrf_exempt
+
+import logging
+logger = logging.getLogger(__name__)
+
+from django.core.exceptions import ObjectDoesNotExist
+
+@api_view(['POST'])
 def verify_fingerprint(request):
-    if request.method == "POST":
-        data = json.loads(request.body)
-        student_id = data.get("student_id")
-        fingerprint = data.get("fingerprint")
+    try:
+        data = request.data
+        scanned_template = data.get("fingerprint")
 
-        try:
-            stored_data = FingerprintData.objects.get(student__matric_number=student_id)
-            stored_template = stored_data.fingerprint_data
+        if not scanned_template:
+            return JsonResponse({"status": "error", "message": "Missing fingerprint data."}, status=400)
 
-            if fingerprint == stored_template:
-                return JsonResponse({"message": "Fingerprint matched! Attendance marked."}, status=200)
-            else:
-                return JsonResponse({"message": "Fingerprint did not match!"}, status=400)
-        except FingerprintData.DoesNotExist:
-            return JsonResponse({"message": "No fingerprint found for this student."}, status=404)
+        # Retrieve all stored fingerprints
+        stored_fingerprints = FingerprintData.objects.values_list("template", "student_id")
+
+        for stored_template, student_id in stored_fingerprints:
+            if scanned_template.strip() == stored_template.strip():
+                return JsonResponse({
+                    "status": "success",
+                    "message": "Fingerprint matched!",
+                    "student_id": student_id
+                })
+
+        return JsonResponse({"status": "error", "message": "Fingerprint not recognized."}, status=401)
+
+    except Exception as e:
+        logger.error(f"Error in verify_fingerprint: {e}")
+        return JsonResponse({"status": "error", "message": str(e)}, status=500)
+
+
+@api_view(['GET'])
+def get_all_fingerprints(request):
+    try:
+        fingerprints = FingerprintData.objects.all().values("student_id", "template")
+        return JsonResponse({"status": "success", "fingerprints": list(fingerprints)}, status=200)
+    except Exception as e:
+        return JsonResponse({"status": "error", "message": str(e)}, status=500, safe=False)
+
+
 
 import subprocess
 import json
@@ -57,25 +82,37 @@ from django.http import JsonResponse
 import subprocess
 from django.http import JsonResponse
 
+
+from django.views.decorators.csrf import csrf_exempt
+import logging
+logger = logging.getLogger(__name__)
+
+@csrf_exempt
 def start_fingerprint(request):
-    student_id = request.GET.get("student_id")  # Get the matric number
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            student_id = data.get("student_id")
+            mode = data.get("operation_mode")
 
-    if not student_id:
-        return JsonResponse({"status": "error", "error": "Missing student ID"}, status=400)
+            logger.debug(f"Received data: {data}")
 
-    try:
-        app_path = r"C:\Users\EMMANUEL AYANLEYE\Downloads\FingerprintAPP\FingerprintAPP\bin\Debug\FingerprintAPP.exe"
+            app_path = r"C:\Users\EMMANUEL AYANLEYE\Downloads\EnrollFinger\EnrollFinger\bin\Debug\EnrollFinger.exe" if mode == "enroll" else r"C:\Users\EMMANUEL AYANLEYE\Downloads\VerifyFinger\VerifyFinger\bin\Debug\VerifyFinger.exe"
 
-        # Use student_id (matric number) as a string
-        process = subprocess.Popen([app_path, str(student_id)], shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        output, error = process.communicate()
+            process = subprocess.Popen([app_path, str(student_id)], shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+            output, error = process.communicate()
 
-        if error:
-            return JsonResponse({"status": "error", "message": error.decode()}, status=500)
+            if error:
+                logger.error(f"Error in fingerprint scanning: {error}")
+                return JsonResponse({"status": "error", "message": error}, status=500)
 
-        # Return fingerprint template if successful
-        fingerprint_template = output.decode().strip()
-        return JsonResponse({"status": "success", "fingerprint": fingerprint_template})
+            fingerprint_template = output.strip()
+            if not fingerprint_template:
+                logger.error("No fingerprint data returned from the C# application.")
+                return JsonResponse({"status": "error", "message": "No fingerprint data received"}, status=500)
 
-    except Exception as e:
-        return JsonResponse({"status": "error", "error": str(e)}, status=500)
+            return JsonResponse({"status": "success", "fingerprint": fingerprint_template})
+
+        except Exception as e:
+            logger.error(f"Error in start_fingerprint: {e}")
+            return JsonResponse({"status": "error", "message": str(e)}, status=500)

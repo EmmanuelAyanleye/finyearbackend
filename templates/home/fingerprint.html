@@ -1,61 +1,111 @@
 {% load static %}
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <!-- Link to Static CSS Files using Django's static tag -->
+    <title>Fingerprint Verification</title>
     <link rel="stylesheet" href="{% static 'css/mark.css' %}">
     <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
-    
-    <!-- Bootstrap JS -->
     <script defer src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
-
-    <!-- BOOTSTRAP CDN LINKS (optional if you prefer to use the local files instead of CDN) -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
-    <script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous"></script>
 </head>
 <body>
     <div class="mx-auto rounded text-light p-4">
-      <div class="head-details text-primary">
-          <img src="{% static 'images/Espam logo.png' %}" alt="">
-          <div class="head-title">
-            <h4>Espam-Formation University</h4>
-            <p>Student Attendance Management System</p>
-          </div>
-      </div>
-      <div class="h5 text-center">Fingerprint Verification Page</div>
-      <hr>
+        <div class="head-details text-primary">
+            <img src="{% static 'images/Espam logo.png' %}" alt="">
+            <div class="head-title">
+                <h4>Espam-Formation University</h4>
+                <p>Student Attendance Management System</p>
+            </div>
+        </div>
 
-      <p class="h5 text-light text-center">Students Details</p>
-      <div class="row">
-        <div class="input-group mb-2">
-          <span class="input-group-text bg-primary border-primary text-light">Student Name:</span>
-          <input type="text" class="form-control" value="Ayanleye Emmanuel" disabled>
-        </div>
-        <div class="input-group mb-2">
-            <span class="input-group-text bg-primary border-primary text-light">Department:</span>
-            <input type="text" class="form-control" value="Computer Science" disabled>
-        </div>
-        <div class="input-group mb-2">
-            <span class="input-group-text bg-primary border-primary text-light">Matric No:</span>
-            <input type="text" class="form-control" value="ESPAM/CSC/22/1005" disabled>
-        </div>
-        <div class="input-group mb-2">
-            <span class="input-group-text bg-primary border-primary text-light">Level:</span>
-            <input type="text" class="form-control" value="200" disabled>
-        </div>
-        <div class="input-group mb-2">
-            <span class="input-group-text bg-primary border-primary text-light">Gender:</span>
-            <input type="text" class="form-control" value="Male" disabled>
-        </div>
-      </div>
+        <div class="h5 text-center">Fingerprint Verification Page</div>
+        <hr>
 
-      <button class="btn btn-secondary w-100 mt-2">Scan Fingerprint</button>
-      <button class="btn btn-primary w-100 mt-2">Done</button>
+        <p class="h5 text-light text-center">Student Details</p>
+
+        <div class="row" id="student-details">
+            <div class="input-group mb-2">
+                <span class="input-group-text bg-primary border-primary text-light">Student Name:</span>
+                <input id="student-name" type="text" class="form-control" disabled>
+            </div>
+            <div class="input-group mb-2">
+                <span class="input-group-text bg-primary border-primary text-light">Department:</span>
+                <input id="student-department" type="text" class="form-control" disabled>
+            </div>
+            <div class="input-group mb-2">
+                <span class="input-group-text bg-primary border-primary text-light">Matric No:</span>
+                <input id="student-matric" type="text" class="form-control" disabled>
+            </div>
+            <div class="input-group mb-2">
+                <span class="input-group-text bg-primary border-primary text-light">Level:</span>
+                <input id="student-level" type="text" class="form-control" disabled>
+            </div>
+            <div class="input-group mb-2">
+                <span class="input-group-text bg-primary border-primary text-light">Gender:</span>
+                <input id="student-gender" type="text" class="form-control" disabled>
+            </div>
+        </div>
+
+        <button id="scan-button" class="btn btn-secondary w-100 mt-2">Scan Fingerprint</button>
+        <input type="hidden" id="fingerprint1" name="fingerprint1">
+        <button id="done-button" class="btn btn-primary w-100 mt-2" disabled>Done</button>
     </div>
+
+    <script>
+        document.getElementById("scan-button").addEventListener("click", function() {
+    this.disabled = true;
+    this.innerHTML = "Scanning...";
+
+    fetch("/api/start-fingerprint/", { 
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({})
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === "success") {
+            document.getElementById("fingerprint1").value = data.fingerprint;
+
+            // Verify fingerprint
+            return fetch("/api/verify_fingerprint/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": getCsrfToken()
+                },
+                body: JSON.stringify({ fingerprint: data.fingerprint })
+            });
+        } else {
+            throw new Error("Fingerprint not recognized.");
+        }
+    })
+    .then(response => response.json())
+    .then(studentData => {
+        if (studentData.status === "success") {
+            document.getElementById("student-name").value = studentData.name;
+            document.getElementById("student-department").value = studentData.department;
+            document.getElementById("student-matric").value = studentData.matric_number;
+            document.getElementById("student-level").value = studentData.level;
+            document.getElementById("student-gender").value = studentData.gender;
+            alert("Student found!");
+
+            document.getElementById("done-button").disabled = false;
+        } else {
+            alert("Fingerprint not recognized in database.");
+        }
+    })
+    .catch(error => {
+        console.error("Error:", error);
+        alert(error.message);
+    })
+    .finally(() => {
+        this.disabled = false;
+        this.innerHTML = "Scan Fingerprint";
+    });
+});
+
+    </script>
+    
 </body>
 </html>

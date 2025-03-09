@@ -10,15 +10,6 @@ class LoginForm(forms.Form):
 
 
 
-
-
-
-
-
-
-
-
-
 class LecturerRegistrationForm(forms.ModelForm):
     email = forms.EmailField(widget=forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Enter email address'}))
     password = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Enter password'}))

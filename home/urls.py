@@ -54,6 +54,7 @@ urlpatterns = [
     path('fingerprint/', views.fingerprint, name='fingerprint'),
     path('verify/', views.verify, name='verify'),
     path('mark/', views.mark, name='mark'),
+    path('get-courses/', views.get_courses, name='get_courses'),
     path('report/', views.report, name='report'),
     path('settings/', views.settings, name='settings'),
     path('course/', views.course, name='course'),

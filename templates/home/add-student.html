@@ -262,29 +262,32 @@
       
       <script>
         document.getElementById("enrollFingerprintBtn").addEventListener("click", function() {
-        let studentId = document.getElementById("matric_number").value; // Get student ID from input
+    let studentId = document.getElementById("matric_number").value; // Get student ID from input
 
-        if (!studentId) {
-            alert("Please enter a valid matric number!");
-            return;
+    if (!studentId) {
+        alert("Please enter a valid matric number!");
+        return;
+    }
+
+    // Call the C# app with the student ID using a POST request for enrollment
+    fetch("/api/start-fingerprint/", { 
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ student_id: studentId, operation_mode: "enroll" }) // Make sure to specify "enroll"
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === "success" && data.fingerprint) {
+            alert("Fingerprint enrolled successfully!");
+            document.getElementById("fingerprint1").value = data.fingerprint;
+        } else {
+            alert("Error: " + (data.message || "Fingerprint enrollment failed"));
         }
-
-        // Call the C# app with the student ID
-        fetch(`/api/start-fingerprint/?student_id=${studentId}`)
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === "success" && data.fingerprint) {
-                    alert("Fingerprint enrolled successfully!");
-
-                    // Store the fingerprint data in the hidden input field
-                    document.getElementById("fingerprint1").value = data.fingerprint; 
-
-                } else {
-                    alert("Error: " + data.message);
-                }
-            })
-            .catch(error => alert("Error: " + error));
-    });
+    })
+    .catch(error => alert("Error: " + error.message || "Unknown error"));
+});
 
       </script>
         

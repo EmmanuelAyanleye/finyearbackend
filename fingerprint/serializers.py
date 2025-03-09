@@ -4,4 +4,5 @@ from .models import FingerprintData
 class FingerprintSerializer(serializers.ModelSerializer):
     class Meta:
         model = FingerprintData
-        fields = ['student', 'fingerprint_data']
+        fields = ['student', 'template']
+

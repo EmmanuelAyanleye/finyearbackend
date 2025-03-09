@@ -123,6 +123,13 @@ USE_I18N = True
 USE_TZ = True
 
 
+REST_FRAMEWORK = {
+    'DEFAULT_PARSER_CLASSES': [
+        'rest_framework.parsers.JSONParser',
+    ]
+}
+
+
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
@@ -147,6 +154,9 @@ CACHES = {
     }
 }
 
+
+TIME_ZONE = 'Africa/Lagos'  # or your local timezone
+USE_TZ = True
 
 
 

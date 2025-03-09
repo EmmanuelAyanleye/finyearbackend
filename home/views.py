@@ -18,7 +18,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.hashers import make_password
 import json
-from .models import Course 
+from .models import Course, Attendance
 from fingerprint.models import FingerprintData  # Import the FingerprintData model
 
 
@@ -114,17 +114,117 @@ def index(request):
     return render(request, 'home/index.html')  # Render the homepage template
 
 
-# def login(request):
-#     return render(request, 'home/login.html')
+
+def get_courses(request):
+    department_id = request.GET.get('department')
+    level = request.GET.get('level')
+
+    if department_id and level:
+        courses = Course.objects.filter(department_id=department_id, level=level).values('id', 'course_title')
+        return JsonResponse(list(courses), safe=False)
+
+    return JsonResponse([], safe=False)
+
+
+from django.shortcuts import render, redirect
+from django.http import JsonResponse
+from django.utils.timezone import localtime
+from .models import Student, Course, Attendance
+
+from django.shortcuts import render, get_object_or_404
+from django.http import JsonResponse
+from django.utils.timezone import localtime
+from .models import Student, Course, Attendance, Department
 
 def mark(request):
-    return render(request, 'home/mark.html')
+    if request.method == "POST":
+        print("Received POST data:", request.POST)  # Debugging line
+
+        department = request.POST.get("department")
+        level = request.POST.get("level")
+        course_id = request.POST.get("course")
+
+        if not department or not level or not course_id:
+            messages.error(request, "All fields are required")
+            return redirect("mark")
+
+        # Store selected course and session in the session
+        request.session["selected_course_id"] = course_id
+        request.session["selected_session"] = level  # Assuming you want to store the level as session data
+
+        print("Redirecting to verify...")  # Debugging line before the redirect
+        return redirect("verify")
+
+    departments = Department.objects.all()
+    return render(request, "home/mark.html", {"departments": departments})
+
+
+
+
+
+from datetime import datetime
+
+from django.utils import timezone
 
 def verify(request):
-    return render(request, 'home/verify.html')
+    course_id = request.session.get("selected_course_id")
+    session = request.session.get("selected_session")
+
+    if not course_id or not session:
+        return redirect("mark")
+
+    course = get_object_or_404(Course, id=course_id)
+
+    # Convert the times to 'time' objects if they are not already
+    course_start_time = course.attendance_start_time.time() if isinstance(course.attendance_start_time, datetime) else course.attendance_start_time
+    course_end_time = course.attendance_end_time.time() if isinstance(course.attendance_end_time, datetime) else course.attendance_end_time
+
+    # Get the current time (ensure it is in the same timezone)
+    now = timezone.localtime(timezone.now()).time()
+
+    # Debug: print the current time and the start/end times
+    print("Current time:", now)
+    print("Course start time:", course_start_time)
+    print("Course end time:", course_end_time)
+
+    # Check if current time is within the allowed attendance timeframe
+    if not (course_start_time <= now <= course_end_time):
+        messages.error(request, "Not yet time for the class")  # Display error message in template
+        print("Not within the allowed time range.")
+
+    return render(request, "home/verify.html", {"course": course, "session": session})
+
+
 
 def fingerprint(request):
-    return render(request, 'home/fingerprint.html')
+    course_id = request.session.get("selected_course_id")
+    session = request.session.get("selected_session")
+    if not course_id or not session:
+        return redirect("mark")
+    course = Course.objects.get(id=course_id)
+    return render(request, "home/fingerprint.html", {"course": course, "session": session})
+
+# home/views.py
+from django.shortcuts import render
+
+def fingerprint_verification(request):
+    fingerprint_data = request.GET.get("fingerprint_data")
+    student = Student.objects.filter(fingerprint_data=fingerprint_data).first()
+    
+    if student:
+        course_id = request.session.get("selected_course_id")
+        session = request.session.get("selected_session")
+        Attendance.objects.create(student=student, course_id=course_id, session=session)
+        return JsonResponse({
+            "success": True,
+            "full_name": student.full_name,
+            "matric_number": student.matric_number,
+            "course": Course.objects.get(id=course_id).name,
+            "session": session
+        })
+    else:
+        return JsonResponse({"success": False, "message": "Fingerprint not recognized."})
+
 
 
 @user_passes_test(is_admin)
@@ -197,9 +297,9 @@ def add_student(request):
         department_id = request.POST.get("department")
         level = request.POST.get("level")
         profile_picture = request.FILES.get("profile_picture")
-        fingerprint_data = request.POST.get("fingerprint1")
+        fingerprint_template = request.POST.get("fingerprint1")
 
-        if not fingerprint_data:
+        if not fingerprint_template:
             messages.error(request, "Fingerprint data is required!")
             return redirect("add_student")
 
@@ -227,7 +327,7 @@ def add_student(request):
             profile_picture=profile_picture
         )
 
-        FingerprintData.objects.create(student=student, fingerprint_data=fingerprint_data)
+        FingerprintData.objects.create(student=student, template=fingerprint_template)
 
         messages.success(request, "Student added successfully!")
         return redirect("add_student")

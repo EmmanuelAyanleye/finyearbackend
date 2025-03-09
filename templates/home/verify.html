@@ -5,7 +5,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Verify Course</title>
+    
     <!-- Link to Static CSS Files using Django's static tag -->
     <link rel="stylesheet" href="{% static 'css/mark.css' %}">
     <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
@@ -27,52 +28,66 @@
                 <p>Student Attendance Management System</p>
             </div>
         </div>
-      <div class="h5 text-center">Verify the Course</div>
-      <hr>
-    
-      <form>
-        <div class="input-group mb-3">
-          <span class="input-group-text bg-primary border-primary text-light">Course Title:</span>
-          <input type="text" class="form-control" value="Software Engineering" disabled>
-        </div>
 
-        <div class="input-group mb-3">
-          <span class="input-group-text bg-primary border-primary text-light">Lecturer:</span>
-          <input type="text" class="form-control" value="Mr. Abiodun" disabled>
-        </div>
+        <div class="h5 text-center">Verify the Course</div>
+        <hr>
 
-        <div class="input-group mb-3">
-          <span class="input-group-text bg-primary border-primary text-light">Course Code:</span>
-          <input type="text" class="form-control" value="CSC 212" disabled>
-        </div>
-        
-        <div class="row">
-          <div class="col-md-6">
-            <div class="input-group mb-3">
-              <span class="input-group-text bg-primary border-primary text-light">Date:</span>
-              <input type="text" class="form-control" value="13/08/2024" id="matric_no" disabled>
+        <!-- Display Messages -->
+        {% if messages %}
+            <div class="alert alert-danger">
+                {% for message in messages %}
+                    <p>{{ message }}</p>
+                {% endfor %}
             </div>
-          </div>
+        {% endif %}
 
-          <div class="col-md-6">
+        <form>
             <div class="input-group mb-3">
-              <span class="input-group-text bg-primary border-primary text-light">Time:</span>
-              <input type="text" class="form-control" value="15:30" disabled>
+                <span class="input-group-text bg-primary border-primary text-light">Course Title:</span>
+                <input type="text" class="form-control" value="{{ course.course_title }}" disabled>
             </div>
-          </div>
-        </div>
-        <a href="{% url 'fingerprint' %}" class=" w-100 btn btn-primary">Proceed to Fingerprint Verification</a>
-      </form>
 
-      <div class="btn-row">
-        <div>
-            <a href="\" class="btn btn-outline-light"><i class="fa-solid fa-house"></i> Homepage</a>
-        </div>
+            <div class="input-group mb-3">
+                <span class="input-group-text bg-primary border-primary text-light">Lecturer:</span>
+                <input type="text" class="form-control" value="{{ course.lecturer.full_name }}" disabled>
+            </div>
 
-        <div>
-            <a href="{% url 'login' %}" class="btn btn-primary"><i class="fas fa-sign-in"></i> Login</a>
+            <div class="input-group mb-3">
+                <span class="input-group-text bg-primary border-primary text-light">Course Code:</span>
+                <input type="text" class="form-control" value="{{ course.course_code }}" disabled>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="input-group mb-3">
+                        <span class="input-group-text bg-primary border-primary text-light">Date:</span>
+                        <input type="text" class="form-control" value="{{ session }}" disabled>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="input-group mb-3">
+                        <span class="input-group-text bg-primary border-primary text-light">Time:</span>
+                        <input type="text" class="form-control" value="{{ course.attendance_start_time }} - {{ course.attendance_end_time }}" disabled>
+                    </div>
+                </div>
+            </div>
+
+            {% if messages %}
+                <button type="button" class="btn btn-secondary w-100" disabled>Cannot Proceed</button>
+            {% else %}
+                <a href="{% url 'fingerprint' %}" class="w-100 btn btn-primary">Proceed to Fingerprint Verification</a>
+            {% endif %}
+        </form>
+
+        <div class="btn-row">
+            <div>
+                <a href="\" class="btn btn-outline-light"><i class="fa-solid fa-house"></i> Homepage</a>
+            </div>
+            <div>
+                <a href="{% url 'login' %}" class="btn btn-primary"><i class="fas fa-sign-in"></i> Login</a>
+            </div>
         </div>
-      </div>
     </div>
 </body>
 </html>

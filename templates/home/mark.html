@@ -32,60 +32,86 @@
         <div class="h5 text-center">Select Course Details Below</div>
         <hr>
 
-        <div class="bg-danger text-center rounded px-2 my-2 d-none">
-            No classes are scheduled at this time. Please check your timetable and try again during your class period.
-        </div>
+        {% load form_tags %}
+                {% if messages %}
+                    <div>
+                        {% for message in messages %}
+                        <div class="message-{{ message.tags }}">{{ message }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
 
-        <form>
+        <form method="POST">
+            {% csrf_token %}
             <div class="row">
+                <!-- Department Selection -->
                 <div class="mb-3 col-md-6">
                     <label for="department" class="form-label">Department:</label>
-                    <select class="form-select" id="department" aria-label="Default select example">
+                    <select class="form-select" id="department" name="department">
                         <option selected disabled>Select your Department...</option>
-                        <option value="1">Computer Science</option>
-                        <option value="2">Nursing</option>
-                        <option value="3">Business Administration</option>
-                        <option value="4">Political Science</option>
-                        <option value="5">Economics</option>
-                        <option value="6">Human Resources Management</option>
-                        <option value="7">International Relations</option>
-                        <option value="8">Mass Communication</option>
+                        {% for department in departments %}
+                            <option value="{{ department.id }}">{{ department.name }}</option>
+                        {% endfor %}
                     </select>
                 </div>
-
+        
+                <!-- Level Selection -->
                 <div class="mb-3 col-md-6">
                     <label for="level" class="form-label">Level:</label>
-                    <select class="form-select" id="level" aria-label="Default select example">
+                    <select class="form-select" id="level" name="level">
                         <option selected disabled>Select your Level...</option>
-                        <option value="1">100</option>
-                        <option value="2">200</option>
-                        <option value="3">300</option>
+                        <option value="100">100 Level</option>
+                        <option value="200">200 Level</option>
+                        <option value="300">300 Level</option>
+                        <option value="400">400 Level</option>
                     </select>
                 </div>
-            </div>
-
+            </div>            
+        
+            <!-- Course Selection (Filtered Dynamically) -->
             <div class="mb-3">
                 <label for="course" class="form-label">Course:</label>
-                <select class="form-select" id="course" aria-label="Default select example">
+                <select class="form-select" id="course" name="course">
                     <option selected disabled>Select your Course title...</option>
-                    <option value="1">Computer Science</option>
-                    <option value="2">Nursing</option>
-                    <option value="3">Business Administration</option>
-                    <option value="4">Political Science</option>
-                    <option value="5">Economics</option>
-                    <option value="6">Human Resources Management</option>
-                    <option value="7">International Relations</option>
-                    <option value="8">Mass Communication</option>
-                    <option value="9">Business Administration</option>
-                    <option value="10">Political Science</option>
-                    <option value="11">Economics</option>
-                    <option value="12">Human Resources Management</option>
-                    <option value="13">International Relations</option>
-                    <option value="14">Mass Communication</option>
                 </select>
             </div>
-            <a href="{% url 'verify' %}" class="w-100 btn btn-primary">Submit</a>
+        
+            <button type="submit" class="w-100 btn btn-primary mt-3">Verify Course</button>
+
         </form>
+        
+        <!-- jQuery for AJAX -->
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <script>
+            $(document).ready(function () {
+                $('#department, #level').change(function () {
+                    var department = $('#department').val();
+                    var level = $('#level').val();
+        
+                    if (department && level) {
+                        $.ajax({
+                            url: "{% url 'get_courses' %}",
+                            data: {
+                                'department': department,
+                                'level': level
+                            },
+                            dataType: 'json',
+                            success: function (data) {
+                                $('#course').empty().append('<option selected disabled>Select your Course title...</option>');
+                                $.each(data, function (index, course) {
+                                    $('#course').append($('<option>', {
+                                        value: course.id,
+                                        text: course.course_title
+                                    }));
+                                });
+                            }
+                        });
+                    }
+                });
+            });
+        </script>
+        
+        
 
         <div class="btn-row">
             <div>
