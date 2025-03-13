@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'fingerprint',
     'corsheaders',
+    'rest_framework.authtoken',
 ]
 
 MIDDLEWARE = [
@@ -56,6 +57,7 @@ MIDDLEWARE = [
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",  # or the frontend's URL
+    "http://localhost:8000", 
 ]
 
 ROOT_URLCONF = 'myproject.urls'
@@ -77,6 +79,20 @@ TEMPLATES = [
         },
     },
 ]
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+}
+
+from datetime import timedelta
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(days=1),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+    "ROTATE_REFRESH_TOKENS": True,
+}
 
 WSGI_APPLICATION = 'myproject.wsgi.application'
 
@@ -129,6 +145,29 @@ REST_FRAMEWORK = {
     ]
 }
 
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.TokenAuthentication',
+    ),
+}
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [],
+    'DEFAULT_PERMISSION_CLASSES': ['rest_framework.permissions.AllowAny'],
+}
+
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',  # Check if enabled
+        'rest_framework.authentication.SessionAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',  # ✅ This blocks unauthorized requests
+    ]
+}
+
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
@@ -159,6 +198,9 @@ TIME_ZONE = 'Africa/Lagos'  # or your local timezone
 USE_TZ = True
 
 CORS_ALLOW_ALL_ORIGINS = True  # (For testing purposes)
+
+CSRF_TRUSTED_ORIGINS = ['http://127.0.0.1:8000']
+CORS_ALLOW_ALL_ORIGINS = True  # For debugging only, restrict in production
 
 
 

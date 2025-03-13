@@ -53,66 +53,68 @@
     </div>
 
     <script>
+        function getCsrfToken() {
+            let cookies = document.cookie.split(';');
+            for (let cookie of cookies) {
+                let [name, value] = cookie.trim().split('=');
+                if (name === 'csrftoken') return value;
+            }
+            return '';
+        }
+    
         document.getElementById("scan-button").addEventListener("click", function() {
-    this.disabled = true;
-    this.innerHTML = "Scanning...";
-
-    fetch("/api/start-fingerprint/", { 
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ student_id: "STUDENT_ID_HERE", operation_mode: "verify" })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.status === "success") {
-            document.getElementById("fingerprint1").value = data.fingerprint;
-
-            return fetch("/api/verify_fingerprint/", {
+            this.disabled = true;
+            this.innerHTML = "Scanning...";
+    
+            fetch("/api/start-fingerprint/", { 
                 method: "POST",
-                headers: {
+                headers: { 
                     "Content-Type": "application/json",
-                    "X-CSRFToken": getCsrfToken()
+                    "X-CSRFToken": getCsrfToken() // Added CSRF token
                 },
-                body: JSON.stringify({ fingerprint: data.fingerprint })
+                body: JSON.stringify({ student_id: "12345", operation_mode: "verify" }) // Replace with actual ID
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === "success") {
+                    document.getElementById("fingerprint1").value = data.fingerprint;
+    
+                    // Now verify fingerprint against database
+                    return fetch("/api/verify_fingerprint/", {  // Fixed endpoint
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "X-CSRFToken": getCsrfToken()  // CSRF token for security
+                        },
+                        body: JSON.stringify({ 
+                            fingerprint: data.fingerprint, 
+                            student_id: "12345"  // Ensure student ID is passed
+                        })
+                    });
+                } else {
+                    throw new Error("Fingerprint scanning failed.");
+                }
+            })
+            .then(response => response.json())
+            .then(studentData => {
+                if (studentData.status === "success") {
+                    document.getElementById("student-name").value = studentData.name;
+                    document.getElementById("student-department").value = studentData.department;
+                    document.getElementById("student-matric").value = studentData.matric_number;
+                    document.getElementById("student-level").value = studentData.level;
+                    document.getElementById("student-gender").value = studentData.gender;
+                    alert("Student found: " + studentData.name);
+                } else {
+                    alert("Fingerprint not recognized.");
+                }
+            })
+
+            .catch(error => alert(error.message))
+            .finally(() => {
+                this.disabled = false;
+                this.innerHTML = "Scan Fingerprint";
             });
-        } else {
-            throw new Error("Fingerprint scanning failed.");
-        }
-    })
-    .then(response => response.json())
-    .then(studentData => {
-        if (studentData.status === "success") {
-            document.getElementById("student-name").value = studentData.name;
-            document.getElementById("student-department").value = studentData.department;
-            document.getElementById("student-matric").value = studentData.matric_number;
-            document.getElementById("student-level").value = studentData.level;
-            document.getElementById("student-gender").value = studentData.gender;
-            alert("Student found!");
-
-            document.getElementById("done-button").disabled = false;
-        } else {
-            alert("Fingerprint not recognized.");
-            document.getElementById("done-button").disabled = true;
-        }
-    })
-    .catch(error => {
-        console.error("Error:", error);
-        alert(error.message);
-    })
-    .finally(() => {
-        this.disabled = false;
-        this.innerHTML = "Scan Fingerprint";
-    });
-});
-
-function getCsrfToken() {
-    return document.cookie
-        .split('; ')
-        .find(row => row.startsWith('csrftoken='))
-        ?.split('=')[1];
-}
-
-
+        });
     </script>
     
 </body>
