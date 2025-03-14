@@ -35,30 +35,50 @@ def enroll_fingerprint(request):
     except Exception as e:
         return Response({"error": str(e)}, status=400)
 
-@api_view(['POST'])
-@permission_classes([AllowAny])
-def receive_verification(request):
-    data = request.data
-    matric_number = data.get("matric_number")
 
-    if not matric_number:
-        return Response({"error": "Matric number is missing"}, status=400)
+@csrf_exempt
+@csrf_exempt
+def start_enroll(request):
+    if request.method != "POST":
+        return JsonResponse({"status": "error", "message": "Invalid request method"}, status=405)
 
     try:
-        student = Student.objects.get(matric_number=matric_number)
+        data = json.loads(request.body)
+        student_id = data.get("student_id")
 
-        # Update student attendance (Example)
-        student.attendance_status = "Present"
-        student.save()
+        if not student_id:
+            return JsonResponse({"status": "error", "message": "Missing student_id"}, status=400)
 
-        return Response({
-            "status": "verified",
-            "message": f"Student {student.full_name} verified",
-            "student": student.matric_number
-        })
+        # Path to your C# fingerprint enrollment application
+        app_path = r"C:\Users\EMMANUEL AYANLEYE\Downloads\EnrollFinger\EnrollFinger\bin\Debug\EnrollFinger.exe"
 
-    except Student.DoesNotExist:
-        return Response({"error": "Student not found"}, status=404)
+        if not os.path.exists(app_path):
+            return JsonResponse({"status": "error", "message": "Fingerprint enrollment software not found"}, status=500)
+
+        # Run the C# application with student ID
+        process = subprocess.run(
+            [app_path, str(student_id)],
+            capture_output=True,
+            text=True,
+            check=True
+        )
+
+        if process.returncode == 0 and process.stdout.strip():
+            return JsonResponse({
+                "status": "success",
+                "fingerprint": process.stdout.strip()
+            })
+        else:
+            return JsonResponse({
+                "status": "error",
+                "message": "No fingerprint data received"
+            }, status=500)
+
+    except Exception as e:
+        return JsonResponse({
+            "status": "error",
+            "message": f"Enrollment failed: {str(e)}"
+        }, status=500)
 
 
 
@@ -68,42 +88,18 @@ from rest_framework.authentication import BasicAuthentication, SessionAuthentica
 
 from django.views.decorators.csrf import csrf_exempt
 
-@csrf_exempt
-@api_view(['POST'])
-@permission_classes([AllowAny])
-def verify_fingerprint(request):
-    try:
-        data = json.loads(request.body)
-        scanned_template = data.get("fingerprint")
-        student_id = data.get("student_id")
-
-        if not scanned_template:
-            return JsonResponse({"status": "error", "message": "Missing fingerprint data."}, status=400)
-
-        stored_fingerprints = FingerprintData.objects.values_list("template", "student_id")
-
-        for stored_template, stored_student_id in stored_fingerprints:
-            if scanned_template.strip() == stored_template.strip():
-                student = Student.objects.get(id=stored_student_id)
-
-                return JsonResponse({
-                    "status": "success",
-                    "message": "Fingerprint matched!",
-                    "student_id": student.id,
-                    "name": student.full_name,
-                    "matric_number": student.matric_number,
-                    "department": student.department.name,
-                    "level": student.level,
-                    "gender": student.gender
-                })
-
-        return JsonResponse({"status": "error", "message": "Fingerprint not recognized."}, status=401)
-
-    except Exception as e:
-        return JsonResponse({"status": "error", "message": str(e)}, status=500)
 
 
 
+import os
+import json
+import subprocess
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+
+from home.models import Student
+
+    
 
 
 @api_view(['GET'])
@@ -112,7 +108,7 @@ def get_all_fingerprints(request):
     fingerprints = FingerprintData.objects.select_related('student').all()
     data = [
         {
-            "matric_number": fp.student.matric_number,  # Send matric_number instead of student_id
+            "matric_number": fp.student.matric_number,
             "template": fp.template,
         }
         for fp in fingerprints
@@ -120,49 +116,150 @@ def get_all_fingerprints(request):
     return Response({"status": "success", "fingerprints": data})
 
 
+import os
+import subprocess
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def verify_fingerprint(request):
+    try:
+        data = json.loads(request.body)
+        matric_number = data.get("matric_number")
+
+        if not matric_number:
+            return JsonResponse({"status": "error", "message": "No matric number provided"}, status=400)
+
+        print(f"Received matric number: {matric_number}")
+
+        # Retrieve the student with the matching matric number
+        student = Student.objects.filter(matric_number=matric_number).first()
+
+        if not student:
+            return JsonResponse({"status": "error", "message": "Student not recognized"}, status=404)
+
+        print(f"Matched student: {student.full_name}")
+
+        return JsonResponse({
+            "status": "success",
+            "name": student.full_name,
+            "department": student.department.name,
+            "matric_number": student.matric_number,
+            "level": student.get_level_display(),
+            "gender": student.user.get_gender_display()  # Assuming gender is a field in CustomUser
+        })
+
+    except Exception as e:
+        return JsonResponse({"status": "error", "message": str(e)}, status=500)
+    
+
+from home.models import CustomUser, Student
+from django.core.cache import cache
+from django.http import JsonResponse
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
+from home.models import Student, CustomUser
+import json
+
+@api_view(['GET', 'POST'])
+@permission_classes([AllowAny])
+def receive_verification(request):
+    try:
+        if request.method == 'POST':
+            data = json.loads(request.body)
+            matric_number = data.get('matric_number')
+            
+            if not matric_number:
+                return JsonResponse({"status": "error", "message": "No matric number received"}, status=400)
+            
+            student = Student.objects.filter(matric_number=matric_number).first()
+            if not student:
+                return JsonResponse({"status": "error", "message": "Student not found"}, status=404)
+            
+            # Fix gender display
+            gender_display = "Male" if student.gender == "M" else "Female"
+            
+            student_details = {
+                "status": "success",
+                "name": student.full_name,
+                "department": student.department.name,
+                "matric_number": student.matric_number,
+                "level": student.get_level_display(),
+                "gender": gender_display  # Use the correct gender display
+            }
+            
+            request.session['verified_student'] = student_details
+            return JsonResponse(student_details)
+            
+        else:
+            # Handle GET request from frontend
+            stdout = request.session.get('stdout_data')
+            if stdout:
+                # Clear the session data
+                del request.session['stdout_data']
+                
+                # Find student by matric number from stdout
+                student = Student.objects.filter(matric_number=stdout.strip()).first()
+                if student:
+                    student_details = {
+                        "status": "success",
+                        "name": student.full_name,
+                        "department": student.department.name,
+                        "matric_number": student.matric_number,
+                        "level": student.get_level_display(),
+                        "gender": "Male" if student.user.gender == "M" else "Female"
+                    }
+                    return JsonResponse(student_details)
+            
+            return JsonResponse({"status": "pending", "message": "No verification data found"})
+
+    except Exception as e:
+        print(f"Error in receive_verification: {str(e)}")
+        return JsonResponse({"status": "error", "message": str(e)}, status=500)
+
 
 @csrf_exempt
-def start_fingerprint(request):
-    if request.method == "POST":
-        try:
-            data = json.loads(request.body)
-            student_id = data.get("student_id")
-            mode = data.get("operation_mode")
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def start_verify(request):
+    try:
+        print("Starting fingerprint scan...")
+        app_path = r"C:\Users\EMMANUEL AYANLEYE\Downloads\VerifyFinger\VerifyFinger\bin\Debug\VerifyFinger.exe"
 
-            if not student_id or not mode:
-                return JsonResponse({"status": "error", "message": "Missing student_id or operation_mode"}, status=400)
+        if not os.path.exists(app_path):
+            return JsonResponse({
+                "status": "error", 
+                "message": "Fingerprint verification software not found"
+            }, status=500)
 
-            # Define the correct executable path based on mode
-            app_path = (
-                r"C:\Users\EMMANUEL AYANLEYE\Downloads\EnrollFinger\EnrollFinger\bin\Debug\EnrollFinger.exe"
-                if mode == "enroll"
-                else r"C:\Users\EMMANUEL AYANLEYE\Downloads\VerifyFinger\VerifyFinger\bin\Debug\VerifyFinger.exe"
-            )
+        process = subprocess.Popen(
+            [app_path],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True
+        )
+        
+        stdout, stderr = process.communicate()
+        print(f"Process completed with return code: {process.returncode}")
+        print(f"stdout: {stdout}")
+        print(f"stderr: {stderr}")
 
-            # Ensure the executable exists
-            if not os.path.exists(app_path):
-                return JsonResponse({"status": "error", "message": f"Executable not found: {app_path}"}, status=500)
+        if process.returncode == 0 and stdout.strip():
+            # Store the stdout in session for later retrieval
+            request.session['stdout_data'] = stdout.strip()
+            return JsonResponse({"status": "success", "message": "Verification completed"})
+        else:
+            return JsonResponse({
+                "status": "error",
+                "message": f"Verification failed: {stderr or 'No output received'}"
+            }, status=500)
 
-            print(f"Running: {app_path} with student_id: {student_id}")  # Debugging output
-
-            # Run the fingerprint scanning application
-            process = subprocess.run(
-                [app_path, str(student_id)], 
-                capture_output=True,
-                text=True
-            )
-
-            if process.returncode != 0:
-                return JsonResponse({"status": "error", "message": f"Process failed: {process.stderr}"}, status=500)
-
-            fingerprint_template = process.stdout.strip()
-            if not fingerprint_template:
-                return JsonResponse({"status": "error", "message": "No fingerprint data received"}, status=500)
-
-            return JsonResponse({"status": "success", "fingerprint": fingerprint_template})
-
-        except Exception as e:
-            print(f"Exception: {str(e)}")  # Debugging
-            return JsonResponse({"status": "error", "message": str(e)}, status=500)
-
-    return JsonResponse({"status": "error", "message": "Invalid request method"}, status=405)
+    except Exception as e:
+        print(f"Error in start_verify: {str(e)}")
+        return JsonResponse({
+            "status": "error",
+            "message": f"Failed to start fingerprint verification: {str(e)}"
+        }, status=500)

@@ -1,297 +1,457 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Attendance Dashboard</title>
 
     <!-- Bootstrap & Icons -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
     <link href="https://cdn.lineicons.com/4.0/lineicons.css" rel="stylesheet" />
 
     <!-- Custom Styles -->
-    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
-    
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}" />
+
     <!-- Scripts -->
-    <script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"
+    ></script>
     <script defer src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script defer src="{% static 'js/script.js' %}"></script>
-</head>
-<body class="d-flex flex-column vh-100">
+  </head>
+  <body class="d-flex flex-column vh-100">
     <!-- Navbar -->
     <header>
-        <nav class="navbar navbar-expand-sm bg-primary px-3" id="navbar-example2">
-          <div class="container-fluid">
-            <a href="#" class="navbar-brand text-light">
-              <img src="{% static 'images/Espam logo.png' %}" alt="SCHOOL LOGO">
-              <span>ESPAM-FORMATION <span class="d-none d-md-inline">ATTENDANCE SYSTEM</span></span>
-            </a>
-            <div class="justify-content-end">
-                <div class="d-flex">
-                    <div class="nav-item text-light pt-2 px-3 d-none d-md-inline">
-                        Welcome back, <span id="name">Admin</span>
-                    </div>
-                    <div class="d-none d-sm-inline">
-                        <ul class="navbar-nav ms-auto">
-                            <li class="nav-item">
-                                <a href="#" data-bs-toggle="dropdown" class="nav-icon pe-md-0">
-                                    <img src="{% static 'images/account.png' %}" class="avatar img-fluid" alt="User Account">
-                                </a>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
+      <nav class="navbar navbar-expand-sm bg-primary px-3" id="navbar-example2">
+        <div class="container-fluid">
+          <a href="#" class="navbar-brand text-light">
+            <img src="{% static 'images/Espam logo.png' %}" alt="SCHOOL LOGO" />
+            <span
+              >ESPAM-FORMATION
+              <span class="d-none d-md-inline">ATTENDANCE SYSTEM</span></span
+            >
+          </a>
+          <div class="justify-content-end">
+            <div class="d-flex">
+              <div class="nav-item text-light pt-2 px-3 d-none d-md-inline">
+                Welcome back, <span id="name">Admin</span>
+              </div>
+              <div class="d-none d-sm-inline">
+                <ul class="navbar-nav ms-auto">
+                  <li class="nav-item">
+                    <a
+                      href="#"
+                      data-bs-toggle="dropdown"
+                      class="nav-icon pe-md-0"
+                    >
+                      <img
+                        src="{% static 'images/account.png' %}"
+                        class="avatar img-fluid"
+                        alt="User Account"
+                      />
+                    </a>
+                  </li>
+                </ul>
+              </div>
             </div>
           </div>
-        </nav>
+        </div>
+      </nav>
     </header>
 
     <!-- Content Section -->
     <div class="d-flex flex-grow-1">
-        <!-- Sidebar -->
-        <aside id="sidebar">
-            <div class="d-flex">
-                <button class="toggle-btn" type="button">
-                    <i class="lni lni-grid-alt"></i>
-                </button>
-                <div class="sidebar-logo">
-                    <a href="#">Menu</a>
-                </div>
-            </div>
-            <ul class="sidebar-nav">
-                <li class="sidebar-item">
-                    <a href="{% url 'admin_dashboard' %}" class="sidebar-link">
-                        <i class="lni lni-home"></i>
-                        <span>Dashboard</span>
-                    </a>
-                </li>
-                <li class="sidebar-item">
-                    <a href="{% url 'report' %}" class="sidebar-link">
-                        <i class="lni lni-stats-up"></i>
-                        <span>View Reports</span>
-                    </a>
-                </li>
-                <li class="sidebar-item">
-                    <a href="{% url 'admin_summary' %}" class="sidebar-link">
-                        <i class="lni lni-bar-chart"></i>
-                        <span>Attendance Summary</span>
-                    </a>
-                </li>
-                <li class="sidebar-item">
-                    <a href="#" class="sidebar-link collapsed has-dropdown" data-bs-toggle="collapse"
-                        data-bs-target="#student" aria-expanded="false" aria-controls="student">
-                        <i class="lni lni-user"></i>
-                        <span>Manage Student</span>
-                    </a>
-                    <ul id="student" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
-                        <li class="sidebar-item">
-                            <a href="{% url 'add_student' %}" class="sidebar-link">Add student</a>
-                        </li>
-                        <li class="sidebar-item">
-                            <a href="{% url 'modify_student' %}" class="sidebar-link">Modify Students</a>
-                        </li>
-                    </ul>
-                </li>
-                <li class="sidebar-item">
-                    <a href="#" class="sidebar-link collapsed has-dropdown" data-bs-toggle="collapse"
-                        data-bs-target="#lecturer" aria-expanded="false" aria-controls="lecturer">
-                        <i class="lni lni-graduation"></i>
-                        <span>Manage Lecturer</span>
-                    </a>
-                    <ul id="lecturer" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
-                        <li class="sidebar-item">
-                            <a href="{% url 'add_lecturer' %}" class="sidebar-link">Add Lecturer</a>
-                        </li>
-                        <li class="sidebar-item">
-                            <a href="{% url 'modify_lecturer' %}" class="sidebar-link">Modify Lecturer</a>
-                        </li>
-                    </ul>
-                </li>
-                <li class="sidebar-item">
-                  <a href="#" class="sidebar-link collapsed has-dropdown" data-bs-toggle="collapse"
-                      data-bs-target="#course" aria-expanded="false" aria-controls="course">
-                      <i class="lni lni-book"></i>
-                      <span>Manage Course</span>
-                  </a>
-                  <ul id="course" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
-                      <li class="sidebar-item">
-                          <a href="{% url 'course' %}" class="sidebar-link">Add Course</a>
-                      </li>
-                      <li class="sidebar-item">
-                          <a href="{% url 'modify_course' %}" class="sidebar-link">Modify Course</a>
-                      </li>
-                  </ul>
-              </li>
-                <li class="sidebar-item">
-                    <a href="{% url 'settings' %}" class="sidebar-link">
-                        <i class="lni lni-cog"></i>
-                        <span>Settings</span>
-                    </a>
-                </li>
-            </ul>
-            <div class="sidebar-footer">
-                <a href="#" class="sidebar-link" id="logout-link">
-                    <i class="lni lni-exit"></i>
-                    <span>Logout</span>
-                </a>
-            </div>
-
-            <form method="POST" action="{% url 'logout' %}" id="logout-form" style="display: none;">
-              {% csrf_token %}
-          </form>
-          
-          <script>
-              document.getElementById('logout-link').addEventListener('click', function(event) {
-                  event.preventDefault();  // Prevents the default link behavior
-                  document.getElementById('logout-form').submit();  // Submit the hidden form
-              });
-          </script>
-        </aside>
-
-        <!-- Main Content -->
-        <main class="flex-grow-1 overflow-auto">
-          <div class="container py-4" id="main-content">
-              {% load static %}
-      
-              <!-- Main Content -->
-              <main class="content">
-                  <div class="container">
-                      <div class="text-center">
-                          <h2 class="page-title">Add New Student</h2>
-                          <p class="text-muted">Fill in the form below to add a new student to the system.</p>
-                      </div>
-                      {% if messages %}
-                      <div>
-                          {% for message in messages %}
-                          <div class="message-{{ message.tags }}">{{ message }}</div>
-                          {% endfor %}
-                      </div>
-                      {% endif %}
-      
-                      <!-- Add Student Form -->
-                      <div>
-                          <div class="card-body">
-                              <form method="POST" enctype="multipart/form-data">
-                                  {% csrf_token %}
-      
-                                  <!-- Full Name -->
-                                  <div class="mb-3">
-                                      <label for="full_name" class="form-label">Full Name</label>
-                                      <input type="text" class="form-control" id="full_name" name="full_name" placeholder="Enter student name" required />
-                                  </div>
-      
-                                  <!-- Matric and Session Section -->
-                                  <div class="row">
-                                      <div class="col-md-6 mb-3">
-                                          <label for="matric_number" class="form-label">Matric Number</label>
-                                          <input type="text" class="form-control" id="matric_number" name="matric_number" placeholder="Enter matriculation number" required />
-                                      </div>
-      
-                                      <div class="col-md-6 mb-3">
-                                          <label for="session" class="form-label">Session</label>
-                                          <select class="form-select" id="session" name="session" required>
-                                              <option selected disabled>Select Session</option>
-                                              {% for session in sessions %}
-                                              <option value="{{ session.id }}">{{ session.name }}</option>
-                                              {% endfor %}
-                                          </select>
-                                      </div>
-                                  </div>
-      
-                                  <!-- Email & Password -->
-                                  <div class="row">
-                                      <div class="col-md-6 mb-3">
-                                          <label for="email" class="form-label">Email Address</label>
-                                          <input type="email" class="form-control" id="email" name="email" placeholder="Enter email address" required />
-                                      </div>
-                                      <div class="col-md-6 mb-3">
-                                          <label for="password" class="form-label">Password</label>
-                                          <input type="password" class="form-control" id="password" name="password" placeholder="Enter password" required />
-                                      </div>
-                                  </div>
-      
-                                  <!-- Department and Level -->
-                                  <div class="row">
-                                      <div class="col-md-6 mb-3">
-                                          <label for="department" class="form-label">Department</label>
-                                          <select class="form-select" id="department" name="department" required>
-                                              <option selected disabled>Select Department</option>
-                                              {% for department in departments %}
-                                              <option value="{{ department.id }}">{{ department.name }}</option>
-                                              {% endfor %}
-                                          </select>
-                                      </div>
-      
-                                      <div class="col-md-6 mb-3">
-                                          <label for="level" class="form-label">Level</label>
-                                          <select class="form-select" id="level" name="level" required>
-                                              <option selected disabled>Select Level</option>
-                                              <option value="100">100 Level</option>
-                                              <option value="200">200 Level</option>
-                                              <option value="300">300 Level</option>
-                                              <option value="400">400 Level</option>
-                                          </select>
-                                      </div>
-                                  </div>
-      
-                                  <!-- Profile Picture -->
-                                  <div class="mb-3">
-                                      <label for="profile_picture" class="form-label">Profile Picture</label>
-                                      <input type="file" id="profile_picture" name="profile_picture" class="form-control" accept="image/*">
-                                  </div>
-      
-                                  <!-- Fingerprint Enrollment -->
-                                  <div class="mb-3">
-                                      <label class="form-label">Fingerprint Enrollment</label>
-                                      <input type="hidden" id="fingerprint1" name="fingerprint1">
-                                      <button type="button" class="btn btn-secondary w-100 mt-2" id="enrollFingerprintBtn">Enroll Fingerprint</button>
-                                  </div>
-      
-                                  <!-- Submit Button -->
-                                  <div class="d-grid">
-                                      <button type="submit" class="btn btn-primary">Add Student</button>
-                                  </div>
-                              </form>
-                          </div>
-                      </div>
-                  </div>
-              </main>
+      <!-- Sidebar -->
+      <aside id="sidebar">
+        <div class="d-flex">
+          <button class="toggle-btn" type="button">
+            <i class="lni lni-grid-alt"></i>
+          </button>
+          <div class="sidebar-logo">
+            <a href="#">Menu</a>
           </div>
+        </div>
+        <ul class="sidebar-nav">
+          <li class="sidebar-item">
+            <a href="{% url 'admin_dashboard' %}" class="sidebar-link">
+              <i class="lni lni-home"></i>
+              <span>Dashboard</span>
+            </a>
+          </li>
+          <li class="sidebar-item">
+            <a href="{% url 'report' %}" class="sidebar-link">
+              <i class="lni lni-stats-up"></i>
+              <span>View Reports</span>
+            </a>
+          </li>
+          <li class="sidebar-item">
+            <a href="{% url 'admin_summary' %}" class="sidebar-link">
+              <i class="lni lni-bar-chart"></i>
+              <span>Attendance Summary</span>
+            </a>
+          </li>
+          <li class="sidebar-item">
+            <a
+              href="#"
+              class="sidebar-link collapsed has-dropdown"
+              data-bs-toggle="collapse"
+              data-bs-target="#student"
+              aria-expanded="false"
+              aria-controls="student"
+            >
+              <i class="lni lni-user"></i>
+              <span>Manage Student</span>
+            </a>
+            <ul
+              id="student"
+              class="sidebar-dropdown list-unstyled collapse"
+              data-bs-parent="#sidebar"
+            >
+              <li class="sidebar-item">
+                <a href="{% url 'add_student' %}" class="sidebar-link"
+                  >Add student</a
+                >
+              </li>
+              <li class="sidebar-item">
+                <a href="{% url 'modify_student' %}" class="sidebar-link"
+                  >Modify Students</a
+                >
+              </li>
+            </ul>
+          </li>
+          <li class="sidebar-item">
+            <a
+              href="#"
+              class="sidebar-link collapsed has-dropdown"
+              data-bs-toggle="collapse"
+              data-bs-target="#lecturer"
+              aria-expanded="false"
+              aria-controls="lecturer"
+            >
+              <i class="lni lni-graduation"></i>
+              <span>Manage Lecturer</span>
+            </a>
+            <ul
+              id="lecturer"
+              class="sidebar-dropdown list-unstyled collapse"
+              data-bs-parent="#sidebar"
+            >
+              <li class="sidebar-item">
+                <a href="{% url 'add_lecturer' %}" class="sidebar-link"
+                  >Add Lecturer</a
+                >
+              </li>
+              <li class="sidebar-item">
+                <a href="{% url 'modify_lecturer' %}" class="sidebar-link"
+                  >Modify Lecturer</a
+                >
+              </li>
+            </ul>
+          </li>
+          <li class="sidebar-item">
+            <a
+              href="#"
+              class="sidebar-link collapsed has-dropdown"
+              data-bs-toggle="collapse"
+              data-bs-target="#course"
+              aria-expanded="false"
+              aria-controls="course"
+            >
+              <i class="lni lni-book"></i>
+              <span>Manage Course</span>
+            </a>
+            <ul
+              id="course"
+              class="sidebar-dropdown list-unstyled collapse"
+              data-bs-parent="#sidebar"
+            >
+              <li class="sidebar-item">
+                <a href="{% url 'course' %}" class="sidebar-link">Add Course</a>
+              </li>
+              <li class="sidebar-item">
+                <a href="{% url 'modify_course' %}" class="sidebar-link"
+                  >Modify Course</a
+                >
+              </li>
+            </ul>
+          </li>
+          <li class="sidebar-item">
+            <a href="{% url 'settings' %}" class="sidebar-link">
+              <i class="lni lni-cog"></i>
+              <span>Settings</span>
+            </a>
+          </li>
+        </ul>
+        <div class="sidebar-footer">
+          <a href="#" class="sidebar-link" id="logout-link">
+            <i class="lni lni-exit"></i>
+            <span>Logout</span>
+          </a>
+        </div>
+
+        <form
+          method="POST"
+          action="{% url 'logout' %}"
+          id="logout-form"
+          style="display: none"
+        >
+          {% csrf_token %}
+        </form>
+
+        <script>
+          document
+            .getElementById("logout-link")
+            .addEventListener("click", function (event) {
+              event.preventDefault(); // Prevents the default link behavior
+              document.getElementById("logout-form").submit(); // Submit the hidden form
+            });
+        </script>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="flex-grow-1 overflow-auto">
+        <div class="container py-4" id="main-content">
+          {% load static %}
+
+          <!-- Main Content -->
+          <main class="content">
+            <div class="container">
+              <div class="text-center">
+                <h2 class="page-title">Add New Student</h2>
+                <p class="text-muted">
+                  Fill in the form below to add a new student to the system.
+                </p>
+              </div>
+              {% if messages %}
+              <div>
+                {% for message in messages %}
+                <div class="message-{{ message.tags }}">{{ message }}</div>
+                {% endfor %}
+              </div>
+              {% endif %}
+
+              <!-- Add Student Form -->
+              <div>
+                <div class="card-body">
+                  <form
+                    method="POST"
+                    class="needs-validation"
+                    novalidate
+                    enctype="multipart/form-data"
+                  >
+                    {% csrf_token %}
+
+                    <!-- Full Name and Matric -->
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="fullName" class="form-label">Full Name</label>
+                            <input
+                              type="text"
+                              class="form-control"
+                              id="fullName"
+                              name="full_name"
+                              required
+                            />
+                          </div>
+      
+                          <div class="col-md-6 mb-3">
+                              <label for="matricNumber" class="form-label"
+                                >Matric Number</label
+                              >
+                              <input
+                                type="text"
+                                class="form-control"
+                                id="matricNumber"
+                                name="matric_number"
+                                required
+                              />
+                            </div>
+                    </div>
+
+                    <!-- Department and Session Section -->
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="department" class="form-label"
+                              >Department</label
+                            >
+                            <select
+                              class="form-select"
+                              id="department"
+                              name="department"
+                              required
+                            >
+                              <option value="">Select Department</option>
+                              {% for dept in departments %}
+                              <option value="{{ dept.id }}">{{ dept.name }}</option>
+                              {% endfor %}
+                            </select>
+                          </div>
+
+                      <div class="col-md-6 mb-3">
+                        <label for="session" class="form-label">Session</label>
+                        <select
+                          class="form-select"
+                          id="session"
+                          name="session"
+                          required
+                        >
+                          <option selected disabled>Select Session</option>
+                          {% for session in sessions %}
+                          <option value="{{ session.id }}">
+                            {{ session.name }}
+                          </option>
+                          {% endfor %}
+                        </select>
+                      </div>
+                    </div>
+
+                    <!-- Gender and Level -->
+                    <div class="row">
+                      <div class="col-md-6 mb-3">
+                        <label for="gender" class="form-label">Gender</label>
+                        <select
+                          class="form-select"
+                          id="gender"
+                          name="gender"
+                          required
+                        >
+                          <option value="">Select Gender</option>
+                          <option value="M">Male</option>
+                          <option value="F">Female</option>
+                        </select>
+                      </div>
+                      
+                      <div class="col-md-6 mb-3">
+                        <label for="level" class="form-label">Level</label>
+                        <select
+                          class="form-select"
+                          id="level"
+                          name="level"
+                          required
+                        >
+                          <option value="">Select Level</option>
+                          <option value="100">100</option>
+                          <option value="200">200</option>
+                          <option value="300">300</option>
+                          <option value="400">400</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <!-- Email & Password -->
+                    <div class="row">
+                      <div class="col-md-6 mb-3">
+                        <label for="email" class="form-label"
+                          >Email Address</label
+                        >
+                        <input
+                          type="email"
+                          class="form-control"
+                          id="email"
+                          name="email"
+                          placeholder="Enter email address"
+                          required
+                        />
+                      </div>
+                      <div class="col-md-6 mb-3">
+                        <label for="password" class="form-label"
+                          >Password</label
+                        >
+                        <input
+                          type="password"
+                          class="form-control"
+                          id="password"
+                          name="password"
+                          placeholder="Enter password"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <!-- Profile Picture -->
+                    <div class="mb-3">
+                      <label for="profile_picture" class="form-label"
+                        >Profile Picture</label
+                      >
+                      <input
+                        type="file"
+                        id="profile_picture"
+                        name="profile_picture"
+                        class="form-control"
+                        accept="image/*"
+                      />
+                    </div>
+
+                    <!-- Fingerprint Enrollment -->
+                    <div class="mb-3">
+                      <label class="form-label">Fingerprint Enrollment</label>
+                      <input
+                        type="hidden"
+                        id="fingerprint1"
+                        name="fingerprint1"
+                      />
+                      <button
+                        type="button"
+                        class="btn btn-secondary w-100 mt-2"
+                        id="enrollFingerprintBtn"
+                      >
+                        Enroll Fingerprint
+                      </button>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="d-grid">
+                      <button type="submit" class="btn btn-primary">
+                        Add Student
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </main>
+        </div>
       </main>
-      
+
       <script>
-        document.getElementById("enrollFingerprintBtn").addEventListener("click", function() {
-    let studentId = document.getElementById("matric_number").value; // Get student ID from input
-
-    if (!studentId) {
-        alert("Please enter a valid matric number!");
-        return;
-    }
-
-    // Call the C# app with the student ID using a POST request for enrollment
-    fetch("/api/start-fingerprint/", { 
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ student_id: studentId, operation_mode: "enroll" }) // Make sure to specify "enroll"
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.status === "success" && data.fingerprint) {
-            alert("Fingerprint enrolled successfully!");
-            document.getElementById("fingerprint1").value = data.fingerprint;
-        } else {
-            alert("Error: " + (data.message || "Fingerprint enrollment failed"));
-        }
-    })
-    .catch(error => alert("Error: " + error.message || "Unknown error"));
-});
-
-      </script>
+        document.getElementById("enrollFingerprintBtn").addEventListener("click", async function() {
+            const matricNumber = document.getElementById("matricNumber").value;
+            
+            if (!matricNumber) {
+                alert("Please enter a matric number first!");
+                return;
+            }
         
-      
+            try {
+                const response = await fetch("/api/start_enroll/", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        student_id: matricNumber,
+                        operation_mode: "enroll"
+                    })
+                });
+        
+                const data = await response.json();
+                
+                if (data.status === "success" && data.fingerprint) {
+                    document.getElementById("fingerprint1").value = data.fingerprint;
+                    alert("Fingerprint enrolled successfully!");
+                } else {
+                    alert("Error: " + (data.message || "Fingerprint enrollment failed"));
+                }
+            } catch (error) {
+                alert("Error: " + (error.message || "Failed to communicate with server"));
+            }
+        });
+        </script>
     </div>
-</body>
+  </body>
 </html>

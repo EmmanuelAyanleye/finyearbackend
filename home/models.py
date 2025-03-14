@@ -21,6 +21,7 @@ class CustomUserManager(BaseUserManager):
             raise ValueError('Superuser must have is_staff=True and is_superuser=True')
         return self.create_user(email, password, **extra_fields)
 
+
 # ================== Custom User Model ==================
 class CustomUser(AbstractUser):
     USER_ROLES = (
@@ -28,9 +29,16 @@ class CustomUser(AbstractUser):
         ('student', 'Student'),
         ('lecturer', 'Lecturer'),
     )
+
+    GENDER_CHOICES = (
+        ('M', 'Male'),
+        ('F', 'Female'),
+    )
+
     username = None  # Remove username field
     email = models.EmailField(unique=True)
     role = models.CharField(max_length=10, choices=USER_ROLES)
+    gender = models.CharField(max_length=1, choices=GENDER_CHOICES, null=True)
     
     # Fix related_name conflicts
     groups = models.ManyToManyField(Group, related_name="customuser_groups", blank=True)
@@ -97,9 +105,17 @@ class Course(models.Model):
 
 # ================== Student Model ==================
 class Student(models.Model):
+    GENDER_CHOICES = [
+        ('M', 'Male'),
+        ('F', 'Female')
+    ]
+
+    
+    
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
     matric_number = models.CharField(max_length=20, unique=True)
     full_name = models.CharField(max_length=100)
+    gender = models.CharField(max_length=1, choices=GENDER_CHOICES)
     session = models.ForeignKey(AcademicSession, on_delete=models.SET_NULL, null=True)
     department = models.ForeignKey(Department, on_delete=models.SET_NULL, null=True)
     level = models.IntegerField(choices=[
@@ -110,9 +126,18 @@ class Student(models.Model):
     ])
     profile_picture = models.ImageField(upload_to='student_profiles/', blank=True, null=True)
     fingerprint_data = models.TextField(blank=True, null=True)
+    gender = models.CharField(
+        max_length=1, 
+        choices=GENDER_CHOICES,
+        default='M'  # Setting default value to 'M'
+    )
 
     def __str__(self):
         return f"{self.full_name} ({self.matric_number})"
+    
+    def get_gender_display(self):
+        """Override the default get_gender_display to ensure correct output"""
+        return 'Male' if self.gender == 'M' else 'Female'
 
 # ================== Attendance Model ==================
 class Attendance(models.Model):

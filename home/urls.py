@@ -49,6 +49,12 @@ urlpatterns = [
     path('student_panel/', student_panel_view, name='student_panel'),
     path('lecturer_panel/', lecturer_panel_view, name='lecturer_panel'),
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
+    path('mark_attendance/', views.mark_attendance, name='mark_attendance'),
+    path('get_attendance_data/', views.get_attendance_data, name='get_attendance_data'),
+    path('export_excel/', views.export_excel, name='export_excel'),
+    path('get_attendance_summary/', views.get_attendance_summary, name='get_attendance_summary'),
+    path('export_summary_pdf/', views.export_summary_pdf, name='export_summary_pdf'),
+    path('get-dashboard-stats/', views.get_dashboard_stats, name='get_dashboard_stats'),
 
 
     path('fingerprint/', views.fingerprint, name='fingerprint'),

@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'fingerprint',
     'corsheaders',
     'rest_framework.authtoken',
+    'channels',
 ]
 
 MIDDLEWARE = [
@@ -96,6 +97,13 @@ SIMPLE_JWT = {
 
 WSGI_APPLICATION = 'myproject.wsgi.application'
 
+# Add Channels configuration
+ASGI_APPLICATION = 'myproject.asgi.application'
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels.layers.InMemoryChannelLayer'
+    }
+}
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases

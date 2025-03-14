@@ -142,3 +142,43 @@ class StudentSelfUpdateForm(forms.ModelForm):
     class Meta:
         model = Student
         fields = ['email', 'password', 'profile_picture']
+
+
+class StudentUpdateForm(forms.ModelForm):
+    email = forms.EmailField(
+        widget=forms.EmailInput(attrs={
+            'class': 'form-control'
+        })
+    )
+    password = forms.CharField(
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter new password (leave empty to keep current)'
+        }), 
+        required=False
+    )
+    session = forms.ModelChoiceField(
+        queryset=AcademicSession.objects.all().order_by('-name'),
+        required=True,
+        widget=forms.Select(attrs={'class': 'form-select'})
+    )
+    profile_picture = forms.ImageField(
+        widget=forms.FileInput(attrs={
+            'class': 'form-control',
+            'accept': 'image/*',
+            'onchange': 'previewImage(this)'
+        }),
+        required=False
+    )
+    
+    class Meta:
+        model = Student
+        fields = ['full_name', 'matric_number', 'gender', 'level', 
+                 'session', 'department', 'profile_picture']
+        widgets = {
+            'full_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'matric_number': forms.TextInput(attrs={'class': 'form-control'}),
+            'department': forms.Select(attrs={'class': 'form-select'}),
+            'gender': forms.Select(attrs={'class': 'form-select'}),
+            'level': forms.Select(attrs={'class': 'form-select'}),
+        }

@@ -1,325 +1,480 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Attendance Dashboard</title>
 
     <!-- Bootstrap & Icons -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
     <link href="https://cdn.lineicons.com/4.0/lineicons.css" rel="stylesheet" />
 
     <!-- Custom Styles -->
-    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
-    
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}" />
+
     <!-- Scripts -->
-    <script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"
+    ></script>
     <script defer src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script defer src="{% static 'js/script.js' %}"></script>
-</head>
-<body class="d-flex flex-column vh-100">
+  </head>
+  <body class="d-flex flex-column vh-100">
     <!-- Navbar -->
     <header>
-        <nav class="navbar navbar-expand-sm bg-primary px-3" id="navbar-example2">
-          <div class="container-fluid">
-            <a href="#" class="navbar-brand text-light">
-              <img src="{% static 'images/Espam logo.png' %}" alt="SCHOOL LOGO">
-              <span>ESPAM-FORMATION <span class="d-none d-md-inline">ATTENDANCE SYSTEM</span></span>
-            </a>
-            <div class="justify-content-end">
-                <div class="d-flex">
-                    <div class="nav-item text-light pt-2 px-3 d-none d-md-inline">
-                        Welcome back, <span id="name">Admin</span>
-                    </div>
-                    <div class="d-none d-sm-inline">
-                        <ul class="navbar-nav ms-auto">
-                            <li class="nav-item">
-                                <a href="#" data-bs-toggle="dropdown" class="nav-icon pe-md-0">
-                                    <img src="{% static 'images/account.png' %}" class="avatar img-fluid" alt="User Account">
-                                </a>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
+      <nav class="navbar navbar-expand-sm bg-primary px-3" id="navbar-example2">
+        <div class="container-fluid">
+          <a href="#" class="navbar-brand text-light">
+            <img src="{% static 'images/Espam logo.png' %}" alt="SCHOOL LOGO" />
+            <span
+              >ESPAM-FORMATION
+              <span class="d-none d-md-inline">ATTENDANCE SYSTEM</span></span
+            >
+          </a>
+          <div class="justify-content-end">
+            <div class="d-flex">
+              <div class="nav-item text-light pt-2 px-3 d-none d-md-inline">
+                Welcome back, <span id="name">Admin</span>
+              </div>
+              <div class="d-none d-sm-inline">
+                <ul class="navbar-nav ms-auto">
+                  <li class="nav-item">
+                    <a
+                      href="#"
+                      data-bs-toggle="dropdown"
+                      class="nav-icon pe-md-0"
+                    >
+                      <img
+                        src="{% static 'images/account.png' %}"
+                        class="avatar img-fluid"
+                        alt="User Account"
+                      />
+                    </a>
+                  </li>
+                </ul>
+              </div>
             </div>
           </div>
-        </nav>
+        </div>
+      </nav>
     </header>
 
     <!-- Content Section -->
     <div class="d-flex flex-grow-1">
-        <!-- Sidebar -->
-        <aside id="sidebar">
-            <div class="d-flex">
-                <button class="toggle-btn" type="button">
-                    <i class="lni lni-grid-alt"></i>
-                </button>
-                <div class="sidebar-logo">
-                    <a href="#">Menu</a>
-                </div>
-            </div>
-            <ul class="sidebar-nav">
-                <li class="sidebar-item">
-                    <a href="{% url 'admin_dashboard' %}" class="sidebar-link">
-                        <i class="lni lni-home"></i>
-                        <span>Dashboard</span>
-                    </a>
-                </li>
-                <li class="sidebar-item">
-                    <a href="{% url 'report' %}" class="sidebar-link">
-                        <i class="lni lni-stats-up"></i>
-                        <span>View Reports</span>
-                    </a>
-                </li>
-                <li class="sidebar-item">
-                    <a href="{% url 'admin_summary' %}" class="sidebar-link">
-                        <i class="lni lni-bar-chart"></i>
-                        <span>Attendance Summary</span>
-                    </a>
-                </li>
-                <li class="sidebar-item">
-                    <a href="#" class="sidebar-link collapsed has-dropdown" data-bs-toggle="collapse"
-                        data-bs-target="#student" aria-expanded="false" aria-controls="student">
-                        <i class="lni lni-user"></i>
-                        <span>Manage Student</span>
-                    </a>
-                    <ul id="student" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
-                        <li class="sidebar-item">
-                            <a href="{% url 'add_student' %}" class="sidebar-link">Add student</a>
-                        </li>
-                        <li class="sidebar-item">
-                            <a href="{% url 'modify_student' %}" class="sidebar-link">Modify Students</a>
-                        </li>
-                    </ul>
-                </li>
-                <li class="sidebar-item">
-                    <a href="#" class="sidebar-link collapsed has-dropdown" data-bs-toggle="collapse"
-                        data-bs-target="#lecturer" aria-expanded="false" aria-controls="lecturer">
-                        <i class="lni lni-graduation"></i>
-                        <span>Manage Lecturer</span>
-                    </a>
-                    <ul id="lecturer" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
-                        <li class="sidebar-item">
-                            <a href="{% url 'add_lecturer' %}" class="sidebar-link">Add Lecturer</a>
-                        </li>
-                        <li class="sidebar-item">
-                            <a href="{% url 'modify_lecturer' %}" class="sidebar-link">Modify Lecturer</a>
-                        </li>
-                    </ul>
-                </li>
-                <li class="sidebar-item">
-                  <a href="#" class="sidebar-link collapsed has-dropdown" data-bs-toggle="collapse"
-                      data-bs-target="#course" aria-expanded="false" aria-controls="course">
-                      <i class="lni lni-book"></i>
-                      <span>Manage Course</span>
-                  </a>
-                  <ul id="course" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
-                      <li class="sidebar-item">
-                          <a href="{% url 'course' %}" class="sidebar-link">Add Course</a>
-                      </li>
-                      <li class="sidebar-item">
-                          <a href="{% url 'modify_course' %}" class="sidebar-link">Modify Course</a>
-                      </li>
-                  </ul>
+      <!-- Sidebar -->
+      <aside id="sidebar">
+        <div class="d-flex">
+          <button class="toggle-btn" type="button">
+            <i class="lni lni-grid-alt"></i>
+          </button>
+          <div class="sidebar-logo">
+            <a href="#">Menu</a>
+          </div>
+        </div>
+        <ul class="sidebar-nav">
+          <li class="sidebar-item">
+            <a href="{% url 'admin_dashboard' %}" class="sidebar-link">
+              <i class="lni lni-home"></i>
+              <span>Dashboard</span>
+            </a>
+          </li>
+          <li class="sidebar-item">
+            <a href="{% url 'report' %}" class="sidebar-link">
+              <i class="lni lni-stats-up"></i>
+              <span>View Reports</span>
+            </a>
+          </li>
+          <li class="sidebar-item">
+            <a href="{% url 'admin_summary' %}" class="sidebar-link">
+              <i class="lni lni-bar-chart"></i>
+              <span>Attendance Summary</span>
+            </a>
+          </li>
+          <li class="sidebar-item">
+            <a
+              href="#"
+              class="sidebar-link collapsed has-dropdown"
+              data-bs-toggle="collapse"
+              data-bs-target="#student"
+              aria-expanded="false"
+              aria-controls="student"
+            >
+              <i class="lni lni-user"></i>
+              <span>Manage Student</span>
+            </a>
+            <ul
+              id="student"
+              class="sidebar-dropdown list-unstyled collapse"
+              data-bs-parent="#sidebar"
+            >
+              <li class="sidebar-item">
+                <a href="{% url 'add_student' %}" class="sidebar-link"
+                  >Add student</a
+                >
               </li>
-                <li class="sidebar-item">
-                    <a href="{% url 'settings' %}" class="sidebar-link">
-                        <i class="lni lni-cog"></i>
-                        <span>Settings</span>
-                    </a>
-                </li>
+              <li class="sidebar-item">
+                <a href="{% url 'modify_student' %}" class="sidebar-link"
+                  >Modify Students</a
+                >
+              </li>
             </ul>
-            <div class="sidebar-footer">
-                <a href="#" class="sidebar-link" id="logout-link">
-                    <i class="lni lni-exit"></i>
-                    <span>Logout</span>
-                </a>
+          </li>
+          <li class="sidebar-item">
+            <a
+              href="#"
+              class="sidebar-link collapsed has-dropdown"
+              data-bs-toggle="collapse"
+              data-bs-target="#lecturer"
+              aria-expanded="false"
+              aria-controls="lecturer"
+            >
+              <i class="lni lni-graduation"></i>
+              <span>Manage Lecturer</span>
+            </a>
+            <ul
+              id="lecturer"
+              class="sidebar-dropdown list-unstyled collapse"
+              data-bs-parent="#sidebar"
+            >
+              <li class="sidebar-item">
+                <a href="{% url 'add_lecturer' %}" class="sidebar-link"
+                  >Add Lecturer</a
+                >
+              </li>
+              <li class="sidebar-item">
+                <a href="{% url 'modify_lecturer' %}" class="sidebar-link"
+                  >Modify Lecturer</a
+                >
+              </li>
+            </ul>
+          </li>
+          <li class="sidebar-item">
+            <a
+              href="#"
+              class="sidebar-link collapsed has-dropdown"
+              data-bs-toggle="collapse"
+              data-bs-target="#course"
+              aria-expanded="false"
+              aria-controls="course"
+            >
+              <i class="lni lni-book"></i>
+              <span>Manage Course</span>
+            </a>
+            <ul
+              id="course"
+              class="sidebar-dropdown list-unstyled collapse"
+              data-bs-parent="#sidebar"
+            >
+              <li class="sidebar-item">
+                <a href="{% url 'course' %}" class="sidebar-link">Add Course</a>
+              </li>
+              <li class="sidebar-item">
+                <a href="{% url 'modify_course' %}" class="sidebar-link"
+                  >Modify Course</a
+                >
+              </li>
+            </ul>
+          </li>
+          <li class="sidebar-item">
+            <a href="{% url 'settings' %}" class="sidebar-link">
+              <i class="lni lni-cog"></i>
+              <span>Settings</span>
+            </a>
+          </li>
+        </ul>
+        <div class="sidebar-footer">
+          <a href="#" class="sidebar-link" id="logout-link">
+            <i class="lni lni-exit"></i>
+            <span>Logout</span>
+          </a>
+        </div>
+
+        <form
+          method="POST"
+          action="{% url 'logout' %}"
+          id="logout-form"
+          style="display: none"
+        >
+          {% csrf_token %}
+        </form>
+
+        <script>
+          document
+            .getElementById("logout-link")
+            .addEventListener("click", function (event) {
+              event.preventDefault(); // Prevents the default link behavior
+              document.getElementById("logout-form").submit(); // Submit the hidden form
+            });
+        </script>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="flex-grow-1 overflow-auto">
+        <div class="container py-4" id="main-content">
+          <div class="container">
+            <h2 class="text-center mb-4">Manage Academic Data</h2>
+            {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                {% endfor %}
             </div>
+            {% endif %}
 
-            <form method="POST" action="{% url 'logout' %}" id="logout-form" style="display: none;">
-              {% csrf_token %}
-          </form>
-          
-          <script>
-              document.getElementById('logout-link').addEventListener('click', function(event) {
-                  event.preventDefault();  // Prevents the default link behavior
-                  document.getElementById('logout-form').submit();  // Submit the hidden form
-              });
-          </script>
-        </aside>
+            <!-- Tabs for Navigation -->
+            <ul class="nav nav-tabs mb-3">
+              <li class="nav-item">
+                <a
+                  class="nav-link {% if active_tab == 'sessions' %}active{% endif %}"
+                  href="#sessions"
+                  data-bs-toggle="tab"
+                  >Academic Sessions</a
+                >
+              </li>
+              <li class="nav-item">
+                <a
+                  class="nav-link {% if active_tab == 'semesters' %}active{% endif %}"
+                  href="#semesters"
+                  data-bs-toggle="tab"
+                  >Semesters</a
+                >
+              </li>
+              <li class="nav-item">
+                <a
+                  class="nav-link {% if active_tab == 'departments' %}active{% endif %}"
+                  href="#departments"
+                  data-bs-toggle="tab"
+                  >Departments</a
+                >
+              </li>
+            </ul>
 
-        <!-- Main Content -->
-        <main class="flex-grow-1 overflow-auto">
-            <div class="container py-4" id="main-content">
-              <div class="container">
-                <h2 class="text-center mb-4">Manage Academic Data</h2>
-              
-                <!-- Tabs for Navigation -->
-                <ul class="nav nav-tabs mb-3">
-                  <li class="nav-item">
-                    <a class="nav-link active" data-bs-toggle="tab" href="#sessions">Academic Sessions</a>
-                  </li>
-                  <li class="nav-item">
-                    <a class="nav-link" data-bs-toggle="tab" href="#semesters">Semesters</a>
-                  </li>
-                  <li class="nav-item">
-                    <a class="nav-link" data-bs-toggle="tab" href="#departments">Departments</a>
-                  </li>
-                </ul>
-              
-                <div class="tab-content">
-                  <!-- Academic Sessions -->
-                  <div id="sessions" class="tab-pane fade show active">
-                    <h4>Manage Academic Sessions</h4>
-                    <form method="POST">
-                      {% csrf_token %}
-                      <input type="text" class="form-control mb-2" 
-                             pattern="^\d{4}/\d{4}$" 
-                             name="session_name" 
-                             placeholder="Enter new session (e.g., 2024/2025)" 
-                             title="Enter a valid session format like 2024/2025"
-                             required>
-                      <button type="submit" name="add_session" class="btn btn-primary mb-3">Add Session</button>
-                    </form>
-                    
-                    <script>
-                      document.querySelector("form").addEventListener("submit", function(event) {
-                        var sessionInput = document.querySelector("[name='session_name']");
-                        var regex = /^\d{4}\/\d{4}$/;
-                        if (!regex.test(sessionInput.value)) {
-                          alert("Enter a valid session format like 2024/2025");
-                          event.preventDefault();
-                        }
-                      });
-                    </script>
-                    
-                    <div style="max-height: 370px; overflow-y: auto;">
-                      <table class="table table-striped table-hover">
-                        <thead>
-                          <tr class="highlight">
-                            <th>#</th>
-                            <th>Session Name</th>
-                            <th>Actions</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {% for session in sessions %}
-                          <tr>
-                            <td>{{ forloop.counter }}</td>
-                            <td>{{ session.name }}</td>
-                            <td>
-                              <a href="?delete_session={{ session.id }}" class="btn btn-danger btn-sm">Delete</a>
-                            </td>
-                          </tr>
-                          {% endfor %}
-                        </tbody>
-                      </table>
-                    </div>
-                    
-                  </div>
-              
-                  <!-- Semesters -->
-                  <div id="semesters" class="tab-pane fade">
-                    <h4>Manage Semesters</h4>
-                    <form method="POST">
-                      {% csrf_token %}
-                      <input type="text" class="form-control mb-2" 
-                             name="semester_name" 
-                             placeholder="Enter new semester (e.g., First)" 
-                             pattern="^[A-Za-z]+$" 
-                             title="Only alphabets (A-Z, a-z) are allowed." 
-                             required>
-                      <button type="submit" name="add_semester" class="btn btn-primary mb-3">Add Semester</button>
-                    </form>
-                    
-                    
-                    <div style="max-height: 370px; overflow-y: auto;">
-                      <table class="table table-striped table-hover">
-                        <thead>
-                          <tr class="highlight">
-                            <th>#</th>
-                            <th>Semester Name</th>
-                            <th>Actions</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {% for semester in semesters %}
-                          <tr>
-                            <td>{{ forloop.counter }}</td>
-                            <td>{{ semester.name }}</td>
-                            <td>
-                              <a href="?delete_semester={{ semester.id }}" class="btn btn-danger btn-sm">Delete</a>
-                            </td>
-                          </tr>
-                          {% endfor %}
-                        </tbody>
-                      </table>
-                    </div>
-                    
-                  </div>
-              
-                  <!-- Departments -->
-                  <div id="departments" class="tab-pane fade">
-                    <h4>Manage Departments</h4>
-                    <form method="POST">
-                      {% csrf_token %}
-                      <input type="text" class="form-control mb-2" 
-                             name="department_name" 
-                             placeholder="Enter new department (e.g., Computer Science)" 
-                             pattern="^[A-Za-z ]+$" 
-                             title="Only alphabets (A-Z, a-z) and spaces are allowed." 
-                             required>
-                      <button type="submit" name="add_department" class="btn btn-primary mb-3">Add Department</button>
-                    </form>
-                    
-                    <div style="max-height: 370px; overflow-y: auto;">
-                      <table class="table table-striped table-hover">
-                        <thead>
-                          <tr class="highlight">
-                            <th>#</th>
-                            <th>Department Name</th>
-                            <th>Actions</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {% for department in departments %}
-                          <tr>
-                            <td>{{ forloop.counter }}</td>
-                            <td>{{ department.name }}</td>
-                            <td>
-                              <a href="?delete_department={{ department.id }}" class="btn btn-danger btn-sm">Delete</a>
-                            </td>
-                          </tr>
-                          {% endfor %}
-                        </tbody>
-                      </table>
-                    </div>
-                    
-                  </div>
+            <div class="tab-content">
+              <!-- Academic Sessions -->
+              <div
+                id="sessions"
+                class="tab-pane fade {% if active_tab == 'sessions' %}show active{% endif %}"
+              >
+                <h4>Manage Academic Sessions</h4>
+                <form method="POST">
+                  {% csrf_token %}
+                  <input
+                    type="text"
+                    class="form-control mb-2"
+                    pattern="^\d{4}/\d{4}$"
+                    name="session_name"
+                    placeholder="Enter new session (e.g., 2024/2025)"
+                    title="Enter a valid session format like 2024/2025"
+                    required
+                  />
+                  <button
+                    type="submit"
+                    name="add_session"
+                    class="btn btn-primary mb-3"
+                  >
+                    Add Session
+                  </button>
+                </form>
+
+                <script>
+                  document
+                    .querySelector("form")
+                    .addEventListener("submit", function (event) {
+                      var sessionInput = document.querySelector(
+                        "[name='session_name']"
+                      );
+                      var regex = /^\d{4}\/\d{4}$/;
+                      if (!regex.test(sessionInput.value)) {
+                        alert("Enter a valid session format like 2024/2025");
+                        event.preventDefault();
+                      }
+                    });
+                </script>
+
+                <div style="max-height: 370px; overflow-y: auto">
+                  <table class="table table-striped table-hover">
+                    <thead>
+                      <tr class="highlight">
+                        <th>#</th>
+                        <th>Session Name</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {% for session in sessions %}
+                      <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{ session.name }}</td>
+                        <td>
+                          <a
+                            href="?delete_session={{ session.id }}"
+                            class="btn btn-danger btn-sm"
+                            >Delete</a
+                          >
+                        </td>
+                      </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
                 </div>
               </div>
-              
+
+              <!-- Semesters -->
+              <div
+                id="semesters"
+                class="tab-pane fade {% if active_tab == 'semesters' %}show active{% endif %}"
+              >
+                <h4>Manage Semesters</h4>
+                <form method="POST">
+                  {% csrf_token %}
+                  <input
+                    type="text"
+                    class="form-control mb-2"
+                    name="semester_name"
+                    placeholder="Enter new semester (e.g., First)"
+                    pattern="^[A-Za-z]+$"
+                    title="Only alphabets (A-Z, a-z) are allowed."
+                    required
+                  />
+                  <button
+                    type="submit"
+                    name="add_semester"
+                    class="btn btn-primary mb-3"
+                  >
+                    Add Semester
+                  </button>
+                </form>
+
+                <div style="max-height: 370px; overflow-y: auto">
+                  <table class="table table-striped table-hover">
+                    <thead>
+                      <tr class="highlight">
+                        <th>#</th>
+                        <th>Semester Name</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {% for semester in semesters %}
+                      <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{ semester.name }}</td>
+                        <td>
+                          <a
+                            href="?delete_semester={{ semester.id }}"
+                            class="btn btn-danger btn-sm"
+                            >Delete</a
+                          >
+                        </td>
+                      </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <!-- Departments -->
+              <div
+                id="departments"
+                class="tab-pane fade {% if active_tab == 'departments' %}show active{% endif %}"
+              >
+                <h4>Manage Departments</h4>
+                <form method="POST">
+                  {% csrf_token %}
+                  <input
+                    type="text"
+                    class="form-control mb-2"
+                    name="department_name"
+                    placeholder="Enter new department (e.g., Computer Science)"
+                    pattern="^[A-Za-z ]+$"
+                    title="Only alphabets (A-Z, a-z) and spaces are allowed."
+                    required
+                  />
+                  <button
+                    type="submit"
+                    name="add_department"
+                    class="btn btn-primary mb-3"
+                  >
+                    Add Department
+                  </button>
+                </form>
+
+                <div style="max-height: 370px; overflow-y: auto">
+                  <table class="table table-striped table-hover">
+                    <thead>
+                      <tr class="highlight">
+                        <th>#</th>
+                        <th>Department Name</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {% for department in departments %}
+                      <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{ department.name }}</td>
+                        <td>
+                          <a
+                            href="?delete_department={{ department.id }}"
+                            class="btn btn-danger btn-sm"
+                            >Delete</a
+                          >
+                        </td>
+                      </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             </div>
-        </main>
+          </div>
+        </div>
+      </main>
     </div>
     <script>
       // Ensure that the active tab is applied on page load
-      document.addEventListener('DOMContentLoaded', function() {
+      document.addEventListener("DOMContentLoaded", function () {
         // Retrieve the active tab from localStorage (if any)
-        const activeTab = localStorage.getItem('activeTab') || 'sessions';
-      
+        const activeTab = localStorage.getItem("activeTab") || "sessions";
+
         // Add 'active' class to the correct tab and show corresponding pane
-        document.querySelector(`#${activeTab}-tab`).classList.add('active');
-        document.querySelector(`#${activeTab}`).classList.add('show', 'active');
+        document.querySelector(`#${activeTab}-tab`).classList.add("active");
+        document.querySelector(`#${activeTab}`).classList.add("show", "active");
       });
-      
+
       // Save the active tab in localStorage when a tab is clicked
-      document.querySelectorAll('.nav-link').forEach(tab => {
-        tab.addEventListener('click', function() {
-          localStorage.setItem('activeTab', this.getAttribute('href').substring(1)); // Save the ID of the active tab
+      document.querySelectorAll(".nav-link").forEach((tab) => {
+        tab.addEventListener("click", function () {
+          localStorage.setItem(
+            "activeTab",
+            this.getAttribute("href").substring(1)
+          ); // Save the ID of the active tab
         });
       });
-      </script>
-</body>
+    </script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        // Get all tab links
+        const tabLinks = document.querySelectorAll(".nav-link");
+
+        // Add click handler to each tab
+        tabLinks.forEach((link) => {
+          link.addEventListener("click", function (e) {
+            // Get the tab name from the href
+            const tabName = this.getAttribute("href").substring(1);
+            // Update the URL with the new tab
+            window.history.replaceState(null, null, `?tab=${tabName}`);
+          });
+        });
+      });
+    </script>
+  </body>
 </html>

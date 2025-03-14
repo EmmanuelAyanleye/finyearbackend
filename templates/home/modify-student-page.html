@@ -165,49 +165,71 @@
                     </div>
                 {% endif %}
             
-                    <form method="POST" enctype="multipart/form-data">
-                      {% csrf_token %}
+                    <form method="POST" class="needs-validation" novalidate enctype="multipart/form-data">
+                        {% csrf_token %}
                       
-                      {{ form.non_field_errors }}
-                      
-                      <div class="mb-3">
-                          <label for="{{ form.full_name.id_for_label }}" class="form-label">Student Name</label>
-                          {{ form.full_name }}
-                      </div>
-                  
-                      <div class="mb-3">
-                          <label for="{{ form.matric_number.id_for_label }}" class="form-label">Matric Number</label>
-                          {{ form.matric_number }}
-                      </div>
+                        <div class="mb-3">
+                            <label for="fullName" class="form-label">Full Name</label>
+                            <input type="text" class="form-control" id="fullName" name="full_name" value="{{ student.full_name }}" required>
+                        </div>
+                    
+                        <div class="mb-3">
+                            <label for="matricNumber" class="form-label">Matric Number</label>
+                            <input type="text" class="form-control" id="matricNumber" name="matric_number" value="{{ student.matric_number }}" required>
+                        </div>
+
+                      <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="gender" class="form-label">Gender</label>
+                            <select class="form-select" id="gender" name="gender" required>
+                                <option value="">Select Gender</option>
+                                <option value="M" {% if student.gender == 'M' %}selected{% endif %}>Male</option>
+                                <option value="F" {% if student.gender == 'F' %}selected{% endif %}>Female</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="level" class="form-label">Level</label>
+                            <select class="form-select" id="level" name="level" required>
+                                <option value="">Select Level</option>
+                                <option value="100" {% if student.level == 100 %}selected{% endif %}>100</option>
+                                <option value="200" {% if student.level == 200 %}selected{% endif %}>200</option>
+                                <option value="300" {% if student.level == 300 %}selected{% endif %}>300</option>
+                                <option value="400" {% if student.level == 400 %}selected{% endif %}>400</option>
+                            </select>
+                        </div>
+                        </div>
+
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="session" class="form-label">Academic Session</label>
+                                <select class="form-select" id="session" name="session" required>
+                                    <option value="">Select Session</option>
+                                    {% for session in sessions %}
+                                        <option value="{{ session.id }}" 
+                                            {% if student.session_id == session.id %}selected{% endif %}>
+                                            {{ session.name }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+    
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.department.id_for_label }}" class="form-label">Department</label>
+                                {{ form.department }}
+                            </div>
+                        </div>
 
                       <div class="row">
                         <div class="col-md-6 mb-3">
                             <label for="email" class="form-label">Email</label>
                             <input type="email" class="form-control" id="email" name="email" value="{{ student.user.email }}" required>
                         </div>
-                    
-                        <div class="col-md-6 mb-3">
-                            <label for="{{ form.department.id_for_label }}" class="form-label">Department</label>
-                            {{ form.department }}
-                        </div>
-                      </div>
-
-                      <div class="mb-3">
+                      
+                      <div class="col-md-6 mb-3">
                         <label for="password" class="form-label">New Password (Leave blank if not changing)</label>
                         <input type="password" class="form-control" id="password" name="password" placeholder="Enter a new password">
-                    </div>
-                    
-                  
-                      <div class="row">
-                        <div class="col-md-6 mb-3">
-                          <label for="{{ form.level.id_for_label }}" class="form-label">Level</label>
-                          {{ form.level }}
-                        </div>
-
-                        <div class="col-md-6 mb-3">
-                          <label for="{{ form.session.id_for_label }}" class="form-label">Academic Session</label>
-                          {{ form.session }}
-                        </div>
+                      </div>
                       </div>
                   
                       <div class="mb-3">

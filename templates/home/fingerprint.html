@@ -1,55 +1,99 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Fingerprint Verification</title>
-    <link rel="stylesheet" href="{% static 'css/mark.css' %}">
-    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/mark.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}" />
     <script defer src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
-</head>
-<body>
+  </head>
+  <body>
     <div class="mx-auto rounded text-light p-4">
-        <div class="head-details text-primary">
-            <img src="{% static 'images/Espam logo.png' %}" alt="">
-            <div class="head-title">
-                <h4>Espam-Formation University</h4>
-                <p>Student Attendance Management System</p>
-            </div>
+      <div class="head-details text-primary">
+        <img src="{% static 'images/Espam logo.png' %}" alt="" />
+        <div class="head-title">
+          <h4>Espam-Formation University</h4>
+          <p>Student Attendance Management System</p>
+        </div>
+      </div>
+
+      <div class="h5 text-center">Fingerprint Verification Page</div>
+      <hr />
+
+      <p class="h5 text-light text-center">Student Details</p>
+
+      <div class="row" id="student-details">
+        <input type="hidden" id="student-id" value="{{ student.id }}" />
+
+        <div class="input-group mb-2">
+          <span class="input-group-text bg-primary border-primary text-light"
+            >Student Name:</span
+          >
+          <input id="student-name" type="text" class="form-control" disabled />
+        </div>
+        <div class="input-group mb-2">
+          <span class="input-group-text bg-primary border-primary text-light"
+            >Department:</span
+          >
+          <input
+            id="student-department"
+            type="text"
+            class="form-control"
+            disabled
+          />
+        </div>
+        <div class="input-group mb-2">
+          <span class="input-group-text bg-primary border-primary text-light"
+            >Matric No:</span
+          >
+          <input
+            id="student-matric"
+            type="text"
+            class="form-control"
+            disabled
+          />
+        </div>
+        <div class="input-group mb-2">
+          <span class="input-group-text bg-primary border-primary text-light"
+            >Level:</span
+          >
+          <input id="student-level" type="text" class="form-control" disabled />
+        </div>
+        <div class="input-group mb-2 d-none">
+          <span class="input-group-text bg-primary border-primary text-light"
+            >Gender:</span
+          >
+          <input
+            id="student-gender"
+            type="text"
+            class="form-control"
+            disabled
+          />
+        </div>
+      </div>
+
+      <button id="scan-button" class="btn btn-secondary w-100 mt-2">
+        <span id="scan-text">Scan Fingerprint</span>
+        <span
+          id="scan-spinner"
+          class="spinner-border spinner-border-sm d-none"
+        ></span>
+      </button>
+
+      <input type="hidden" id="fingerprint1" name="fingerprint1" />
+      <button id="done-button" class="btn btn-primary w-100 mt-2">Done</button>
+
+      <div class="btn-row">
+        <div>
+            <a href="\" class="btn btn-outline-light"><i class="fa-solid fa-house"></i> Homepage</a>
         </div>
 
-        <div class="h5 text-center">Fingerprint Verification Page</div>
-        <hr>
-
-        <p class="h5 text-light text-center">Student Details</p>
-
-        <div class="row" id="student-details">
-            <div class="input-group mb-2">
-                <span class="input-group-text bg-primary border-primary text-light">Student Name:</span>
-                <input id="student-name" type="text" class="form-control" disabled>
-            </div>
-            <div class="input-group mb-2">
-                <span class="input-group-text bg-primary border-primary text-light">Department:</span>
-                <input id="student-department" type="text" class="form-control" disabled>
-            </div>
-            <div class="input-group mb-2">
-                <span class="input-group-text bg-primary border-primary text-light">Matric No:</span>
-                <input id="student-matric" type="text" class="form-control" disabled>
-            </div>
-            <div class="input-group mb-2">
-                <span class="input-group-text bg-primary border-primary text-light">Level:</span>
-                <input id="student-level" type="text" class="form-control" disabled>
-            </div>
-            <div class="input-group mb-2">
-                <span class="input-group-text bg-primary border-primary text-light">Gender:</span>
-                <input id="student-gender" type="text" class="form-control" disabled>
-            </div>
+        <div>
+            <a href="{% url 'login' %}" class="btn btn-primary"><i class="fas fa-sign-in"></i> Login</a>
         </div>
-
-        <button id="scan-button" class="btn btn-secondary w-100 mt-2">Scan Fingerprint</button>
-        <input type="hidden" id="fingerprint1" name="fingerprint1">
-        <button id="done-button" class="btn btn-primary w-100 mt-2">Done</button>
+    </div>
     </div>
 
     <script>
@@ -62,59 +106,123 @@
             return '';
         }
     
-        document.getElementById("scan-button").addEventListener("click", function() {
-            this.disabled = true;
-            this.innerHTML = "Scanning...";
-    
-            fetch("/api/start-fingerprint/", { 
-                method: "POST",
-                headers: { 
-                    "Content-Type": "application/json",
-                    "X-CSRFToken": getCsrfToken() // Added CSRF token
-                },
-                body: JSON.stringify({ student_id: "12345", operation_mode: "verify" }) // Replace with actual ID
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === "success") {
-                    document.getElementById("fingerprint1").value = data.fingerprint;
-    
-                    // Now verify fingerprint against database
-                    return fetch("/api/verify_fingerprint/", {  // Fixed endpoint
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                            "X-CSRFToken": getCsrfToken()  // CSRF token for security
-                        },
-                        body: JSON.stringify({ 
-                            fingerprint: data.fingerprint, 
-                            student_id: "12345"  // Ensure student ID is passed
-                        })
-                    });
-                } else {
-                    throw new Error("Fingerprint scanning failed.");
-                }
-            })
-            .then(response => response.json())
-            .then(studentData => {
-                if (studentData.status === "success") {
-                    document.getElementById("student-name").value = studentData.name;
-                    document.getElementById("student-department").value = studentData.department;
-                    document.getElementById("student-matric").value = studentData.matric_number;
-                    document.getElementById("student-level").value = studentData.level;
-                    document.getElementById("student-gender").value = studentData.gender;
-                    alert("Student found: " + studentData.name);
-                } else {
-                    alert("Fingerprint not recognized.");
-                }
-            })
+        // Replace only the scan-button click handler:
+        document.getElementById("scan-button").addEventListener("click", async function() {
+            let scanText = document.getElementById("scan-text");
+            let scanSpinner = document.getElementById("scan-spinner");
 
-            .catch(error => alert(error.message))
-            .finally(() => {
+            try {
+                // Disable button and show scanning status
+                this.disabled = true;
+                scanText.innerHTML = "Scanning...";
+                scanSpinner.classList.remove("d-none");
+
+                // Start fingerprint scan
+                const scanResponse = await fetch("/api/start_verify/", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": getCsrfToken()
+                    }
+                });
+
+                if (!scanResponse.ok) {
+                    throw new Error("Failed to start fingerprint scan");
+                }
+
+                const scanData = await scanResponse.json();
+
+                if (scanData.status === "success") {
+                    // Poll for verification results
+                    let attempts = 0;
+                    const maxAttempts = 10;
+                    
+                    const checkVerification = async () => {
+                        if (attempts >= maxAttempts) {
+                            throw new Error("Verification timeout - Please try again");
+                        }
+
+                        const verifyResponse = await fetch("/api/receive_verification/", {
+                            method: "GET",
+                            headers: {
+                                "Content-Type": "application/json",
+                                "X-CSRFToken": getCsrfToken()
+                            }
+                        });
+
+                        const verifyData = await verifyResponse.json();
+
+                        if (verifyData.status === "success") {
+                            // Update student details
+                            document.getElementById("student-name").value = verifyData.name;
+                            document.getElementById("student-department").value = verifyData.department;
+                            document.getElementById("student-matric").value = verifyData.matric_number;
+                            document.getElementById("student-level").value = verifyData.level;
+                            document.getElementById("student-gender").value = verifyData.gender;
+                            return true;
+                        } else if (verifyData.status === "pending") {
+                            attempts++;
+                            await new Promise(resolve => setTimeout(resolve, 1000));
+                            return await checkVerification();
+                        } else {
+                            throw new Error(verifyData.message || "Verification failed");
+                        }
+                    };
+
+                    if (await checkVerification()) {
+                        alert("Student verified successfully!");
+                    }
+                } else {
+                    throw new Error(scanData.message || "Scan failed");
+                }
+            } catch (error) {
+                console.error("Error:", error);
+                alert(error.message);
+            } finally {
+                // Reset button state
+                scanText.innerHTML = "Scan Fingerprint";
+                scanSpinner.classList.add("d-none");
                 this.disabled = false;
-                this.innerHTML = "Scan Fingerprint";
-            });
+            }
         });
+
+      // Add this right after the scan-button event listener
+      document.getElementById("done-button").addEventListener("click", async function() {
+          const matricNumber = document.getElementById("student-matric").value;
+          
+          if (!matricNumber) {
+              alert("Please verify fingerprint first");
+              return;
+          }
+
+          try {
+              const response = await fetch("/mark_attendance/", {
+                  method: "POST",
+                  headers: {
+                      "Content-Type": "application/json",
+                      "X-CSRFToken": getCsrfToken()
+                  },
+                  body: JSON.stringify({
+                      matric_number: matricNumber,
+                      course_id: "{{ course.id }}",
+                      session: "{{ course.semester.name }}"
+                  })
+              });
+
+              const data = await response.json();
+
+              if (data.status === "success") {
+                  alert(data.message || "Attendance marked successfully!");
+                  // Redirect to mark page
+                  window.location.href = "/mark/";
+              } else {
+                  throw new Error(data.message || "Failed to mark attendance");
+              }
+          } catch (error) {
+              console.error("Error:", error);
+              alert("Failed to mark attendance: " + error.message);
+          }
+      });
     </script>
     
 </body>

@@ -342,13 +342,55 @@
                         <td>Jane Smith</td>
                         <td>3</td>
                         </tr>
+                        <tr>
+                        <td>1</td>
+                        <td>Ayanleye Emmanuel</td>
+                        <td>5</td>
+                        </tr>
+                        <tr>
+                        <td>2</td>
+                        <td>Jane Smith</td>
+                        <td>3</td>
+                        </tr>
+                        <tr>
+                        <td>1</td>
+                        <td>Ayanleye Emmanuel</td>
+                        <td>5</td>
+                        </tr>
+                        <tr>
+                        <td>2</td>
+                        <td>Jane Smith</td>
+                        <td>3</td>
+                        </tr>
+                        <tr>
+                        <td>1</td>
+                        <td>Ayanleye Emmanuel</td>
+                        <td>5</td>
+                        </tr>
+                        <tr>
+                        <td>2</td>
+                        <td>Jane Smith</td>
+                        <td>3</td>
+                        </tr>
+                        <tr>
+                        <td>1</td>
+                        <td>Ayanleye Emmanuel</td>
+                        <td>5</td>
+                        </tr>
+                        <tr>
+                        <td>2</td>
+                        <td>Jane Smith</td>
+                        <td>3</td>
+                        </tr>
                     </tbody>
                     </table>
                 </div>
                 <!-- Export Summary Button -->
                 <div class="text-end mt-3">
-                    <button class="btn btn-primary" id="exportButton">Export Summary</button>
-                  </div>
+                    <button class="btn btn-success" id="exportButton">
+                        <i class="lni lni-download"></i> Export to PDF
+                    </button>
+                </div>
               </div>
             
               <!-- Filters Modal -->
@@ -356,64 +398,179 @@
                 <div class="modal-dialog">
                   <div class="modal-content">
                     <div class="modal-header">
-                      <h5 class="modal-title" id="filtersModalLabel">Filters</h5>
+                      <h5 class="modal-title" id="filtersModalLabel">Filter Attendance Records</h5>
                       <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
                       <form id="filtersForm">
-                        <div class="mb-3">
-                          <label for="departmentFilter" class="form-label">Department</label>
-                          <select class="form-select" id="departmentFilter">
-                            <option value="" selected>All Departments</option>
-                            <option value="Computer Science">Computer Science</option>
-                            <option value="Information Technology">Information Technology</option>
-                            <option value="Business Administration">Business Administration</option>
-                          </select>
+                        <div class="row">
+                          <div class="col-md-6 mb-3">
+                            <label for="departmentFilter" class="form-label">Department</label>
+                            <select class="form-select" id="departmentFilter">
+                              <option value="" selected>All Departments</option>
+                              {% for dept in departments %}
+                              <option value="{{ dept.name }}">{{ dept.name }}</option>
+                              {% endfor %}
+                            </select>
+                          </div>
+                          <div class="col-md-6 mb-3">
+                            <label for="levelFilter" class="form-label">Level</label>
+                            <select class="form-select" id="levelFilter">
+                              <option value="" selected>All Levels</option>
+                              <option value="100">100 Level</option>
+                              <option value="200">200 Level</option>
+                              <option value="300">300 Level</option>
+                              <option value="400">400 Level</option>
+                            </select>
+                          </div>
                         </div>
-                        <div class="mb-3">
-                          <label for="levelFilter" class="form-label">Level</label>
-                          <select class="form-select" id="levelFilter">
-                            <option value="" selected>All Levels</option>
-                            <option value="100">100</option>
-                            <option value="200">200</option>
-                            <option value="300">300</option>
-                            <option value="400">400</option>
-                          </select>
+                        <div class="row">
+                          <div class="col-md-6 mb-3">
+                            <label for="courseFilter" class="form-label">Course</label>
+                            <select class="form-select" id="courseFilter">
+                              <option value="" selected>All Courses</option>
+                              {% for course in courses %}
+                              <option value="{{ course.course_code }}">{{ course.course_code }} - {{ course.course_title }}</option>
+                              {% endfor %}
+                            </select>
+                          </div>
+                          <div class="col-md-6 mb-3">
+                            <label for="semesterFilter" class="form-label">Semester</label>
+                            <select class="form-select" id="semesterFilter">
+                              <option value="" selected>All Semesters</option>
+                              {% for semester in semesters %}
+                              <option value="{{ semester.name }}">{{ semester.name }}</option>
+                              {% endfor %}
+                            </select>
+                          </div>
                         </div>
-                        <div class="mb-3">
-                          <label for="courseFilter" class="form-label">Course</label>
-                          <select class="form-select" id="courseFilter">
-                            <option value="" selected>All Courses</option>
-                            <option value="CS101">CS101 - Intro to Programming</option>
-                            <option value="IT202">IT202 - Networking</option>
-                            <option value="BA303">BA303 - Business Law</option>
-                          </select>
+                        <div class="row">
+                          <div class="col-md-12 mb-3">
+                            <label for="sessionFilter" class="form-label">Session</label>
+                            <select class="form-select" id="sessionFilter">
+                              <option value="" selected>All Sessions</option>
+                              {% for session in sessions %}
+                              <option value="{{ session.name }}">{{ session.name }}</option>
+                              {% endfor %}
+                            </select>
+                          </div>
                         </div>
-                        <div class="mb-3">
-                          <label for="semesterFilter" class="form-label">Semester</label>
-                          <select class="form-select" id="semesterFilter">
-                            <option value="" selected>All Semesters</option>
-                            <option value="First">First</option>
-                            <option value="Second">Second</option>
-                          </select>
-                        </div>
-                        <div class="mb-3">
-                          <label for="sessionFilter" class="form-label">Session</label>
-                          <select class="form-select" id="sessionFilter">
-                            <option value="" selected>All Sessions</option>
-                            <option value="2024/2025">2024/2025</option>
-                            <option value="2023/2024">2023/2024</option>
-                            <option value="2022/2023">2022/2023</option>
-                          </select>
-                        </div>
-                        <button type="button" class="btn btn-primary" id="applyFiltersButton">Apply Filters</button>
                       </form>
+                    </div>
+                    <div class="modal-footer">
+                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                      <button type="button" class="btn btn-primary" id="applyFiltersButton">Apply Filters</button>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
+            <!-- Add loading and no records messages -->
+            <div id="noRecords" class="text-center p-4 d-none">
+                <i class="lni lni-empty-file display-4"></i>
+                <p class="mt-2">No attendance records found</p>
+            </div>
+
+            <div id="loadingSpinner" class="text-center p-4 d-none">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
         </main>
     </div>
+    <!-- Replace the existing script section at the bottom -->
+<script>
+let currentFilters = {};
+
+// Function to load summary data
+function loadSummaryData() {
+    const url = new URL("/get_attendance_summary/", window.location.origin);
+    
+    // Add filters to URL
+    Object.keys(currentFilters).forEach(key => {
+        if (currentFilters[key]) {
+            url.searchParams.append(key, currentFilters[key]);
+        }
+    });
+
+    // Show loading spinner
+    document.getElementById('loadingSpinner').classList.remove('d-none');
+    document.getElementById('summarySection').classList.add('d-none');
+    
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            const tbody = document.getElementById('summaryTable');
+            const totalStudents = document.getElementById('totalStudents');
+            const selectedCourse = document.getElementById('selectedCourse');
+            
+            tbody.innerHTML = '';
+            totalStudents.textContent = data.total_students;
+            
+            // Update selected course display
+            selectedCourse.textContent = currentFilters.course || 'All Courses';
+
+            if (data.data.length === 0) {
+                document.getElementById('noRecords').classList.remove('d-none');
+                document.getElementById('summarySection').classList.add('d-none');
+            } else {
+                document.getElementById('noRecords').classList.add('d-none');
+                document.getElementById('summarySection').classList.remove('d-none');
+
+                data.data.forEach(record => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${record.id}</td>
+                        <td>${record.student_name}</td>
+                        <td>${record.total_attendance}</td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            document.getElementById('noRecords').classList.remove('d-none');
+            document.getElementById('summarySection').classList.add('d-none');
+        })
+        .finally(() => {
+            document.getElementById('loadingSpinner').classList.add('d-none');
+        });
+}
+
+// Filter functionality with automatic modal closing
+document.getElementById('applyFiltersButton').addEventListener('click', function() {
+    currentFilters = {
+        department: document.getElementById('departmentFilter').value,
+        level: document.getElementById('levelFilter').value,
+        course: document.getElementById('courseFilter').value,
+        semester: document.getElementById('semesterFilter').value,
+        session: document.getElementById('sessionFilter').value
+    };
+
+    // Close the modal using Bootstrap's modal method
+    const modal = bootstrap.Modal.getInstance(document.getElementById('filtersModal'));
+    modal.hide();
+
+    // Load the filtered data
+    loadSummaryData();
+});
+
+// Export functionality changed to PDF
+document.getElementById('exportButton').addEventListener('click', function() {
+    const url = new URL("/export_summary_pdf/", window.location.origin);
+    
+    Object.keys(currentFilters).forEach(key => {
+        if (currentFilters[key]) {
+            url.searchParams.append(key, currentFilters[key]);
+        }
+    });
+
+    window.location.href = url.toString();
+});
+
+// Load initial data
+document.addEventListener('DOMContentLoaded', loadSummaryData);
+</script>
 </body>
 </html>

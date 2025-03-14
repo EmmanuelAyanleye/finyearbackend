@@ -3,7 +3,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .models import CustomUser
-from .forms import LecturerRegistrationForm
+from .forms import LecturerRegistrationForm, StudentUpdateForm
 from django.contrib.auth.decorators import user_passes_test
 from .forms import StudentForm
 from django.contrib.sessions.models import Session
@@ -16,6 +16,7 @@ from django.shortcuts import redirect
 from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
 from django.contrib.auth.hashers import make_password
 import json
 from .models import Course, Attendance
@@ -166,6 +167,8 @@ from datetime import datetime
 
 from django.utils import timezone
 
+from datetime import datetime
+
 def verify(request):
     course_id = request.session.get("selected_course_id")
     session = request.session.get("selected_session")
@@ -175,6 +178,9 @@ def verify(request):
 
     course = get_object_or_404(Course, id=course_id)
 
+    # Get current day of the week
+    current_day = timezone.localtime(timezone.now()).strftime('%A')  # Returns day name like 'Monday'
+    
     # Convert the times to 'time' objects if they are not already
     course_start_time = course.attendance_start_time.time() if isinstance(course.attendance_start_time, datetime) else course.attendance_start_time
     course_end_time = course.attendance_end_time.time() if isinstance(course.attendance_end_time, datetime) else course.attendance_end_time
@@ -182,19 +188,72 @@ def verify(request):
     # Get the current time (ensure it is in the same timezone)
     now = timezone.localtime(timezone.now()).time()
 
-    # Debug: print the current time and the start/end times
+    # Debug: print times and days
+    print("Current day:", current_day)
+    print("Course day:", course.attendance_day)
     print("Current time:", now)
     print("Course start time:", course_start_time)
     print("Course end time:", course_end_time)
 
+    # Check if current day matches course day
+    if current_day.lower() != course.attendance_day.lower():
+        messages.error(request, f"This class is scheduled for {course.attendance_day}s only")
+
     # Check if current time is within the allowed attendance timeframe
     if not (course_start_time <= now <= course_end_time):
-        messages.error(request, "Not yet time for the class")  # Display error message in template
+        messages.error(request, "Not yet time for the class")
         print("Not within the allowed time range.")
+
+    # Only return the template if both day and time are valid
+    if current_day.lower() != course.attendance_day.lower() or not (course_start_time <= now <= course_end_time):
+        return render(request, "home/verify.html", {"course": course, "session": session})
 
     return render(request, "home/verify.html", {"course": course, "session": session})
 
 
+def get_dashboard_stats(request):
+    today = timezone.now().date()
+    
+    # Get total number of students
+    total_students = Student.objects.count()
+    
+    # Get total attendance count
+    total_attendance = Attendance.objects.count()
+    
+    # Get today's attendance count
+    todays_attendance = Attendance.objects.filter(date=today).count()
+    
+    # Calculate percentage changes (you may want to adjust the comparison period)
+    prev_month_attendance = Attendance.objects.filter(
+        date__month=(today.month - 1 if today.month > 1 else 12)
+    ).count()
+    
+    if prev_month_attendance > 0:
+        attendance_change = ((total_attendance - prev_month_attendance) / prev_month_attendance) * 100
+    else:
+        attendance_change = 0
+        
+    # Today's attendance change compared to yesterday
+    yesterday_attendance = Attendance.objects.filter(
+        date=(today - timezone.timedelta(days=1))
+    ).count()
+    
+    if yesterday_attendance > 0:
+        today_change = ((todays_attendance - yesterday_attendance) / yesterday_attendance) * 100
+    else:
+        today_change = 0
+
+    return JsonResponse({
+        'total_students': total_students,
+        'total_attendance': total_attendance,
+        'todays_attendance': todays_attendance,
+        'attendance_change': round(attendance_change, 1),
+        'today_change': round(today_change, 1)
+    })
+
+from channels.generic.websocket import WebsocketConsumer
+import json
+from asgiref.sync import async_to_sync
 
 def fingerprint(request):
     course_id = request.session.get("selected_course_id")
@@ -202,28 +261,25 @@ def fingerprint(request):
     if not course_id or not session:
         return redirect("mark")
     course = Course.objects.get(id=course_id)
-    return render(request, "home/fingerprint.html", {"course": course, "session": session})
+    
+    # Get the latest verified student details from session if available
+    student_details = request.session.get('verified_student_details', None)
+    
+    context = {
+        "course": course, 
+        "session": session,
+        "student_details": student_details if student_details else None
+    }
+    
+    # Clear the session data after using it
+    if student_details:
+        del request.session['verified_student_details']
+    
+    return render(request, "home/fingerprint.html", context)
+
 
 # home/views.py
 from django.shortcuts import render
-
-def fingerprint_verification(request):
-    fingerprint_data = request.GET.get("fingerprint_data")
-    student = Student.objects.filter(fingerprint_data=fingerprint_data).first()
-    
-    if student:
-        course_id = request.session.get("selected_course_id")
-        session = request.session.get("selected_session")
-        Attendance.objects.create(student=student, course_id=course_id, session=session)
-        return JsonResponse({
-            "success": True,
-            "full_name": student.full_name,
-            "matric_number": student.matric_number,
-            "course": Course.objects.get(id=course_id).name,
-            "session": session
-        })
-    else:
-        return JsonResponse({"success": False, "message": "Fingerprint not recognized."})
 
 
 
@@ -254,7 +310,163 @@ def course(request):
 
 @user_passes_test(is_admin)
 def report(request):
-    return render(request, 'home/report.html')
+    # Get all unique values for filters
+    departments = Department.objects.all()
+    courses = Course.objects.all()
+    sessions = Attendance.objects.values_list('session__name', flat=True).distinct()
+    semesters = Attendance.objects.values_list('semester__name', flat=True).distinct()
+    
+    context = {
+        'departments': departments,
+        'courses': courses,
+        'sessions': sessions,
+        'semesters': semesters,
+    }
+    return render(request, 'home/report.html', context)
+
+def get_attendance_data(request):
+    # Get filter parameters
+    search_query = request.GET.get('search', '')
+    department = request.GET.get('department', '')
+    level = request.GET.get('level', '')
+    course = request.GET.get('course', '')
+    semester = request.GET.get('semester', '')
+    session = request.GET.get('session', '')
+
+    # Base queryset
+    queryset = Attendance.objects.select_related(
+        'student', 'student__department', 'course'
+    ).order_by('-date', '-timestamp')
+
+    # Apply filters
+    if search_query:
+        queryset = queryset.filter(
+            Q(student__full_name__icontains=search_query) |
+            Q(student__matric_number__icontains=search_query)
+        )
+    if department:
+        queryset = queryset.filter(student__department__name=department)
+    if level:
+        queryset = queryset.filter(student__level=level)
+    if course:
+        queryset = queryset.filter(course__course_code=course)
+    if semester:
+        queryset = queryset.filter(semester__name=semester)
+    if session:
+        queryset = queryset.filter(session__name=session)
+
+    # Prepare data for response
+    attendance_data = []
+    for idx, attendance in enumerate(queryset, 1):
+        # Convert timestamp to local time
+        local_timestamp = timezone.localtime(attendance.timestamp)
+        
+        attendance_data.append({
+            'id': idx,
+            'student_name': attendance.student.full_name,
+            'department': attendance.student.department.name,
+            'level': attendance.student.level,
+            'course': f"{attendance.course.course_code} - {attendance.course.course_title}",
+            'semester': attendance.semester.name,
+            'session': attendance.session.name,
+            'date': local_timestamp.strftime('%Y-%m-%d'),
+            'timestamp': local_timestamp.strftime('%I:%M %p'),  # Use local time
+            'status': attendance.status
+        })
+
+    return JsonResponse({'data': attendance_data})
+
+def export_excel(request):
+    # Get filtered data
+    search_query = request.GET.get('search', '')
+    department = request.GET.get('department', '')
+    level = request.GET.get('level', '')
+    course = request.GET.get('course', '')
+    semester = request.GET.get('semester', '')
+    session = request.GET.get('session', '')
+
+    # Create workbook and sheet
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Attendance Report"
+
+    # Define headers
+    headers = ['#', 'Student Name', 'Department', 'Level', 'Course', 
+              'Semester', 'Session', 'Date', 'Time', 'Status']
+    
+    # Style headers
+    header_fill = PatternFill(start_color='366092', end_color='366092', fill_type='solid')
+    
+    # Write headers
+    for col, header in enumerate(headers, 1):
+        cell = ws.cell(row=1, column=col, value=header)
+        cell.fill = header_fill
+        cell.font = openpyxl.styles.Font(color='FFFFFF', bold=True)
+
+    # Get data using the same filter logic from get_attendance_data
+    queryset = Attendance.objects.select_related(
+        'student', 'student__department', 'course'
+    ).order_by('-date', '-timestamp')
+
+    # Apply filters
+    if search_query:
+        queryset = queryset.filter(
+            Q(student__full_name__icontains=search_query) |
+            Q(student__matric_number__icontains=search_query)
+        )
+    if department:
+        queryset = queryset.filter(student__department__name=department)
+    if level:
+        queryset = queryset.filter(student__level=level)
+    if course:
+        queryset = queryset.filter(course__course_code=course)
+    if semester:
+        queryset = queryset.filter(semester__name=semester)
+    if session:
+        queryset = queryset.filter(session__name=session)
+
+    # Write data
+    for idx, attendance in enumerate(queryset, 1):
+        row = [
+            idx,
+            attendance.student.full_name,
+            attendance.student.department.name,
+            attendance.student.level,
+            f"{attendance.course.course_code} - {attendance.course.course_title}",
+            attendance.semester.name,
+            attendance.session.name,
+            attendance.date.strftime('%Y-%m-%d'),
+            attendance.timestamp.strftime('%I:%M %p'),
+            attendance.status
+        ]
+        ws.append(row)
+
+        # Color status cells
+        status_cell = ws.cell(row=idx+1, column=10)
+        if attendance.status == 'present':
+            status_cell.fill = PatternFill(start_color='92D050', end_color='92D050', fill_type='solid')
+        elif attendance.status == 'absent':
+            status_cell.fill = PatternFill(start_color='FF0000', end_color='FF0000', fill_type='solid')
+
+    # Auto-adjust column widths
+    for column in ws.columns:
+        max_length = 0
+        column = [cell for cell in column]
+        for cell in column:
+            try:
+                if len(str(cell.value)) > max_length:
+                    max_length = len(str(cell.value))
+            except:
+                pass
+        adjusted_width = (max_length + 2)
+        ws.column_dimensions[column[0].column_letter].width = adjusted_width
+
+    # Create response
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename=attendance_report.xlsx'
+    
+    wb.save(response)
+    return response
 
 
 
@@ -271,7 +483,70 @@ def admin_dashboard(request):
 
 @user_passes_test(is_admin)
 def admin_summary(request):
-    return render(request, 'home/admin-summary.html')
+    # Get data from database
+    departments = Department.objects.all()
+    courses = Course.objects.all()
+    semesters = Semester.objects.all()
+    sessions = Session.objects.all()
+    
+    context = {
+        'departments': departments,
+        'courses': courses,
+        'semesters': semesters,
+        'sessions': sessions,
+    }
+    return render(request, 'home/admin-summary.html', context)
+
+def get_attendance_summary(request):
+    # Get filter parameters
+    department = request.GET.get('department', '')
+    level = request.GET.get('level', '')
+    course = request.GET.get('course', '')
+    semester = request.GET.get('semester', '')
+    session = request.GET.get('session', '')
+
+    # Base queryset
+    queryset = Attendance.objects.values(
+        'student__id',
+        'student__full_name',
+    ).annotate(
+        total_attendance=Count('id')
+    ).order_by('-total_attendance')
+
+    # Apply filters
+    if department:
+        queryset = queryset.filter(student__department__name=department)
+    if level:
+        queryset = queryset.filter(student__level=level)
+    if course:
+        queryset = queryset.filter(course__course_code=course)
+    if semester:
+        queryset = queryset.filter(semester__name=semester)
+    if session:
+        queryset = queryset.filter(session__name=session)
+
+    # Prepare summary data
+    summary_data = []
+    for idx, record in enumerate(queryset, 1):
+        summary_data.append({
+            'id': idx,
+            'student_name': record['student__full_name'],
+            'total_attendance': record['total_attendance']
+        })
+
+    # Get total number of students
+    total_students = len(summary_data)
+
+    return JsonResponse({
+        'data': summary_data,
+        'total_students': total_students
+    })
+
+def export_summary(request):
+    # Get filter parameters and create Excel file similar to export_excel
+    # But with summary format instead
+    # ... implementation similar to export_excel but with summary data ...
+    pass
 
 # def add_lecturer(request):
 #     return render(request, 'home/add-lecturer.html')
@@ -298,6 +573,7 @@ def add_student(request):
         level = request.POST.get("level")
         profile_picture = request.FILES.get("profile_picture")
         fingerprint_template = request.POST.get("fingerprint1")
+        gender = request.POST.get('gender')
 
         if not fingerprint_template:
             messages.error(request, "Fingerprint data is required!")
@@ -324,7 +600,8 @@ def add_student(request):
             session=session,
             department=department,
             level=level,
-            profile_picture=profile_picture
+            profile_picture=profile_picture,
+            gender=gender
         )
 
         FingerprintData.objects.create(student=student, template=fingerprint_template)
@@ -500,37 +777,49 @@ def delete_student(request, student_id):
 @user_passes_test(is_admin)
 def modify_student_page(request, student_id):
     student = get_object_or_404(Student, id=student_id)
+    sessions = AcademicSession.objects.all().order_by('-name')  # Get all sessions
     
-    if request.method == "POST":
-        form = StudentForm(request.POST, request.FILES, instance=student)
+    if request.method == 'POST':
+        form = StudentUpdateForm(request.POST, request.FILES, instance=student)
         if form.is_valid():
-            # Save the student instance first
-            updated_student = form.save()
-
-            # Now update the associated user's email if it's changed
-            email = request.POST.get('email')
-            if email and email != student.user.email:
-                student.user.email = email
-                student.user.save()
-
-            # Update password if provided
-            password = request.POST.get('password')
-            if password:
-                student.user.password = make_password(password)  # Hash the new password
-                student.user.save()
-
-            messages.success(request, "Student details updated successfully.")
-            return redirect("modify_student_page", student_id=student.id)
+            try:
+                # Get form data
+                student.full_name = form.cleaned_data['full_name']
+                student.matric_number = form.cleaned_data['matric_number']
+                student.gender = form.cleaned_data['gender']
+                student.level = form.cleaned_data['level']
+                student.session = form.cleaned_data['session']
+                student.department = form.cleaned_data['department']
+                
+                # Update user email if changed
+                if student.user.email != form.cleaned_data['email']:
+                    student.user.email = form.cleaned_data['email']
+                    student.user.save()
+                
+                # Update password if provided
+                if form.cleaned_data.get('password'):
+                    student.user.set_password(form.cleaned_data['password'])
+                    student.user.save()
+                
+                student.save()
+                messages.success(request, 'Student details updated successfully!')
+                return redirect('modify_student_page' , student_id=student_id)
+            except Exception as e:
+                messages.error(request, f'Error updating student details: {str(e)}')
         else:
-            messages.error(request, "Error updating student details. Please check the form.")
+            messages.error(request, 'Please correct the errors below.')
     else:
-        form = StudentForm(instance=student)
+        form = StudentUpdateForm(instance=student, initial={
+            'email': student.user.email,
+            'session': student.session,
+        })
 
-    return render(request, "home/modify-student-page.html", {
-        "form": form,
-        "student": student,
-        "departments": Department.objects.all(),
-    })
+    context = {
+        'student': student,
+        'form': form,
+        'sessions': sessions,
+    }
+    return render(request, 'home/modify-student-page.html', context)
 
 
 
@@ -783,52 +1072,502 @@ from .models import AcademicSession, Semester, Department
 from .forms import AcademicSessionForm, SemesterForm, DepartmentForm
 @user_passes_test(is_admin)
 def settings(request):
-    active_tab = 'sessions'
+    active_tab = 'sessions'  # Default tab
+    
     if request.method == "POST":
-        # Handle adding new sessions, semesters, or departments
         if 'add_session' in request.POST:
             session_name = request.POST.get('session_name')
-            if session_name:
+            # Check for duplicates
+            if AcademicSession.objects.filter(name=session_name).exists():
+                messages.error(request, f"Session '{session_name}' already exists!")
+            else:
                 AcademicSession.objects.create(name=session_name)
+                messages.success(request, f"Session '{session_name}' added successfully!")
+            active_tab = 'sessions'
+
         elif 'add_semester' in request.POST:
             semester_name = request.POST.get('semester_name')
-            if semester_name:
+            # Check for duplicates
+            if Semester.objects.filter(name=semester_name).exists():
+                messages.error(request, f"Semester '{semester_name}' already exists!")
+            else:
                 Semester.objects.create(name=semester_name)
+                messages.success(request, f"Semester '{semester_name}' added successfully!")
+            active_tab = 'semesters'
+
         elif 'add_department' in request.POST:
             department_name = request.POST.get('department_name')
-            if department_name:
+            # Check for duplicates
+            if Department.objects.filter(name=department_name).exists():
+                messages.error(request, f"Department '{department_name}' already exists!")
+            else:
                 Department.objects.create(name=department_name)
+                messages.success(request, f"Department '{department_name}' added successfully!")
+            active_tab = 'departments'
 
-        return redirect('settings')  # Redirect to prevent duplicate form submissions
+    context = {
+        'sessions': AcademicSession.objects.all().order_by('-name'),
+        'semesters': Semester.objects.all(),
+        'departments': Department.objects.all(),
+        'active_tab': active_tab
+    }
+    return render(request, 'home/settings.html', context)
 
-    # Handle deletions
-    if request.method == "GET":
-        if 'delete_session' in request.GET:
-            session_id = request.GET.get('delete_session')
-            session = get_object_or_404(AcademicSession, id=session_id)
-            session.delete()
-            return redirect('settings')
+@csrf_exempt
+@require_http_methods(["POST"])
+def mark_attendance(request):
+    try:
+        data = json.loads(request.body)
+        matric_number = data.get('matric_number')
+        course_id = data.get('course_id')
+        current_session = data.get('session')
 
-        elif 'delete_semester' in request.GET:
-            semester_id = request.GET.get('delete_semester')
-            semester = get_object_or_404(Semester, id=semester_id)
-            semester.delete()
-            return redirect('settings')
+        # Get required objects
+        student = Student.objects.get(matric_number=matric_number)
+        course = Course.objects.get(id=course_id)
 
-        elif 'delete_department' in request.GET:
-            department_id = request.GET.get('delete_department')
-            department = get_object_or_404(Department, id=department_id)
-            department.delete()
-            return redirect('settings')
+        # Get the student's current academic session
+        academic_session = student.session
 
-    # Get all the sessions, semesters, and departments
-    sessions = AcademicSession.objects.all()
-    semesters = Semester.objects.all()
+        # Use local time for creating the attendance record
+        current_time = timezone.localtime(timezone.now())
+
+        # Check if attendance already exists
+        existing_attendance = Attendance.objects.filter(
+            student=student,
+            course=course,
+            date=timezone.now().date()
+        ).exists()
+
+        if existing_attendance:
+            return JsonResponse({
+                "status": "error",
+                "message": "Attendance already marked for today"
+            })
+
+        # Create attendance record
+        attendance = Attendance.objects.create(
+            student=student,
+            course=course,
+            session=academic_session,
+            semester=course.semester,
+            status='present',
+            date=current_time.date(),
+            timestamp=current_time 
+        )
+
+        # Clear session data after successful attendance
+        if 'verified_student' in request.session:
+            del request.session['verified_student']
+        if 'selected_course_id' in request.session:
+            del request.session['selected_course_id']
+        if 'selected_session' in request.session:
+            del request.session['selected_session']
+
+        return JsonResponse({
+            "status": "success",
+            "message": "Attendance marked successfully"
+        })
+
+    except Student.DoesNotExist:
+        return JsonResponse({
+            "status": "error",
+            "message": "Student not found"
+        })
+    except Course.DoesNotExist:
+        return JsonResponse({
+            "status": "error",
+            "message": "Course not found"
+        })
+    except Exception as e:
+        return JsonResponse({
+            "status": "error",
+            "message": str(e)
+        })
+
+
+from django.http import JsonResponse, HttpResponse
+from django.db.models import Q, Count
+import openpyxl
+from openpyxl.styles import PatternFill
+from datetime import datetime
+
+def report(request):
+    # Get all unique values for filters
     departments = Department.objects.all()
-
-    return render(request, 'home/settings.html', {
+    courses = Course.objects.all()
+    sessions = Attendance.objects.values_list('session__name', flat=True).distinct()
+    semesters = Attendance.objects.values_list('semester__name', flat=True).distinct()
+    
+    context = {
+        'departments': departments,
+        'courses': courses,
         'sessions': sessions,
         'semesters': semesters,
-        'departments': departments,
-        'active_tab': active_tab  # Pass the active tab to the template
-    })
+    }
+    return render(request, 'home/report.html', context)
+
+def get_attendance_data(request):
+    # Get filter parameters
+    search_query = request.GET.get('search', '')
+    department = request.GET.get('department', '')
+    level = request.GET.get('level', '')
+    course = request.GET.get('course', '')
+    semester = request.GET.get('semester', '')
+    session = request.GET.get('session', '')
+
+    # Base queryset
+    queryset = Attendance.objects.select_related(
+        'student', 'student__department', 'course'
+    ).order_by('-date', '-timestamp')
+
+    # Apply filters
+    if search_query:
+        queryset = queryset.filter(
+            Q(student__full_name__icontains=search_query) |
+            Q(student__matric_number__icontains=search_query)
+        )
+    if department:
+        queryset = queryset.filter(student__department__name=department)
+    if level:
+        queryset = queryset.filter(student__level=level)
+    if course:
+        queryset = queryset.filter(course__course_code=course)
+    if semester:
+        queryset = queryset.filter(semester__name=semester)
+    if session:
+        queryset = queryset.filter(session__name=session)
+
+    # Prepare data for response
+    attendance_data = []
+    for idx, attendance in enumerate(queryset, 1):
+        attendance_data.append({
+            'id': idx,
+            'student_name': attendance.student.full_name,
+            'department': attendance.student.department.name,
+            'level': attendance.student.level,
+            'course': f"{attendance.course.course_code} - {attendance.course.course_title}",
+            'semester': attendance.semester.name,
+            'session': attendance.session.name,
+            'date': attendance.date.strftime('%Y-%m-%d'),
+            'timestamp': attendance.timestamp.strftime('%I:%M %p'),
+            'status': attendance.status
+        })
+
+    return JsonResponse({'data': attendance_data})
+
+def export_excel(request):
+    # Get filtered data
+    search_query = request.GET.get('search', '')
+    department = request.GET.get('department', '')
+    level = request.GET.get('level', '')
+    course = request.GET.get('course', '')
+    semester = request.GET.get('semester', '')
+    session = request.GET.get('session', '')
+
+    # Create workbook and sheet
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Attendance Report"
+
+    # Define headers
+    headers = ['#', 'Student Name', 'Department', 'Level', 'Course', 
+              'Semester', 'Session', 'Date', 'Time', 'Status']
+    
+    # Style headers
+    header_fill = PatternFill(start_color='366092', end_color='366092', fill_type='solid')
+    
+    # Write headers
+    for col, header in enumerate(headers, 1):
+        cell = ws.cell(row=1, column=col, value=header)
+        cell.fill = header_fill
+        cell.font = openpyxl.styles.Font(color='FFFFFF', bold=True)
+
+    # Get data using the same filter logic from get_attendance_data
+    queryset = Attendance.objects.select_related(
+        'student', 'student__department', 'course'
+    ).order_by('-date', '-timestamp')
+
+    # Apply filters
+    if search_query:
+        queryset = queryset.filter(
+            Q(student__full_name__icontains=search_query) |
+            Q(student__matric_number__icontains=search_query)
+        )
+    if department:
+        queryset = queryset.filter(student__department__name=department)
+    if level:
+        queryset = queryset.filter(student__level=level)
+    if course:
+        queryset = queryset.filter(course__course_code=course)
+    if semester:
+        queryset = queryset.filter(semester__name=semester)
+    if session:
+        queryset = queryset.filter(session__name=session)
+
+    # Write data
+    for idx, attendance in enumerate(queryset, 1):
+        row = [
+            idx,
+            attendance.student.full_name,
+            attendance.student.department.name,
+            attendance.student.level,
+            f"{attendance.course.course_code} - {attendance.course.course_title}",
+            attendance.semester.name,
+            attendance.session.name,
+            attendance.date.strftime('%Y-%m-%d'),
+            attendance.timestamp.strftime('%I:%M %p'),
+            attendance.status
+        ]
+        ws.append(row)
+
+        # Color status cells
+        status_cell = ws.cell(row=idx+1, column=10)
+        if attendance.status == 'present':
+            status_cell.fill = PatternFill(start_color='92D050', end_color='92D050', fill_type='solid')
+        elif attendance.status == 'absent':
+            status_cell.fill = PatternFill(start_color='FF0000', end_color='FF0000', fill_type='solid')
+
+    # Auto-adjust column widths
+    for column in ws.columns:
+        max_length = 0
+        column = [cell for cell in column]
+        for cell in column:
+            try:
+                if len(str(cell.value)) > max_length:
+                    max_length = len(str(cell.value))
+            except:
+                pass
+        adjusted_width = (max_length + 2)
+        ws.column_dimensions[column[0].column_letter].width = adjusted_width
+
+    # Create response
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename=attendance_report.xlsx'
+    
+    wb.save(response)
+    return response
+
+from django.http import FileResponse
+import io
+from reportlab.pdfgen import canvas
+from reportlab.lib.units import inch
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import letter
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle
+
+def export_summary_pdf(request):
+    # Create a file-like buffer to receive PDF data
+    buffer = io.BytesIO()
+    
+    # Create the PDF object, using the buffer as its "file."
+    doc = SimpleDocTemplate(buffer, pagesize=letter)
+    elements = []
+
+    # Get filter parameters
+    department = request.GET.get('department', '')
+    level = request.GET.get('level', '')
+    course = request.GET.get('course', '')
+    semester = request.GET.get('semester', '')
+    session = request.GET.get('session', '')
+
+    # Get the filtered data
+    queryset = Attendance.objects.values(
+        'student__id',
+        'student__full_name'
+    ).annotate(
+        total_attendance=Count('id')
+    ).order_by('-total_attendance')
+
+    # Apply filters
+    if department:
+        queryset = queryset.filter(student__department__name=department)
+    if level:
+        queryset = queryset.filter(student__level=level)
+    if course:
+        queryset = queryset.filter(course__course_code=course)
+    if semester:
+        queryset = queryset.filter(semester__name=semester)
+    if session:
+        queryset = queryset.filter(session__name=session)
+
+    # Create table data
+    data = [['#', 'Student Name', 'Total Attendance']]
+    for idx, record in enumerate(queryset, 1):
+        data.append([
+            str(idx),
+            record['student__full_name'],
+            str(record['total_attendance'])
+        ])
+
+    # Create table
+    table = Table(data)
+    table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, 0), 14),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+        ('TEXTCOLOR', (0, 1), (-1, -1), colors.black),
+        ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+        ('FONTSIZE', (0, 1), (-1, -1), 12),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black)
+    ]))
+    
+    elements.append(table)
+    doc.build(elements)
+
+    # FileResponse sets the Content-Disposition header so that browsers
+    # present the option to save the file.
+    buffer.seek(0)
+    return FileResponse(buffer, as_attachment=True, filename='attendance_summary.pdf')
+
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.pagesizes import letter
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+from reportlab.lib import colors
+from datetime import datetime
+
+def export_summary_pdf(request):
+    # Create a file-like buffer
+    buffer = io.BytesIO()
+    
+    # Create the PDF object
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=letter,
+        rightMargin=72,
+        leftMargin=72,
+        topMargin=72,
+        bottomMargin=72
+    )
+    
+    # Container for the 'Flowable' objects
+    elements = []
+    
+    # Get styles
+    styles = getSampleStyleSheet()
+    
+    # Create custom header style
+    header_style = ParagraphStyle(
+        'CustomHeader',
+        parent=styles['Heading1'],
+        fontSize=16,
+        spaceAfter=30,
+        alignment=1  # Center alignment
+    )
+    
+    subheader_style = ParagraphStyle(
+        'CustomSubHeader',
+        parent=styles['Heading2'],
+        fontSize=14,
+        spaceAfter=20,
+        alignment=1
+    )
+
+    # Add the headers
+    elements.append(Paragraph("ESPAM FORMATION UNIVERSITY", header_style))
+    elements.append(Paragraph("Attendance Summary Report", subheader_style))
+    
+    # Add current date
+    date_style = ParagraphStyle(
+        'DateStyle',
+        parent=styles['Normal'],
+        fontSize=10,
+        alignment=1
+    )
+    current_date = datetime.now().strftime("%d %B, %Y")
+    elements.append(Paragraph(f"Generated on: {current_date}", date_style))
+    elements.append(Spacer(1, 20))
+
+    # Get filter parameters and add them to the report
+    department = request.GET.get('department', 'All Departments')
+    level = request.GET.get('level', 'All Levels')
+    course = request.GET.get('course', 'All Courses')
+    semester = request.GET.get('semester', 'All Semesters')
+    session = request.GET.get('session', 'All Sessions')
+
+    # Add filter information
+    filter_style = ParagraphStyle(
+        'FilterStyle',
+        parent=styles['Normal'],
+        fontSize=10,
+        spaceAfter=20
+    )
+    
+    filter_info = [
+        f"Department: {department}",
+        f"Level: {level}",
+        f"Course: {course}",
+        f"Semester: {semester}",
+        f"Session: {session}"
+    ]
+    
+    for info in filter_info:
+        elements.append(Paragraph(info, filter_style))
+    
+    elements.append(Spacer(1, 20))
+
+    # Get the data
+    queryset = Attendance.objects.values(
+        'student__id',
+        'student__full_name'
+    ).annotate(
+        total_attendance=Count('id')
+    ).order_by('-total_attendance')
+
+    # Apply filters
+    if department != 'All Departments':
+        queryset = queryset.filter(student__department__name=department)
+    if level != 'All Levels':
+        queryset = queryset.filter(student__level=level)
+    if course != 'All Courses':
+        queryset = queryset.filter(course__course_code=course)
+    if semester != 'All Semesters':
+        queryset = queryset.filter(semester__name=semester)
+    if session != 'All Sessions':
+        queryset = queryset.filter(session__name=session)
+
+    # Create table data
+    data = [['#', 'Student Name', 'Total Attendance']]
+    for idx, record in enumerate(queryset, 1):
+        data.append([
+            str(idx),
+            record['student__full_name'],
+            str(record['total_attendance'])
+        ])
+
+    # Create table
+    table = Table(data, repeatRows=1)
+    table.setStyle(TableStyle([
+        # Header style
+        ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, 0), 12),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        # Data style
+        ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+        ('TEXTCOLOR', (0, 1), (-1, -1), colors.black),
+        ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+        ('FONTSIZE', (0, 1), (-1, -1), 10),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black)
+    ]))
+    
+    elements.append(table)
+
+    # Build PDF
+    doc.build(elements)
+    buffer.seek(0)
+    
+    # Create the response
+    return FileResponse(
+        buffer, 
+        as_attachment=True, 
+        filename=f'attendance_summary_{datetime.now().strftime("%Y%m%d_%H%M")}.pdf'
+    )
