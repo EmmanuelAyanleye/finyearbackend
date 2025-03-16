@@ -108,199 +108,286 @@
                 <h2 class="text-center mb-4">My Attendance Record</h2>
               
                 <!-- Search Bar and Filters -->
+                <!-- Replace the search bar section -->
                 <div class="d-flex justify-content-between mb-3">
                   <div class="input-group w-50">
-                    <input type="text" id="courseSearch" class="form-control" placeholder="Search by course...">
-                    <button class="btn btn-primary" id="searchButton">
-                      <i class="lni lni-search-alt"></i> Search
-                    </button>
+                      <input type="text" 
+                            id="courseSearch" 
+                            class="form-control" 
+                            placeholder="Search by course code, title, semester, session or date..."
+                            aria-label="Search attendance records">
+                      <button class="btn btn-primary" id="searchButton">
+                          <i class="lni lni-search-alt"></i> Search
+                      </button>
                   </div>
                   <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#filtersModal">
-                    <i class="lni lni-funnel"></i> Filters
+                      <i class="lni lni-funnel"></i> Filters
                   </button>
                 </div>
               
                 <!-- Attendance Table -->
                 <div class="table-responsive" style="max-height: 460px; overflow-y: auto;">
                   <table class="table table-bordered table-hover">
-                    <thead class="table-dark">
-                      <tr>
-                        <th>#</th>
-                        <th>Course</th>
-                        <th>Semester</th>
-                        <th>Session</th>
-                        <th>Date</th>
-                        <th>Timestamp</th>
-                        <th>Status</th>
-                      </tr>
-                    </thead>
-                    <tbody id="attendanceTable">
-                      <!-- Example Data Row -->
-                      <tr>
-                        <td>1</td>
-                        <td>CS101 - Intro to Programming</td>
-                        <td>First</td>
-                        <td>2024/2025</td>
-                        <td>2025-01-01</td>
-                        <td>10:30 AM</td>
-                        <td><span class="badge bg-success">Present</span></td>
-                      </tr>
-                      <tr>
-                        <td>2</td>
-                        <td>IT202 - Networking</td>
-                        <td>Second</td>
-                        <td>2024/2025</td>
-                        <td>2025-01-02</td>
-                        <td>11:00 AM</td>
-                        <td><span class="badge bg-danger">Absent</span></td>
-                      </tr>
-                      <tr>
-                        <td>1</td>
-                        <td>CS101 - Intro to Programming</td>
-                        <td>First</td>
-                        <td>2024/2025</td>
-                        <td>2025-01-01</td>
-                        <td>10:30 AM</td>
-                        <td><span class="badge bg-success">Present</span></td>
-                      </tr>
-                      <tr>
-                        <td>2</td>
-                        <td>IT202 - Networking</td>
-                        <td>Second</td>
-                        <td>2024/2025</td>
-                        <td>2025-01-02</td>
-                        <td>11:00 AM</td>
-                        <td><span class="badge bg-danger">Absent</span></td>
-                      </tr>
-                      <tr>
-                        <td>1</td>
-                        <td>CS101 - Intro to Programming</td>
-                        <td>First</td>
-                        <td>2024/2025</td>
-                        <td>2025-01-01</td>
-                        <td>10:30 AM</td>
-                        <td><span class="badge bg-success">Present</span></td>
-                      </tr>
-                      <tr>
-                        <td>2</td>
-                        <td>IT202 - Networking</td>
-                        <td>Second</td>
-                        <td>2024/2025</td>
-                        <td>2025-01-02</td>
-                        <td>11:00 AM</td>
-                        <td><span class="badge bg-danger">Absent</span></td>
-                      </tr>
-                      <tr>
-                        <td>1</td>
-                        <td>CS101 - Intro to Programming</td>
-                        <td>First</td>
-                        <td>2024/2025</td>
-                        <td>2025-01-01</td>
-                        <td>10:30 AM</td>
-                        <td><span class="badge bg-success">Present</span></td>
-                      </tr>
-                      <tr>
-                        <td>2</td>
-                        <td>IT202 - Networking</td>
-                        <td>Second</td>
-                        <td>2024/2025</td>
-                        <td>2025-01-02</td>
-                        <td>11:00 AM</td>
-                        <td><span class="badge bg-danger">Absent</span></td>
-                      </tr>
-                      <tr>
-                        <td>1</td>
-                        <td>CS101 - Intro to Programming</td>
-                        <td>First</td>
-                        <td>2024/2025</td>
-                        <td>2025-01-01</td>
-                        <td>10:30 AM</td>
-                        <td><span class="badge bg-success">Present</span></td>
-                      </tr>
-                      <tr>
-                        <td>2</td>
-                        <td>IT202 - Networking</td>
-                        <td>Second</td>
-                        <td>2024/2025</td>
-                        <td>2025-01-02</td>
-                        <td>11:00 AM</td>
-                        <td><span class="badge bg-danger">Absent</span></td>
-                      </tr>
-                      <tr>
-                        <td>1</td>
-                        <td>CS101 - Intro to Programming</td>
-                        <td>First</td>
-                        <td>2024/2025</td>
-                        <td>2025-01-01</td>
-                        <td>10:30 AM</td>
-                        <td><span class="badge bg-success">Present</span></td>
-                      </tr>
-                      <tr>
-                        <td>2</td>
-                        <td>IT202 - Networking</td>
-                        <td>Second</td>
-                        <td>2024/2025</td>
-                        <td>2025-01-02</td>
-                        <td>11:00 AM</td>
-                        <td><span class="badge bg-danger">Absent</span></td>
-                      </tr>
-                    </tbody>
+                      <thead class="table-dark sticky-top">
+                          <tr>
+                              <th>#</th>
+                              <th>Course</th>
+                              <th>Semester</th>
+                              <th>Session</th>
+                              <th>Date</th>
+                              <th>Time</th>
+                              <th>Status</th>
+                          </tr>
+                      </thead>
+                      <tbody id="attendanceTable">
+                          <!-- Data will be loaded dynamically -->
+                      </tbody>
                   </table>
+              </div>
+
+              <div id="loadingIndicator" class="text-center d-none">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
                 </div>
+              </div>
               
-                <!-- Export Button -->
+                <!-- Replace the export button -->
                 <div class="text-end mt-3">
-                  <button class="btn btn-primary" id="exportButton">Export to CSV</button>
+                  <button class="btn btn-success" id="exportButton">
+                      <i class="lni lni-download"></i> Export Excel
+                  </button>
                 </div>
               </div>
               
               <!-- Filters Modal -->
-              <div class="modal fade" id="filtersModal" tabindex="-1" aria-labelledby="filtersModalLabel" aria-hidden="true">
+              <!-- Filter Modal -->
+              <div class="modal fade" id="filtersModal" tabindex="-1">
                 <div class="modal-dialog">
-                  <div class="modal-content">
-                    <div class="modal-header">
-                      <h5 class="modal-title" id="filtersModalLabel">Filters</h5>
-                      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Filter Attendance</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="filtersForm">
+                                <div class="mb-3">
+                                    <label for="sessionFilter" class="form-label">Session</label>
+                                    <select class="form-select" id="sessionFilter">
+                                        <option value="">All Sessions</option>
+                                        {% for session in sessions %}
+                                            <option value="{{ session.id }}">{{ session.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="semesterFilter" class="form-label">Semester</label>
+                                    <select class="form-select" id="semesterFilter">
+                                        <option value="">All Semesters</option>
+                                        {% for semester in semesters %}
+                                            <option value="{{ semester.id }}">{{ semester.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="courseFilter" class="form-label">Course</label>
+                                    <select class="form-select" id="courseFilter">
+                                        <option value="">All Courses</option>
+                                        {% for course in courses %}
+                                            <option value="{{ course.id }}">{{ course.course_code }} - {{ course.course_title }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            <button type="button" class="btn btn-primary" id="applyFiltersButton">Apply Filters</button>
+                        </div>
                     </div>
-                    <div class="modal-body">
-                      <form id="filtersForm">
-                        <div class="mb-3">
-                            <label for="sessionFilter" class="form-label">Session</label>
-                            <select class="form-select" id="sessionFilter">
-                              <option value="" selected>All Sessions</option>
-                              <option value="2024/2025">2024/2025</option>
-                              <option value="2023/2024">2023/2024</option>
-                              <option value="2022/2023">2022/2023</option>
-                            </select>
-                        </div>
-                        
-                        <div class="mb-3">
-                          <label for="semesterFilter" class="form-label">Semester</label>
-                          <select class="form-select" id="semesterFilter">
-                            <option value="" selected>All Semesters</option>
-                            <option value="First">First</option>
-                            <option value="Second">Second</option>
-                          </select>
-                        </div>
-            
-                        <div class="mb-3">
-                            <label for="courseFilter" class="form-label">Course</label>
-                            <select class="form-select" id="courseFilter">
-                              <option value="" selected>All Courses</option>
-                              <option value="CS101">CS101 - Intro to Programming</option>
-                              <option value="IT202">IT202 - Networking</option>
-                              <option value="BA303">BA303 - Business Law</option>
-                            </select>
-                        </div>
-                        <button type="button" class="btn btn-primary" id="applyFiltersButton">Apply Filters</button>
-                      </form>
-                    </div>
-                  </div>
                 </div>
               </div>
               
             </div>
         </main>
+        <script>
+          document.addEventListener('DOMContentLoaded', function() {
+              // Load initial data
+              loadAttendanceData();
+          
+              // Handle search with debounce
+              const searchInput = document.getElementById('courseSearch');
+              let searchTimeout;
+              searchInput.addEventListener('input', function() {
+                  clearTimeout(searchTimeout);
+                  searchTimeout = setTimeout(() => {
+                      loadAttendanceData();
+                  }, 500); // Increased debounce time for better performance
+              });
+
+              // Clear search when filters are applied
+              document.getElementById('applyFiltersButton').addEventListener('click', function() {
+                  document.getElementById('courseSearch').value = '';
+                  loadAttendanceData();
+                  const modal = document.getElementById('filtersModal');
+                  const bsModal = bootstrap.Modal.getInstance(modal);
+                  if (bsModal) {
+                      bsModal.hide();
+                  }
+              });
+          
+              // Handle search button
+              document.getElementById('searchButton').addEventListener('click', function() {
+                  loadAttendanceData();
+              });
+          
+              // Handle filters
+              document.getElementById('applyFiltersButton').addEventListener('click', function() {
+                  loadAttendanceData();
+                  const modal = document.getElementById('filtersModal');
+                  const bsModal = bootstrap.Modal.getInstance(modal);
+                  if (bsModal) {
+                      bsModal.hide();
+                  }
+              });
+          
+              // Handle filter changes
+              ['sessionFilter', 'semesterFilter', 'courseFilter'].forEach(id => {
+                  document.getElementById(id).addEventListener('change', function() {
+                      // Optional: auto-load when filter changes
+                      // loadAttendanceData();
+                  });
+              });
+          
+              // Update the export button handler
+            document.getElementById('exportButton').addEventListener('click', function() {
+                const params = new URLSearchParams({
+                    session: document.getElementById('sessionFilter').value,
+                    semester: document.getElementById('semesterFilter').value,
+                    course: document.getElementById('courseFilter').value
+                });
+                window.location.href = `/export_student_attendance_excel/?${params}`;
+            });
+          });
+          
+          function getFilterParams() {
+              return new URLSearchParams({
+                  session: document.getElementById('sessionFilter').value,
+                  semester: document.getElementById('semesterFilter').value,
+                  course: document.getElementById('courseFilter').value,
+                  search: document.getElementById('courseSearch').value.trim()
+              });
+          }
+          
+          function loadAttendanceData() {
+    const tbody = document.getElementById('attendanceTable');
+    const loadingIndicator = document.getElementById('loadingIndicator');
+    const searchInput = document.getElementById('courseSearch');
+    
+    // Show loading indicator
+    loadingIndicator.classList.remove('d-none');
+    tbody.innerHTML = '';
+    
+    const params = new URLSearchParams({
+        session: document.getElementById('sessionFilter').value,
+        semester: document.getElementById('semesterFilter').value,
+        course: document.getElementById('courseFilter').value,
+        search: searchInput.value.trim()
+    });
+
+    // Add search terms to URL for better UX
+    const currentUrl = new URL(window.location.href);
+    currentUrl.searchParams.set('search', searchInput.value.trim());
+    window.history.replaceState({}, '', currentUrl);
+    
+    fetch(`/get_student_attendance_data/?${params}`)
+        .then(response => response.json())
+        .then(data => {
+            loadingIndicator.classList.add('d-none');
+            
+            if (!data.data || data.data.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="text-center">
+                            <i class="lni lni-empty-file me-2"></i>
+                            No attendance records found.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            data.data.forEach((record, index) => {
+                const statusClass = record.status.toLowerCase() === 'present' ? 'bg-success' : 
+                                  record.status.toLowerCase() === 'late' ? 'bg-warning' : 'bg-danger';
+                
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td>${record.course}</td>
+                        <td>${record.semester}</td>
+                        <td>${record.session}</td>
+                        <td>${record.date}</td>
+                        <td>${record.time}</td>
+                        <td><span class="badge ${statusClass}">${record.status}</span></td>
+                    </tr>
+                `;
+            });
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            loadingIndicator.classList.add('d-none');
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="7" class="text-center text-danger">
+                        <i class="lni lni-warning me-2"></i>
+                        Error loading attendance data. Please try again.
+                    </td>
+                </tr>
+            `;
+        });
+}
+
+          function formatDate(dateStr) {
+              const date = new Date(dateStr);
+              return date.toLocaleDateString('en-GB', {
+                  day: '2-digit',
+                  month: '2-digit',
+                  year: 'numeric'
+              });
+          }
+          
+          function getStatusClass(status) {
+              const statusClasses = {
+                  'present': 'bg-success',
+                  'late': 'bg-warning',
+                  'absent': 'bg-danger'
+              };
+              return statusClasses[status] || 'bg-secondary';
+          }
+          
+          function showError(tbody, message) {
+              tbody.innerHTML = `
+                  <tr>
+                      <td colspan="7" class="text-center text-danger">
+                          <i class="lni lni-warning me-2"></i>${message}
+                      </td>
+                  </tr>
+              `;
+          }
+          
+          function showNoData(tbody) {
+              tbody.innerHTML = `
+                  <tr>
+                      <td colspan="7" class="text-center">
+                          <i class="lni lni-empty-file me-2"></i>
+                          No attendance records found for the selected filters.
+                      </td>
+                  </tr>
+              `;
+          }
+          </script>
     </div>
 </body>
 </html>

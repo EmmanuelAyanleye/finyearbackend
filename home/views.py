@@ -21,6 +21,7 @@ from django.contrib.auth.hashers import make_password
 import json
 from .models import Course, Attendance
 from fingerprint.models import FingerprintData  # Import the FingerprintData model
+import pytz
 
 
 from .forms import StudentSelfUpdateForm
@@ -1223,17 +1224,353 @@ def profile(request):
 
 
 
+@login_required
 @user_passes_test(is_student)
 def student_summary(request):
-    return render(request, 'home/student-summary.html')
+    try:
+        student = get_object_or_404(Student, user=request.user)
+        
+        # Get available sessions, semesters and courses for filters
+        sessions = AcademicSession.objects.all().order_by('-name')
+        semesters = Semester.objects.all()
+        courses = Course.objects.filter(
+            attendance__student=student
+        ).distinct().order_by('course_code')
+        
+        context = {
+            'student': student,
+            'sessions': sessions,
+            'semesters': semesters,
+            'courses': courses
+        }
+        
+        return render(request, 'home/student-summary.html', context)
+    except Exception as e:
+        print(f"Error in student_summary: {str(e)}")
+        return render(request, 'home/student-summary.html', {})
 
 
+@login_required
+@user_passes_test(is_student)
+def get_student_summary_data(request):
+    try:
+        student = get_object_or_404(Student, user=request.user)
+        print(f"Getting summary for student: {student.full_name}")
+        
+        # Get filter parameters
+        session_id = request.GET.get('session')
+        semester_id = request.GET.get('semester')
+        course_id = request.GET.get('course')
+        
+        # Base query for attendance records
+        attendance_query = Attendance.objects.filter(student=student)
+        
+        # Apply filters
+        if session_id:
+            attendance_query = attendance_query.filter(session_id=session_id)
+        if semester_id:
+            attendance_query = attendance_query.filter(semester_id=semester_id)
+        if course_id:
+            attendance_query = attendance_query.filter(course_id=course_id)
+            
+        # Get unique courses with attendance
+        courses = Course.objects.filter(
+            attendance__in=attendance_query
+        ).distinct()
+        
+        summary_data = []
+        selected_course = None
+        
+        for course in courses:
+            course_attendance = attendance_query.filter(course=course).count()
+            
+            if course_id and str(course.id) == str(course_id):
+                selected_course = f"{course.course_code} - {course.course_title}"
+            
+            summary_data.append({
+                'course': f"{course.course_code} - {course.course_title}",
+                'total_classes': course_attendance
+            })
+        
+        # Sort by course code
+        summary_data.sort(key=lambda x: x['course'])
+        
+        response_data = {
+            'data': summary_data,
+            'total_courses': len(summary_data),
+            'selected_course': selected_course
+        }
+        
+        print(f"Found {len(summary_data)} courses with attendance")
+        return JsonResponse(response_data)
+        
+    except Exception as e:
+        print(f"Error in get_student_summary_data: {str(e)}")
+        return JsonResponse({
+            'error': str(e),
+            'message': 'Failed to fetch summary data'
+        }, status=500)
+     
 
+@login_required
+@user_passes_test(is_student)
+def export_student_summary_pdf(request):
+    try:
+        student = get_object_or_404(Student, user=request.user)
+        
+        # Get filter parameters and query data similar to get_student_summary_data
+        session_id = request.GET.get('session')
+        semester_id = request.GET.get('semester')
+        course_id = request.GET.get('course')
+        
+        courses = Course.objects.filter(attendance__student=student).distinct()
+        
+        # Apply filters
+        if session_id:
+            courses = courses.filter(attendance__session_id=session_id)
+        if semester_id:
+            courses = courses.filter(attendance__semester_id=semester_id)
+        if course_id:
+            courses = courses.filter(id=course_id)
+            
+        # Create PDF
+        response = HttpResponse(content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="attendance_summary_{student.matric_number}.pdf"'
+        
+        doc = SimpleDocTemplate(response, pagesize=letter)
+        elements = []
+        
+        # Add title
+        styles = getSampleStyleSheet()
+        elements.append(Paragraph(f"Attendance Summary - {student.full_name}", styles['Title']))
+        elements.append(Spacer(1, 20))
+        
+        # Create table data
+        data = [['Course', 'Total Classes', 'Classes Attended', 'Percentage']]
+        
+        for course in courses:
+            total_classes = Attendance.objects.filter(course=course, student=student).count()
+            present_count = Attendance.objects.filter(
+                course=course, student=student, status='present'
+            ).count()
+            percentage = (present_count / total_classes * 100) if total_classes > 0 else 0
+            
+            data.append([
+                f"{course.course_code} - {course.course_title}",
+                str(total_classes),
+                str(present_count),
+                f"{round(percentage, 1)}%"
+            ])
+        
+        # Create and style the table
+        table = Table(data)
+        table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.green),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 14),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+            ('TEXTCOLOR', (0, 1), (-1, -1), colors.black),
+            ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+            ('FONTSIZE', (0, 1), (-1, -1), 12),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ]))
+        
+        elements.append(table)
+        doc.build(elements)
+        return response
+        
+    except Exception as e:
+        print(f"Error generating PDF: {str(e)}")
+        return HttpResponse('Error generating PDF', status=500)
+
+
+@login_required
 @user_passes_test(is_student)
 def student_report(request):
-    return render(request, 'home/student-report.html')
+    try:
+        student = get_object_or_404(Student, user=request.user)
+        
+        # Get courses this student has attendance records for
+        courses = Course.objects.filter(
+            attendance__student=student
+        ).distinct().order_by('course_code')
+        
+        sessions = AcademicSession.objects.all().order_by('-name')
+        semesters = Semester.objects.all()
+        
+        context = {
+            'student': student,
+            'courses': courses,
+            'sessions': sessions,
+            'semesters': semesters,
+        }
+        
+        return render(request, 'home/student-report.html', context)
+    except Exception as e:
+        print(f"Error in student_report: {str(e)}")
+        return render(request, 'home/student-report.html', {})
+
+@login_required
+@user_passes_test(is_student)
+def get_student_attendance_data(request):
+    try:
+        # Get the logged in student
+        student = get_object_or_404(Student, user=request.user)
+        print(f"Fetching attendance for student: {student.full_name}")
+        
+        # Get filter parameters
+        session_id = request.GET.get('session')
+        semester_id = request.GET.get('semester')
+        course_id = request.GET.get('course')
+        search = request.GET.get('search', '').strip()
+        
+        # Base query for student's attendance
+        query = Attendance.objects.filter(student=student)
+        print(f"Base query count: {query.count()}")
+        
+        # Apply filters if provided
+        if session_id:
+            query = query.filter(session_id=session_id)
+        if semester_id:
+            query = query.filter(semester_id=semester_id)
+        if course_id:
+            query = query.filter(course_id=course_id)
+        
+        # Apply search if provided
+        if search:
+            from django.db.models import Q
+            query = query.filter(
+                Q(course__course_code__icontains=search) |
+                Q(course__course_title__icontains=search) |
+                Q(semester__name__icontains=search) |
+                Q(session__name__icontains=search) |
+                Q(date__icontains=search)
+            )
+        
+        # Get related data in one query
+        attendance_records = query.select_related(
+            'course', 'semester', 'session'
+        ).order_by('-date', '-timestamp')
+        
+        print(f"Final query count: {attendance_records.count()}")
+        
+        # Format data for response
+        data = []
+        for record in attendance_records:
+            local_time = timezone.localtime(record.timestamp)
+            data.append({
+                'course': f"{record.course.course_code} - {record.course.course_title}",
+                'semester': record.semester.name,
+                'session': record.session.name,
+                'date': record.date.strftime('%d-%m-%Y'),
+                'time': local_time.strftime('%I:%M %p'),
+                'status': record.status.title()
+            })
+        
+        response_data = {
+            'data': data,
+            'total_records': len(data)
+        }
+        print(f"Sending {len(data)} records")
+        return JsonResponse(response_data)
+        
+    except Exception as e:
+        print(f"Error in get_student_attendance_data: {str(e)}")
+        return JsonResponse({
+            'error': str(e),
+            'message': 'Failed to fetch attendance records'
+        }, status=500)
 
 
+@login_required
+@user_passes_test(is_student)
+def export_student_attendance_excel(request):
+    try:
+        student = get_object_or_404(Student, user=request.user)
+        
+        # Get filter parameters
+        session_id = request.GET.get('session')
+        semester_id = request.GET.get('semester')
+        course_id = request.GET.get('course')
+        
+        # Base query
+        attendance_records = Attendance.objects.filter(
+            student=student
+        ).select_related(
+            'course', 'semester', 'session'
+        ).order_by('-date', '-timestamp')
+        
+        # Apply filters
+        if session_id:
+            attendance_records = attendance_records.filter(session_id=session_id)
+        if semester_id:
+            attendance_records = attendance_records.filter(semester_id=semester_id)
+        if course_id:
+            attendance_records = attendance_records.filter(course_id=course_id)
+
+        # Create workbook and sheet
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = "Attendance Report"
+
+        # Write headers with styling
+        headers = ['#', 'Course', 'Semester', 'Session', 'Date', 'Time', 'Status']
+        header_fill = PatternFill(start_color='366092', end_color='366092', fill_type='solid')
+        
+        for col, header in enumerate(headers, 1):
+            cell = ws.cell(row=1, column=col, value=header)
+            cell.fill = header_fill
+            cell.font = Font(color='FFFFFF', bold=True)
+
+        # Write data
+        for idx, record in enumerate(attendance_records, 1):
+            local_time = timezone.localtime(record.timestamp)
+            row = [
+                idx,
+                f"{record.course.course_code} - {record.course.course_title}",
+                record.semester.name,
+                record.session.name,
+                record.date.strftime('%d-%m-%Y'),
+                local_time.strftime('%I:%M %p'),
+                record.status.title()
+            ]
+            ws.append(row)
+
+            # Color status cells
+            status_cell = ws.cell(row=idx+1, column=7)  # Status is in column 7
+            if record.status.lower() == 'present':
+                status_cell.fill = PatternFill(start_color='92D050', end_color='92D050', fill_type='solid')
+            elif record.status.lower() == 'absent':
+                status_cell.fill = PatternFill(start_color='FF0000', end_color='FF0000', fill_type='solid')
+
+        # Auto-adjust column widths
+        for column in ws.columns:
+            max_length = 0
+            column = [cell for cell in column]
+            for cell in column:
+                try:
+                    if len(str(cell.value)) > max_length:
+                        max_length = len(str(cell.value))
+                except:
+                    pass
+            adjusted_width = (max_length + 2)
+            ws.column_dimensions[column[0].column_letter].width = adjusted_width
+
+        # Create response
+        response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        response['Content-Disposition'] = f'attachment; filename=attendance_report_{student.matric_number}.xlsx'
+        
+        wb.save(response)
+        return response
+        
+    except Exception as e:
+        print(f"Error generating Excel: {str(e)}")
+        return HttpResponse('Error generating Excel file', status=500)
 
 @user_passes_test(is_student)
 def student_modify(request):
@@ -1410,6 +1747,8 @@ def mark_attendance(request):
         academic_session = student.session
 
         # Use local time for creating the attendance record
+         # Get local timezone
+        local_tz = pytz.timezone('Africa/Lagos')
         current_time = timezone.localtime(timezone.now())
 
         # Check if attendance already exists
@@ -1589,6 +1928,7 @@ def export_excel(request):
 
     # Write data
     for idx, attendance in enumerate(queryset, 1):
+        local_time = timezone.localtime(attendance.timestamp)
         row = [
             idx,
             attendance.student.full_name,
@@ -1598,7 +1938,7 @@ def export_excel(request):
             attendance.semester.name,
             attendance.session.name,
             attendance.date.strftime('%Y-%m-%d'),
-            attendance.timestamp.strftime('%I:%M %p'),
+            local_time.strftime('%I:%M %p'),
             attendance.status
         ]
         ws.append(row)

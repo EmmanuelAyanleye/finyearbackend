@@ -118,11 +118,10 @@
                     <div class="row justify-content-center">
                         <div class="col-md-4 text-center">
                             <div class="profile-picture mb-5">
-                                {% if lecturer and lecturer.profile_picture %}
-                                    <img src="{{ lecturer.profile_picture.url }}" class="rounded-circle img-thumbnail" width="200" alt="Profile Picture" style="height: 200px;">
-                                {% else %}
-                                    <img src="{% static 'images/account.png' %}" class="rounded-circle img-thumbnail" width="200" alt="Default Profile Picture" style="height: 200px;">
-                                {% endif %}
+                                <img src="{% if request.user.lecturer.profile_picture %}{{ request.user.lecturer.profile_picture.url }}{% else %}{% static 'images/account.png' %}{% endif %}" 
+                            class="avatar img-fluid" 
+                            alt="User Account" 
+                            style="border-radius: 50px; height: 200px; width: 200px;">
                             </div>
                             <h4 class="fw-bold">{{ lecturer.full_name }}</h4>
                             <p class="text-muted">Lecturer ID: {{ lecturer.lecturer_id }}</p>

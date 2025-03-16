@@ -108,7 +108,8 @@
                     <div class="row justify-content-center">
                         <div class="col-md-4 text-center">
                             <div class="profile-picture mb-3">
-                                <img src="{{ student.profile_picture.url }}" class="rounded-circle img-thumbnail" width="200" alt="Profile Picture" style="height: 200px;">
+                                <img src="{% if request.user.student.profile_picture %}{{ request.user.student.profile_picture.url }}{% else %}{% static 'images/account.png' %}{% endif %}" 
+                                         class="avatar img-fluid" alt="User Account" style="border-radius: 50px; height: 200px; width: 200px;">
                             </div>
                             <h4 class="fw-bold">{{ student.full_name }}</h4>
                             <p class="text-muted">{{ student.matric_number }}</p>
@@ -119,6 +120,7 @@
                                 <h5 class="fw-bold">Personal Information</h5>
                                 <hr>
                                 <p><strong>Email:</strong> {{ student.user.email }}</p>
+                                <p><strong>Gender:</strong> {{ student.get_gender_display }}</p>
                                 <h5 class="fw-bold mt-4">Academic Details</h5>
                                 <hr>
                                 <p><strong>Department:</strong> {{ student.department.name }}</p>

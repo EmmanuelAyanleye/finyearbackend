@@ -119,10 +119,10 @@
                 
                     <!-- Summary Section -->
                     <div id="summarySection">
-                        <p><strong>Total Courses:</strong> <span id="totalStudents">2</span></p>
+                        <p><strong>Total Courses:</strong> <span id="totalCourses">0</span></p>
                         <div class="table-responsive" style="max-height: 435px; overflow-y: auto;">
                             <table class="table table-bordered table-hover">
-                                <thead class="table-dark">
+                                <thead class="table-dark sticky-top">
                                     <tr>
                                         <th>#</th>
                                         <th>Course Name</th>
@@ -131,65 +131,177 @@
                                     </tr>
                                 </thead>
                                 <tbody id="summaryTable">
-                                    <tr>
-                                        <td>1</td>
-                                        <td>Discrete Mathematics</td>
-                                        <td>CS101</td>
-                                        <td>4</td>
-                                    </tr>
+                                    <!-- Data will be loaded dynamically -->
                                 </tbody>
                             </table>
                         </div>
                 
                         <!-- Export Summary Button -->
                         <div class="text-end mt-3">
-                            <button class="btn btn-primary" id="exportButton">Export Summary</button>
+                            <button class="btn btn-success" id="exportButton">
+                                <i class="lni lni-download"></i> Export PDF
+                            </button>
                         </div>
                     </div>
                 
                     <!-- Filters Modal -->
-                    <div class="modal fade" id="filtersModal" tabindex="-1" aria-labelledby="filtersModalLabel" aria-hidden="true">
+                    <div class="modal fade" id="filtersModal" tabindex="-1">
                         <div class="modal-dialog">
                             <div class="modal-content">
                                 <div class="modal-header">
-                                    <h5 class="modal-title" id="filtersModalLabel">Filters</h5>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    <h5 class="modal-title">Filter Summary</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                 </div>
                                 <div class="modal-body">
                                     <form id="filtersForm">
                                         <div class="mb-3">
                                             <label for="sessionFilter" class="form-label">Session</label>
                                             <select class="form-select" id="sessionFilter">
-                                                <option value="" selected>All Sessions</option>
-                                                <option value="2024/2025">2024/2025</option>
+                                                <option value="">All Sessions</option>
+                                                {% for session in sessions %}
+                                                    <option value="{{ session.id }}">{{ session.name }}</option>
+                                                {% endfor %}
                                             </select>
                                         </div>
+                                        
                                         <div class="mb-3">
                                             <label for="semesterFilter" class="form-label">Semester</label>
                                             <select class="form-select" id="semesterFilter">
-                                                <option value="" selected>All Semesters</option>
-                                                <option value="First">First</option>
-                                                <option value="Second">Second</option>
+                                                <option value="">All Semesters</option>
+                                                {% for semester in semesters %}
+                                                    <option value="{{ semester.id }}">{{ semester.name }}</option>
+                                                {% endfor %}
                                             </select>
                                         </div>
+                                        
                                         <div class="mb-3">
                                             <label for="courseFilter" class="form-label">Course</label>
                                             <select class="form-select" id="courseFilter">
-                                                <option value="" selected>All Courses</option>
-                                                <option value="CS101">CS101 - Intro to Programming</option>
-                                                <option value="IT202">IT202 - Networking</option>
+                                                <option value="">All Courses</option>
+                                                {% for course in courses %}
+                                                    <option value="{{ course.id }}">{{ course.course_code }} - {{ course.course_title }}</option>
+                                                {% endfor %}
                                             </select>
                                         </div>
-                                        <button type="button" class="btn btn-primary" id="applyFiltersButton">Apply Filters</button>
                                     </form>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                    <button type="button" class="btn btn-primary" id="applyFiltersButton">Apply Filters</button>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                
             </div>
         </main>
+        
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load initial data
+            loadSummaryData();
+            
+            // Handle filters
+            document.getElementById('applyFiltersButton').addEventListener('click', function() {
+                loadSummaryData();
+                const modal = document.getElementById('filtersModal');
+                const bsModal = bootstrap.Modal.getInstance(modal);
+                if (bsModal) {
+                    bsModal.hide();
+                }
+            });
+            
+            // Handle export
+            document.getElementById('exportButton').addEventListener('click', function() {
+                const params = new URLSearchParams({
+                    session: document.getElementById('sessionFilter').value,
+                    semester: document.getElementById('semesterFilter').value,
+                    course: document.getElementById('courseFilter').value
+                });
+                window.location.href = `/export_student_summary_pdf/?${params}`;
+            });
+        });
+        
+        function loadSummaryData() {
+            const tbody = document.getElementById('summaryTable');
+            const totalCoursesSpan = document.getElementById('totalCourses');
+            const selectedCourseSpan = document.getElementById('selectedCourse');
+            
+            // Show loading state
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="4" class="text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </td>
+                </tr>
+            `;
+            
+            // Get filter parameters
+            const params = new URLSearchParams({
+                session: document.getElementById('sessionFilter').value,
+                semester: document.getElementById('semesterFilter').value,
+                course: document.getElementById('courseFilter').value
+            });
+            
+            fetch(`/get_student_summary_data/?${params}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        showError(tbody, data.error);
+                        return;
+                    }
+                    
+                    if (!data.data || data.data.length === 0) {
+                        tbody.innerHTML = `
+                            <tr>
+                                <td colspan="4" class="text-center">
+                                    <i class="lni lni-empty-file me-2"></i>
+                                    No attendance records found
+                                </td>
+                            </tr>
+                        `;
+                        totalCoursesSpan.textContent = '0';
+                        return;
+                    }
+                    
+                    // Update total courses and selected course
+                    totalCoursesSpan.textContent = data.total_courses;
+                    selectedCourseSpan.textContent = data.selected_course || 'All Courses';
+                    
+                    // Clear and populate table
+                    tbody.innerHTML = '';
+                    data.data.forEach((record, index) => {
+                        const [courseCode, courseName] = record.course.split(' - ');
+                        tbody.innerHTML += `
+                            <tr>
+                                <td>${index + 1}</td>
+                                <td>${courseName}</td>
+                                <td>${courseCode}</td>
+                                <td>${record.total_classes}</td>
+                            </tr>
+                        `;
+                    });
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showError(tbody, 'Error loading summary data. Please try again.');
+                });
+        }
+        
+        function showError(tbody, message) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="4" class="text-center text-danger">
+                        <i class="lni lni-warning me-2"></i>
+                        ${message}
+                    </td>
+                </tr>
+            `;
+        }
+        </script>
 </body>
 </html>
