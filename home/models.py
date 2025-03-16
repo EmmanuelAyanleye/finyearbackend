@@ -83,25 +83,6 @@ class Department(models.Model):
     def __str__(self):
         return self.name
 
-# ================== Course ==================
-class Course(models.Model):
-    course_code = models.CharField(max_length=20)
-    course_title = models.CharField(max_length=100)
-    department = models.ForeignKey(Department, on_delete=models.CASCADE)
-    semester = models.ForeignKey(Semester, on_delete=models.CASCADE)
-    level = models.IntegerField(choices=[
-        (100, '100 Level'),
-        (200, '200 Level'),
-        (300, '300 Level'),
-        (400, '400 Level'),
-    ])
-    lecturer = models.ForeignKey(Lecturer, on_delete=models.CASCADE)
-    attendance_day = models.CharField(max_length=10)
-    attendance_start_time = models.TimeField()
-    attendance_end_time = models.TimeField()
-
-    def __str__(self):
-        return f"{self.course_code} - {self.course_title}"
 
 # ================== Student Model ==================
 class Student(models.Model):
@@ -129,7 +110,7 @@ class Student(models.Model):
     gender = models.CharField(
         max_length=1, 
         choices=GENDER_CHOICES,
-        default='M'  # Setting default value to 'M'
+        default='M' 
     )
 
     def __str__(self):
@@ -138,6 +119,55 @@ class Student(models.Model):
     def get_gender_display(self):
         """Override the default get_gender_display to ensure correct output"""
         return 'Male' if self.gender == 'M' else 'Female'
+
+
+# ================== Course ==================
+class Course(models.Model):
+    course_code = models.CharField(max_length=20)
+    course_title = models.CharField(max_length=100)
+    department = models.ForeignKey(Department, on_delete=models.CASCADE)
+    semester = models.ForeignKey(Semester, on_delete=models.CASCADE)
+    level = models.IntegerField(choices=[
+        (100, '100 Level'),
+        (200, '200 Level'),
+        (300, '300 Level'),
+        (400, '400 Level'),
+    ])
+    lecturer = models.ForeignKey(Lecturer, on_delete=models.CASCADE)
+    students = models.ManyToManyField(Student, related_name='courses')
+    attendance_day = models.CharField(max_length=10)
+    attendance_start_time = models.TimeField()
+    attendance_end_time = models.TimeField()
+
+    def get_enrolled_students_count(self):
+        return self.students.count()
+
+    def get_attendance_count(self):
+        return Attendance.objects.filter(course=self).count()
+
+    @classmethod
+    def get_lecturer_stats(cls, lecturer):
+        """Get all stats for a lecturer in one query"""
+        courses = cls.objects.filter(lecturer=lecturer)
+        total_courses = courses.count()
+        
+        # Get students directly from course relationships
+        total_students = Student.objects.filter(
+            courses__lecturer=lecturer
+        ).distinct().count()
+        
+        # Get attendance count
+        total_attendance = Attendance.objects.filter(
+            course__lecturer=lecturer
+        ).count()
+        
+        return {
+            'total_courses': total_courses,
+            'total_students': total_students,
+            'total_attendance': total_attendance
+        }
+
+
 
 # ================== Attendance Model ==================
 class Attendance(models.Model):

@@ -112,311 +112,198 @@
         <!-- Main Content -->
         <main class="flex-grow-1 overflow-auto">
             <div class="container py-4" id="main-content">
-              <div class="container">
-                <h2 class="text-center mb-4">Attendance Report</h2>
-              
-                <!-- Search Bar and Filters -->
-                <div class="d-flex justify-content-between mb-3">
-                  <div class="input-group w-50">
-                    <input type="text" id="studentSearch" class="form-control" placeholder="Search by student name...">
-                    <button class="btn btn-primary" id="searchButton">
-                      <i class="lni lni-search-alt"></i> Search
-                    </button>
-                  </div>
-                  <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#filtersModal">
-                    <i class="lni lni-funnel"></i> Filters
-                  </button>
-                </div>
-              
-                <!-- Attendance Report Table -->
-                <div class="table-responsive" style="max-height: 460px; overflow-y: auto;">
-                  <table class="table table-bordered table-hover">
-                    <thead class="table-dark">
-                      <tr>
-                        <th>#</th>
-                        <th>Student Name</th>
-                        <th>Department</th>
-                        <th>Level</th>
-                        <th>Course</th>
-                        <th>Semester</th>
-                        <th>Session</th>
-                        <th>Date</th>
-                        <th>Timestamp</th>
-                        <th>Status</th>
-                      </tr>
-                    </thead>
-                    <tbody id="attendanceTable">
-                      <tr>
-                        <td>1</td>
-                        <td>Ayanleye Emmanuel</td>
-                        <td>Computer Science</td>
-                        <td>300</td>
-                        <td>CS101</td>
-                        <td>First</td>
-                        <td>2024/2025</td>
-                        <td>2025-01-01</td>
-                        <td>10:30 AM</td>
-                        <td><span class="badge bg-success">Present</span></td>
-                      </tr>
-                      <tr>
-                        <td>2</td>
-                        <td>Jane Smith</td>
-                        <td>Computer Science</td>
-                        <td>300</td>
-                        <td>CS101</td>
-                        <td>First</td>
-                        <td>2024/2025</td>
-                        <td>2025-01-02</td>
-                        <td>09:45 AM</td>
-                        <td><span class="badge bg-success">Present</span></td>
-                      </tr>
-                      <tr>
-                        <td>1</td>
-                        <td>Ayanleye Emmanuel</td>
-                        <td>Computer Science</td>
-                        <td>300</td>
-                        <td>CS101</td>
-                        <td>First</td>
-                        <td>2024/2025</td>
-                        <td>2025-01-01</td>
-                        <td>10:30 AM</td>
-                        <td><span class="badge bg-success">Present</span></td>
-                      </tr>
-                      <tr>
-                        <td>2</td>
-                        <td>Jane Smith</td>
-                        <td>Computer Science</td>
-                        <td>300</td>
-                        <td>CS101</td>
-                        <td>First</td>
-                        <td>2024/2025</td>
-                        <td>2025-01-02</td>
-                        <td>09:45 AM</td>
-                        <td><span class="badge bg-success">Present</span></td>
-                      </tr>
-                      <tr>
-                        <td>1</td>
-                        <td>Ayanleye Emmanuel</td>
-                        <td>Computer Science</td>
-                        <td>300</td>
-                        <td>CS101</td>
-                        <td>First</td>
-                        <td>2024/2025</td>
-                        <td>2025-01-01</td>
-                        <td>10:30 AM</td>
-                        <td><span class="badge bg-success">Present</span></td>
-                      </tr>
-                      <tr>
-                        <td>2</td>
-                        <td>Jane Smith</td>
-                        <td>Computer Science</td>
-                        <td>300</td>
-                        <td>CS101</td>
-                        <td>First</td>
-                        <td>2024/2025</td>
-                        <td>2025-01-02</td>
-                        <td>09:45 AM</td>
-                        <td><span class="badge bg-success">Present</span></td>
-                      </tr>
-                      <tr>
-                        <td>1</td>
-                        <td>Ayanleye Emmanuel</td>
-                        <td>Computer Science</td>
-                        <td>300</td>
-                        <td>CS101</td>
-                        <td>First</td>
-                        <td>2024/2025</td>
-                        <td>2025-01-01</td>
-                        <td>10:30 AM</td>
-                        <td><span class="badge bg-success">Present</span></td>
-                      </tr>
-                      <tr>
-                        <td>2</td>
-                        <td>Jane Smith</td>
-                        <td>Computer Science</td>
-                        <td>300</td>
-                        <td>CS101</td>
-                        <td>First</td>
-                        <td>2024/2025</td>
-                        <td>2025-01-02</td>
-                        <td>09:45 AM</td>
-                        <td><span class="badge bg-success">Present</span></td>
-                      </tr>
-                      <tr>
-                        <td>1</td>
-                        <td>Ayanleye Emmanuel</td>
-                        <td>Computer Science</td>
-                        <td>300</td>
-                        <td>CS101</td>
-                        <td>First</td>
-                        <td>2024/2025</td>
-                        <td>2025-01-01</td>
-                        <td>10:30 AM</td>
-                        <td><span class="badge bg-success">Present</span></td>
-                      </tr>
-                      <tr>
-                        <td>2</td>
-                        <td>Jane Smith</td>
-                        <td>Computer Science</td>
-                        <td>300</td>
-                        <td>CS101</td>
-                        <td>First</td>
-                        <td>2024/2025</td>
-                        <td>2025-01-02</td>
-                        <td>09:45 AM</td>
-                        <td><span class="badge bg-success">Present</span></td>
-                      </tr>
-                      <tr>
-                        <td>1</td>
-                        <td>Ayanleye Emmanuel</td>
-                        <td>Computer Science</td>
-                        <td>300</td>
-                        <td>CS101</td>
-                        <td>First</td>
-                        <td>2024/2025</td>
-                        <td>2025-01-01</td>
-                        <td>10:30 AM</td>
-                        <td><span class="badge bg-success">Present</span></td>
-                      </tr>
-                      <tr>
-                        <td>2</td>
-                        <td>Jane Smith</td>
-                        <td>Computer Science</td>
-                        <td>300</td>
-                        <td>CS101</td>
-                        <td>First</td>
-                        <td>2024/2025</td>
-                        <td>2025-01-02</td>
-                        <td>09:45 AM</td>
-                        <td><span class="badge bg-success">Present</span></td>
-                      </tr>
-                      <tr>
-                        <td>1</td>
-                        <td>Ayanleye Emmanuel</td>
-                        <td>Computer Science</td>
-                        <td>300</td>
-                        <td>CS101</td>
-                        <td>First</td>
-                        <td>2024/2025</td>
-                        <td>2025-01-01</td>
-                        <td>10:30 AM</td>
-                        <td><span class="badge bg-success">Present</span></td>
-                      </tr>
-                      <tr>
-                        <td>2</td>
-                        <td>Jane Smith</td>
-                        <td>Computer Science</td>
-                        <td>300</td>
-                        <td>CS101</td>
-                        <td>First</td>
-                        <td>2024/2025</td>
-                        <td>2025-01-02</td>
-                        <td>09:45 AM</td>
-                        <td><span class="badge bg-success">Present</span></td>
-                      </tr>
-                      <tr>
-                        <td>1</td>
-                        <td>Ayanleye Emmanuel</td>
-                        <td>Computer Science</td>
-                        <td>300</td>
-                        <td>CS101</td>
-                        <td>First</td>
-                        <td>2024/2025</td>
-                        <td>2025-01-01</td>
-                        <td>10:30 AM</td>
-                        <td><span class="badge bg-success">Present</span></td>
-                      </tr>
-                      <tr>
-                        <td>2</td>
-                        <td>Jane Smith</td>
-                        <td>Computer Science</td>
-                        <td>300</td>
-                        <td>CS101</td>
-                        <td>First</td>
-                        <td>2024/2025</td>
-                        <td>2025-01-02</td>
-                        <td>09:45 AM</td>
-                        <td><span class="badge bg-success">Present</span></td>
-                      </tr>
-                      <tr>
-                        <td>1</td>
-                        <td>Ayanleye Emmanuel</td>
-                        <td>Computer Science</td>
-                        <td>300</td>
-                        <td>CS101</td>
-                        <td>First</td>
-                        <td>2024/2025</td>
-                        <td>2025-01-01</td>
-                        <td>10:30 AM</td>
-                        <td><span class="badge bg-success">Present</span></td>
-                      </tr>
-                      <tr>
-                        <td>2</td>
-                        <td>Jane Smith</td>
-                        <td>Computer Science</td>
-                        <td>300</td>
-                        <td>CS101</td>
-                        <td>First</td>
-                        <td>2024/2025</td>
-                        <td>2025-01-02</td>
-                        <td>09:45 AM</td>
-                        <td><span class="badge bg-success">Present</span></td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              
-                <!-- Export Attendance Button -->
-                <div class="text-end mt-3">
-                  <button class="btn btn-primary" id="exportButton">Export to CSV</button>
-                </div>
-              </div>
-              
-              <!-- Filters Modal -->
-              <div class="modal fade" id="filtersModal" tabindex="-1" aria-labelledby="filtersModalLabel" aria-hidden="true">
-                <div class="modal-dialog">
-                  <div class="modal-content">
-                    <div class="modal-header">
-                      <h5 class="modal-title" id="filtersModalLabel">Filters</h5>
-                      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                      <form id="filtersForm">
-                        <div class="mb-3">
-                          <label for="sessionFilter" class="form-label">Session</label>
-                          <select class="form-select" id="sessionFilter">
-                            <option value="" selected>All Sessions</option>
-                            <option value="2024/2025">2024/2025</option>
-                            <option value="2023/2024">2023/2024</option>
-                            <option value="2022/2023">2022/2023</option>
-                          </select>
-                      </div>
-                      
-                      <div class="mb-3">
-                        <label for="semesterFilter" class="form-label">Semester</label>
-                        <select class="form-select" id="semesterFilter">
-                          <option value="" selected>All Semesters</option>
-                          <option value="First">First</option>
-                          <option value="Second">Second</option>
-                        </select>
-                      </div>
-                      
-                        <div class="mb-3">
-                          <label for="courseFilter" class="form-label">Course</label>
-                          <select class="form-select" id="courseFilter">
-                            <option value="" selected>All Assigned Courses</option>
-                            <option value="CS101">CS101 - Intro to Programming</option>
-                            <option value="IT202">IT202 - Networking</option>
-                          </select>
+                <div class="container">
+                    <h2 class="text-center mb-4">Attendance Report</h2>
+
+                    <!-- Search Bar and Filters -->
+                    <div class="d-flex justify-content-between mb-3">
+                        <div class="input-group w-50">
+                            <input type="text" id="studentSearch" class="form-control" placeholder="Search by student name...">
+                            <button class="btn btn-primary" id="searchButton">
+                                <i class="lni lni-search-alt"></i> Search
+                            </button>
                         </div>
-                        <button type="button" class="btn btn-primary" id="applyFiltersButton">Apply Filters</button>
-                      </form>
+                        <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#filtersModal">
+                            <i class="lni lni-funnel"></i> Filters
+                        </button>
                     </div>
+
+                    <!-- Table Section -->
+                    <div class="table-responsive" style="max-height: 460px; overflow-y: auto;">
+                      <table class="table table-bordered table-hover">
+                          <thead class="table-dark">
+                              <tr>
+                                  <th>#</th>
+                                  <th>Student Name</th>
+                                  <th>Department</th>
+                                  <th>Level</th>
+                                  <th>Course</th>
+                                  <th>Semester</th>
+                                  <th>Session</th>
+                                  <th>Date</th>
+                                  <th>Timestamp</th>
+                                  <th>Status</th>
+                              </tr>
+                          </thead>
+                          <tbody id="attendanceTable"></tbody>
+                      </table>
                   </div>
+
+                    <!-- Export Button -->
+                    <div class="text-end mt-3">
+                        <button class="btn btn-success" id="exportButton">
+                            <i class="lni lni-download"></i> Export to Excel
+                        </button>
+                    </div>
+
+                    <!-- Filters Modal -->
+                    <div class="modal fade" id="filtersModal" tabindex="-1" aria-labelledby="filtersModalLabel" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="filtersModalLabel">
+                                        <i class="lni lni-funnel"></i> Filters
+                                    </h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <form id="filtersForm">
+                                        <div class="mb-3">
+                                            <label for="sessionFilter" class="form-label">Session</label>
+                                            <select class="form-select" id="sessionFilter">
+                                                <option value="" selected>All Sessions</option>
+                                                {% for session in sessions %}
+                                                <option value="{{ session.name }}">{{ session.name }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label for="semesterFilter" class="form-label">Semester</label>
+                                            <select class="form-select" id="semesterFilter">
+                                                <option value="" selected>All Semesters</option>
+                                                {% for semester in semesters %}
+                                                <option value="{{ semester.name }}">{{ semester.name }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label for="courseFilter" class="form-label">Course</label>
+                                            <select class="form-select" id="courseFilter">
+                                                <option value="" selected>All Assigned Courses</option>
+                                                {% for course in courses %}
+                                                <option value="{{ course.course_code }}">{{ course.course_code }} - {{ course.course_title }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                    </form>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                        Close
+                                    </button>
+                                    <button type="button" class="btn btn-primary" id="applyFiltersButton">
+                                        Apply Filters
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-              </div>
             </div>
         </main>
     </div>
+
+    <!-- Scripts -->
+    <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+    // Replace the existing script section
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        loadAttendanceData();
+
+        // Search functionality
+        document.getElementById('searchButton').addEventListener('click', function() {
+            loadAttendanceData();
+        });
+
+        document.getElementById('studentSearch').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                loadAttendanceData();
+            }
+        });
+
+        // Filter functionality
+        document.getElementById('applyFiltersButton').addEventListener('click', function() {
+            loadAttendanceData();
+            $('#filtersModal').modal('hide'); // Using jQuery to handle modal
+        });
+
+        // Export functionality
+        document.getElementById('exportButton').addEventListener('click', function() {
+            exportAttendance();
+        });
+
+        // Handle modal hidden event
+        $('#filtersModal').on('hidden.bs.modal', function () {
+            $('body').removeClass('modal-open');
+            $('.modal-backdrop').remove();
+        });
+    });
+    
+    function loadAttendanceData() {
+        const searchTerm = document.getElementById('studentSearch').value;
+        const session = document.getElementById('sessionFilter').value;
+        const semester = document.getElementById('semesterFilter').value;
+        const course = document.getElementById('courseFilter').value;
+
+        const params = new URLSearchParams({
+            search: searchTerm,
+            session: session,
+            semester: semester,
+            course: course
+        });
+
+        fetch(`/get_lecturer_attendance_data/?${params}`)
+            .then(response => response.json())
+            .then(data => {
+                const tbody = document.getElementById('attendanceTable');
+                tbody.innerHTML = '';
+
+                data.data.forEach(record => {
+                    const statusClass = record.status.toLowerCase() === 'present' ? 'bg-success' : 'bg-danger';
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${record.id}</td>
+                            <td>${record.student_name}</td>
+                            <td>${record.department}</td>
+                            <td>${record.level}</td>
+                            <td>${record.course}</td>
+                            <td>${record.semester}</td>
+                            <td>${record.session}</td>
+                            <td>${record.date}</td>
+                            <td>${record.time}</td>
+                            <td><span class="badge ${statusClass}">${record.status}</span></td>
+                        </tr>
+                    `;
+                });
+            })
+            .catch(error => console.error('Error:', error));
+    }
+
+    function exportAttendance() {
+        const session = document.getElementById('sessionFilter').value;
+        const semester = document.getElementById('semesterFilter').value;
+        const course = document.getElementById('courseFilter').value;
+
+        const params = new URLSearchParams({
+            session: session,
+            semester: semester,
+            course: course
+        });
+
+        window.location.href = `/export_lecturer_attendance/?${params}`;
+    }
+</script>
 </body>
 </html>

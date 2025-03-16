@@ -509,6 +509,7 @@ def get_attendance_summary(request):
     queryset = Attendance.objects.values(
         'student__id',
         'student__full_name',
+        'student__matric_number'
     ).annotate(
         total_attendance=Count('id')
     ).order_by('-total_attendance')
@@ -531,6 +532,7 @@ def get_attendance_summary(request):
         summary_data.append({
             'id': idx,
             'student_name': record['student__full_name'],
+            'matric_number': record['student__matric_number'],
             'total_attendance': record['total_attendance']
         })
 
@@ -823,39 +825,317 @@ def modify_student_page(request, student_id):
 
 
 
-
-
-@login_required(login_url='login')
-@user_passes_test(is_lecturer, login_url='index') 
+@login_required
+@user_passes_test(is_lecturer)
 def lecturer_panel(request):
     try:
-        lecturer = Lecturer.objects.get(user=request.user)
-    except Lecturer.DoesNotExist:
-        lecturer = None
+        lecturer = get_object_or_404(Lecturer, user=request.user)
+        
+        # Get courses taught by this lecturer
+        courses = Course.objects.filter(lecturer=lecturer)
+        total_courses = courses.count()
+        
+        # Get total students who have marked attendance in any of lecturer's courses
+        total_students = Student.objects.filter(
+            attendance__course__in=courses
+        ).distinct().count()
+        
+        # Get total attendance records for all lecturer's courses
+        total_attendance = Attendance.objects.filter(
+            course__in=courses
+        ).count()
+        
+        context = {
+            'lecturer': lecturer,
+            'total_courses': total_courses,
+            'total_students': total_students,
+            'total_attendance': total_attendance,
+        }
+        
+        # Debug output
+        print(f"\nDebug - Stats for {lecturer.full_name}:")
+        print(f"Total Courses: {total_courses}")
+        print(f"Total Students: {total_students}")
+        print(f"Total Attendance: {total_attendance}\n")
+        
+        return render(request, 'home/lecturer-panel.html', context)
+        
+    except Exception as e:
+        print(f"Error in lecturer_panel: {str(e)}")
+        return render(request, 'home/lecturer-panel.html', {
+            'total_courses': 0,
+            'total_students': 0,
+            'total_attendance': 0
+        })
+    
 
-    return render(request, "home/lecturer-panel.html", {"lecturer": lecturer}) 
-
-
+@login_required
 @user_passes_test(is_lecturer)
 def lecturer_report(request):
+    lecturer = get_object_or_404(Lecturer, user=request.user)
+    departments = Department.objects.all()
+    sessions = AcademicSession.objects.all()
+    semesters = Semester.objects.all()
+    # Only get courses assigned to this lecturer
+    courses = Course.objects.filter(lecturer=lecturer)
     
+    context = {
+        'departments': departments,
+        'sessions': sessions,
+        'semesters': semesters,
+        'courses': courses,
+        'lecturer': lecturer
+    }
+    return render(request, 'home/lecturer-report.html', context)
+
+@login_required
+@user_passes_test(is_lecturer)
+def get_lecturer_attendance_data(request):
     try:
-        lecturer = Lecturer.objects.get(user=request.user)
-    except Lecturer.DoesNotExist:
-        lecturer = None
+        lecturer = get_object_or_404(Lecturer, user=request.user)
+        
+        # Get filter parameters
+        search = request.GET.get('search', '')
+        department = request.GET.get('department')
+        session = request.GET.get('session')
+        semester = request.GET.get('semester')
+        course = request.GET.get('course')
+        
+        # Start with attendance for lecturer's courses
+        queryset = Attendance.objects.filter(course__lecturer=lecturer)
+        
+        # Apply filters
+        if search:
+            queryset = queryset.filter(student__full_name__icontains=search)
+        if department:
+            queryset = queryset.filter(student__department__name=department)
+        if session:
+            queryset = queryset.filter(session__name=session)
+        if semester:
+            queryset = queryset.filter(semester__name=semester)
+        if course:
+            queryset = queryset.filter(course__course_code=course)
 
-    return render(request, "home/lecturer-report.html", {"lecturer": lecturer}) 
+        # Prepare data for response
+        attendance_data = []
+        for idx, attendance in enumerate(queryset, 1):
+            local_time = timezone.localtime(attendance.timestamp)
+            attendance_data.append({
+                'id': idx,
+                'student_name': attendance.student.full_name,
+                'department': attendance.student.department.name,
+                'level': attendance.student.level,
+                'course': f"{attendance.course.course_code} - {attendance.course.course_title}",
+                'semester': attendance.semester.name,
+                'session': attendance.session.name,
+                'date': local_time.strftime('%Y-%m-%d'),
+                'time': local_time.strftime('%I:%M %p'),
+                'status': attendance.status
+            })
+
+        return JsonResponse({'data': attendance_data})
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+@login_required
+@user_passes_test(is_lecturer)
+def export_lecturer_attendance(request):
+    try:
+        lecturer = get_object_or_404(Lecturer, user=request.user)
+        
+        # Get filtered data
+        search = request.GET.get('search', '')
+        department = request.GET.get('department')
+        session = request.GET.get('session')
+        semester = request.GET.get('semester')
+        course = request.GET.get('course')
+        
+        # Get filtered queryset
+        queryset = Attendance.objects.filter(course__lecturer=lecturer)
+        
+        if department:
+            queryset = queryset.filter(student__department__name=department)
+        if session:
+            queryset = queryset.filter(session__name=session)
+        if semester:
+            queryset = queryset.filter(semester__name=semester)
+        if course:
+            queryset = queryset.filter(course__course_code=course)
+
+        # Create Excel workbook
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Attendance Report"
+
+        # Add headers with styling
+        headers = ['#', 'Student Name', 'Department', 'Level', 'Course', 
+                  'Semester', 'Session', 'Date', 'Time', 'Status']
+        
+        header_fill = PatternFill(start_color='366092', end_color='366092', fill_type='solid')
+        
+        for col, header in enumerate(headers, 1):
+            cell = ws.cell(row=1, column=col, value=header)
+            cell.fill = header_fill
+            cell.font = Font(color='FFFFFF', bold=True)
+
+        # Add data
+        for idx, attendance in enumerate(queryset, 1):
+            local_time = timezone.localtime(attendance.timestamp)
+            row = [
+                idx,
+                attendance.student.full_name,
+                attendance.student.department.name,
+                attendance.student.level,
+                f"{attendance.course.course_code} - {attendance.course.course_title}",
+                attendance.semester.name,
+                attendance.session.name,
+                local_time.strftime('%Y-%m-%d'),
+                local_time.strftime('%I:%M %p'),
+                attendance.status
+            ]
+            ws.append(row)
+
+            # Color status cells
+            status_cell = ws.cell(row=idx+1, column=10)
+            if attendance.status == 'present':
+                status_cell.fill = PatternFill(start_color='92D050', end_color='92D050', fill_type='solid')
+            elif attendance.status == 'absent':
+                status_cell.fill = PatternFill(start_color='FF0000', end_color='FF0000', fill_type='solid')
+
+        # Auto-adjust column widths
+        for column in ws.columns:
+            max_length = 0
+            column = [cell for cell in column]
+            for cell in column:
+                try:
+                    if len(str(cell.value)) > max_length:
+                        max_length = len(str(cell.value))
+                except:
+                    pass
+            adjusted_width = (max_length + 2)
+            ws.column_dimensions[column[0].column_letter].width = adjusted_width
+
+        # Create response
+        response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        response['Content-Disposition'] = 'attachment; filename=attendance_report.xlsx'
+        
+        wb.save(response)
+        return response
+        
+    except Exception as e:
+        return HttpResponse(f"Error exporting data: {str(e)}", status=500) 
 
 
+from django.http import JsonResponse
+from django.db.models import Count
+from django.contrib.auth.decorators import login_required, user_passes_test
+from .models import Lecturer, Course, Student, Attendance, AcademicSession, Semester
+
+@login_required
 @user_passes_test(is_lecturer)
 def lecturer_summary(request):
-    
     try:
-        lecturer = Lecturer.objects.get(user=request.user)
-    except Lecturer.DoesNotExist:
-        lecturer = None
+        lecturer = get_object_or_404(Lecturer, user=request.user)
+        
+        # Get available sessions, semesters and courses for this lecturer
+        sessions = AcademicSession.objects.all().order_by('-name')
+        semesters = Semester.objects.all()
+        courses = Course.objects.filter(lecturer=lecturer)
+        
+        context = {
+            'lecturer': lecturer,
+            'sessions': sessions,
+            'semesters': semesters, 
+            'courses': courses,
+            'default_course': courses.first() # Get first course as default
+        }
+        
+        return render(request, "home/lecturer-summary.html", context)
+    except Exception as e:
+        print(f"Error: {str(e)}")
+        return render(request, "home/lecturer-summary.html", {})
 
-    return render(request, "home/lecturer-summary.html", {"lecturer": lecturer}) 
+@login_required
+@user_passes_test(is_lecturer)
+def get_lecturer_summary_data(request):
+    try:
+        lecturer = get_object_or_404(Lecturer, user=request.user)
+        course_id = request.GET.get('course')
+        session_id = request.GET.get('session')
+        semester_id = request.GET.get('semester')
+        
+        # Base query for courses
+        courses = Course.objects.filter(lecturer=lecturer)
+        if course_id:
+            courses = courses.filter(id=course_id)
+        
+        # Get students with attendance records
+        students_with_attendance = Student.objects.filter(
+            attendance__course__in=courses
+        ).distinct()
+        
+        summary_data = []
+        
+        for student in students_with_attendance:
+            attendance_query = Attendance.objects.filter(
+                student=student,
+                course__in=courses,
+                status='present'
+            )
+            
+            if session_id:
+                attendance_query = attendance_query.filter(session_id=session_id)
+            if semester_id:
+                attendance_query = attendance_query.filter(semester_id=semester_id)
+            
+            total_attendance = attendance_query.count()
+            
+            summary_data.append({
+                'student_name': student.full_name,
+                'matric_number': student.matric_number,
+                'total_attendance': total_attendance,
+            })
+        
+        # Sort by student name
+        summary_data.sort(key=lambda x: x['student_name'])
+        
+        course_name = None
+        if course_id:
+            course = courses.first()
+            course_name = f"{course.course_code} - {course.course_title}"
+        
+        return JsonResponse({
+            'data': summary_data,
+            'total_students': len(summary_data),
+            'course_name': course_name or 'All Courses'
+        })
+        
+    except Exception as e:
+        print(f"Error in get_lecturer_summary_data: {str(e)}")
+        return JsonResponse({'error': str(e)}, status=500)
+    
+
+
+@login_required
+@user_passes_test(is_lecturer)
+def export_summary_pdf(request):
+    try:
+        # ...Similar logic as get_lecturer_summary_data...
+        response = HttpResponse(content_type='application/pdf')
+        response['Content-Disposition'] = 'attachment; filename="attendance_summary.pdf"'
+        
+        # Create PDF
+        doc = SimpleDocTemplate(response, pagesize=letter)
+        elements = []
+        
+        # Add content to PDF
+        # ...
+        
+        doc.build(elements)
+        return response
+        
+    except Exception as e:
+        return HttpResponse(str(e), status=500)
 
 
 @user_passes_test(is_lecturer)
@@ -1187,9 +1467,10 @@ def mark_attendance(request):
 
 
 from django.http import JsonResponse, HttpResponse
+from openpyxl import Workbook
 from django.db.models import Q, Count
 import openpyxl
-from openpyxl.styles import PatternFill
+from openpyxl.styles import PatternFill, Font
 from datetime import datetime
 
 def report(request):
@@ -1241,6 +1522,7 @@ def get_attendance_data(request):
     # Prepare data for response
     attendance_data = []
     for idx, attendance in enumerate(queryset, 1):
+        local_time = timezone.localtime(attendance.timestamp)
         attendance_data.append({
             'id': idx,
             'student_name': attendance.student.full_name,
@@ -1250,7 +1532,7 @@ def get_attendance_data(request):
             'semester': attendance.semester.name,
             'session': attendance.session.name,
             'date': attendance.date.strftime('%Y-%m-%d'),
-            'timestamp': attendance.timestamp.strftime('%I:%M %p'),
+            'timestamp': local_time.strftime('%I:%M %p'),
             'status': attendance.status
         })
 

@@ -116,7 +116,7 @@
                         <div class="card border-0 shadow-sm">
                             <div class="card-body">
                                 <h5>Total Courses Assigned</h5>
-                                <p>5</p>
+                                <p>{{ total_courses|default:"0" }}</p>
                             </div>
                         </div>
                     </div>
@@ -124,7 +124,7 @@
                         <div class="card border-0 shadow-sm">
                             <div class="card-body">
                                 <h5>Total Attendance Records</h5>
-                                <p>2</p>
+                                <p>{{ total_attendance|default:"0" }}</p>
                             </div>
                         </div>
                     </div>
@@ -132,7 +132,7 @@
                         <div class="card border-0 shadow-sm">
                             <div class="card-body">
                                 <h5>Total Students</h5>
-                                <p>3</p>
+                                <p>{{ total_students|default:"0" }}</p> 
                             </div>
                         </div>
                     </div>

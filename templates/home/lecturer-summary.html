@@ -118,201 +118,37 @@
                 <!-- Search Bar and Filters -->
                 <div class="d-flex justify-content-between">
                   <div class="input-group w-50">
-                    <!-- <input type="text" id="studentSearch" class="form-control" placeholder="Search by student name...">
-                    <button class="btn btn-primary" id="searchButton">
-                      <i class="lni lni-search-alt"></i> Search
-                    </button> -->
-                    <h5>Summary for <span id="selectedCourse">CS101</span></h5>
+                      <h5>Summary for <span id="selectedCourse">Select a course</span></h5>
                   </div>
                   <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#filtersModal">
-                    <i class="lni lni-funnel"></i> Filters
+                      <i class="lni lni-funnel"></i> Filters
                   </button>
-                </div>
-            
-            <!-- Summary Section -->
-            <div id="summarySection">
-                <p><strong>Total Students:</strong> <span id="totalStudents">2</span></p>
-                <div class="table-responsive" style="max-height: 435px; overflow-y: auto;">
-                    <table class="table table-bordered table-hover">
-                    <thead class="table-dark">
-                        <tr>
-                        <th>#</th>
-                        <th>Student Name</th>
-                        <th>Total Attendance</th>
-                        </tr>
-                    </thead>
-                    <tbody id="summaryTable">
-                        <tr>
-                        <td>1</td>
-                        <td>Ayanleye Emmanuel</td>
-                        <td>5</td>
-                        </tr>
-                        <tr>
-                        <td>2</td>
-                        <td>Jane Smith</td>
-                        <td>3</td>
-                        </tr>
-                        <tr>
-                        <td>1</td>
-                        <td>Ayanleye Emmanuel</td>
-                        <td>5</td>
-                        </tr>
-                        <tr>
-                        <td>2</td>
-                        <td>Jane Smith</td>
-                        <td>3</td>
-                        </tr>
-                        <tr>
-                        <td>1</td>
-                        <td>Ayanleye Emmanuel</td>
-                        <td>5</td>
-                        </tr>
-                        <tr>
-                        <td>2</td>
-                        <td>Jane Smith</td>
-                        <td>3</td>
-                        </tr>
-                        <tr>
-                        <td>1</td>
-                        <td>Ayanleye Emmanuel</td>
-                        <td>5</td>
-                        </tr>
-                        <tr>
-                        <td>2</td>
-                        <td>Jane Smith</td>
-                        <td>3</td>
-                        </tr>
-                        <tr>
-                        <td>2</td>
-                        <td>Jane Smith</td>
-                        <td>3</td>
-                        </tr>
-                        <tr>
-                        <td>1</td>
-                        <td>Ayanleye Emmanuel</td>
-                        <td>5</td>
-                        </tr>
-                        <tr>
-                        <td>2</td>
-                        <td>Jane Smith</td>
-                        <td>3</td>
-                        </tr>
-                        <tr>
-                        <td>2</td>
-                        <td>Jane Smith</td>
-                        <td>3</td>
-                        </tr>
-                        <tr>
-                        <td>1</td>
-                        <td>Ayanleye Emmanuel</td>
-                        <td>5</td>
-                        </tr>
-                        <tr>
-                        <td>2</td>
-                        <td>Jane Smith</td>
-                        <td>3</td>
-                        </tr>
-                        <tr>
-                        <td>2</td>
-                        <td>Jane Smith</td>
-                        <td>3</td>
-                        </tr>
-                        <tr>
-                        <td>1</td>
-                        <td>Ayanleye Emmanuel</td>
-                        <td>5</td>
-                        </tr>
-                        <tr>
-                        <td>2</td>
-                        <td>Jane Smith</td>
-                        <td>3</td>
-                        </tr>
-                        <tr>
-                        <td>2</td>
-                        <td>Jane Smith</td>
-                        <td>3</td>
-                        </tr>
-                        <tr>
-                        <td>1</td>
-                        <td>Ayanleye Emmanuel</td>
-                        <td>5</td>
-                        </tr>
-                        <tr>
-                        <td>2</td>
-                        <td>Jane Smith</td>
-                        <td>3</td>
-                        </tr>
-                        <tr>
-                        <td>2</td>
-                        <td>Jane Smith</td>
-                        <td>3</td>
-                        </tr>
-                        <tr>
-                        <td>1</td>
-                        <td>Ayanleye Emmanuel</td>
-                        <td>5</td>
-                        </tr>
-                        <tr>
-                        <td>2</td>
-                        <td>Jane Smith</td>
-                        <td>3</td>
-                        </tr>
-                        <tr>
-                        <td>2</td>
-                        <td>Jane Smith</td>
-                        <td>3</td>
-                        </tr>
-                        <tr>
-                        <td>1</td>
-                        <td>Ayanleye Emmanuel</td>
-                        <td>5</td>
-                        </tr>
-                        <tr>
-                        <td>2</td>
-                        <td>Jane Smith</td>
-                        <td>3</td>
-                        </tr>
-                        <tr>
-                        <td>2</td>
-                        <td>Jane Smith</td>
-                        <td>3</td>
-                        </tr>
-                        <tr>
-                        <td>1</td>
-                        <td>Ayanleye Emmanuel</td>
-                        <td>5</td>
-                        </tr>
-                        <tr>
-                        <td>2</td>
-                        <td>Jane Smith</td>
-                        <td>3</td>
-                        </tr>
-                        <tr>
-                        <td>2</td>
-                        <td>Jane Smith</td>
-                        <td>3</td>
-                        </tr>
-                        <tr>
-                        <td>1</td>
-                        <td>Ayanleye Emmanuel</td>
-                        <td>5</td>
-                        </tr>
-                        <tr>
-                        <td>2</td>
-                        <td>Jane Smith</td>
-                        <td>3</td>
-                        </tr>
-                    </tbody>
-                    </table>
-                </div>
-                <!-- Export Summary Button -->
-                <div class="text-end mt-3">
-                    <button class="btn btn-primary" id="exportButton">Export Summary</button>
-                  </div>
               </div>
             
+            <!-- Summary Section -->
+            <div id="summarySection" class="mt-4">
+              <p><strong>Total Students:</strong> <span id="totalStudents">0</span></p>
+              <div class="table-responsive" style="max-height: 435px; overflow-y: auto;">
+                <table class="table table-bordered">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>#</th>
+                            <th>Student Name</th>
+                            <th>Total Attendance</th>
+                        </tr>
+                    </thead>
+                    <tbody id="summaryTable"></tbody>
+                </table>
+            </div>
+              <div class="text-end mt-3">
+                <button class="btn btn-success" id="exportButton">
+                    <i class="lni lni-download"></i> Export PDF
+                </button>
+            </div>
+          </div>
+            
               <!-- Filters Modal -->
-            <div class="modal fade" id="filtersModal" tabindex="-1" aria-labelledby="filtersModalLabel" aria-hidden="true">
+              <div class="modal fade" id="filtersModal">
                 <div class="modal-dialog">
                   <div class="modal-content">
                     <div class="modal-header">
@@ -321,35 +157,37 @@
                     </div>
                     <div class="modal-body">
                       <form id="filtersForm">
-                        <div class="mb-3">
-                            <label for="sessionFilter" class="form-label">Session</label>
-                            <select class="form-select" id="sessionFilter">
-                              <option value="" selected>All Sessions</option>
-                              <option value="2024/2025">2024/2025</option>
-                              <option value="2023/2024">2023/2024</option>
-                              <option value="2022/2023">2022/2023</option>
-                            </select>
-                        </div>
-                        
-                        <div class="mb-3">
-                          <label for="semesterFilter" class="form-label">Semester</label>
-                          <select class="form-select" id="semesterFilter">
-                            <option value="" selected>All Semesters</option>
-                            <option value="First">First</option>
-                            <option value="Second">Second</option>
-                          </select>
-                        </div>
-                        <div class="mb-3">
-                          <label for="courseFilter" class="form-label">Course</label>
-                          <select class="form-select" id="courseFilter">
-                            <option value="" selected>All Assigned Courses</option>
-                            <option value="CS101">CS101 - Intro to Programming</option>
-                            <option value="IT202">IT202 - Networking</option>
-                          </select>
-                        </div>
-                        <button type="button" class="btn btn-primary" id="applyFiltersButton">Apply Filters</button>
+                          <div class="mb-3">
+                              <label for="sessionFilter" class="form-label">Session</label>
+                              <select class="form-select" id="sessionFilter">
+                                  <option value="">All Sessions</option>
+                                  {% for session in sessions %}
+                                      <option value="{{ session.id }}">{{ session.name }}</option>
+                                  {% endfor %}
+                              </select>
+                          </div>
+                          
+                          <div class="mb-3">
+                              <label for="semesterFilter" class="form-label">Semester</label>
+                              <select class="form-select" id="semesterFilter">
+                                  <option value="">All Semesters</option>
+                                  {% for semester in semesters %}
+                                      <option value="{{ semester.id }}">{{ semester.name }}</option>
+                                  {% endfor %}
+                              </select>
+                          </div>
+                          
+                          <div class="mb-3">
+                              <label for="courseFilter" class="form-label">Course</label>
+                              <select class="form-select" id="courseFilter">
+                                  <option value="">All Assigned Courses</option>
+                                  {% for course in courses %}
+                                      <option value="{{ course.id }}">{{ course.course_code }} - {{ course.course_title }}</option>
+                                  {% endfor %}
+                              </select>
+                          </div>
                       </form>
-                    </div>
+                  </div>
                   </div>
                 </div>
               </div>
@@ -357,5 +195,121 @@
             </div>
         </main>
     </div>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+          // Initial load
+          loadSummaryData();
+      
+          // Add apply filters button to modal footer if not present
+          const modalContent = document.querySelector('.modal-content');
+          if (!document.getElementById('applyFiltersButton')) {
+              const modalFooter = document.createElement('div');
+              modalFooter.className = 'modal-footer';
+              modalFooter.innerHTML = `
+                  <button type="button" class="btn btn-primary" id="applyFiltersButton">
+                      Apply Filters
+                  </button>
+              `;
+              modalContent.appendChild(modalFooter);
+          }
+      
+          // Filter functionality
+          document.getElementById('applyFiltersButton').addEventListener('click', function() {
+              loadSummaryData();
+              const modal = document.getElementById('filtersModal');
+              const bsModal = bootstrap.Modal.getInstance(modal);
+              if (bsModal) {
+                  bsModal.hide();
+              }
+          });
+      
+          // Export functionality with single event listener
+          document.getElementById('exportButton').addEventListener('click', function() {
+              const params = getFilterParams();
+              window.location.href = `/export_summary_pdf/?${params}`;
+          });
+      
+          // Add change listeners to filters for dynamic updates
+          ['sessionFilter', 'semesterFilter', 'courseFilter'].forEach(filterId => {
+              document.getElementById(filterId).addEventListener('change', function() {
+                  document.getElementById('selectedCourse').textContent = 
+                      this.id === 'courseFilter' && this.selectedOptions[0] ? 
+                      this.selectedOptions[0].text : 'All Courses';
+              });
+          });
+      });
+      
+      function getFilterParams() {
+          return new URLSearchParams({
+              session: document.getElementById('sessionFilter').value,
+              semester: document.getElementById('semesterFilter').value,
+              course: document.getElementById('courseFilter').value
+          }).toString();
+      }
+      
+      function loadSummaryData() {
+          const params = getFilterParams();
+          
+          fetch(`/get_lecturer_summary_data/?${params}`)
+              .then(response => {
+                  if (!response.ok) {
+                      throw new Error('Network response was not ok');
+                  }
+                  return response.json();
+              })
+              .then(data => {
+                  if (data.error) {
+                      console.error('Server error:', data.error);
+                      return;
+                  }
+                  updateUI(data);
+              })
+              .catch(error => {
+                  console.error('Error loading summary data:', error);
+                  // Show error message to user
+                  document.getElementById('summaryTable').innerHTML = `
+                      <tr>
+                          <td colspan="4" class="text-center text-danger">
+                              Error loading data. Please try again.
+                          </td>
+                      </tr>
+                  `;
+              });
+      }
+      
+      function updateUI(data) {
+        // Update total students count
+        document.getElementById('totalStudents').textContent = data.total_students || 0;
+        
+        // Update selected course name
+        document.getElementById('selectedCourse').textContent = data.course_name || 'All Courses';
+        
+        // Update table content
+        const tbody = document.getElementById('summaryTable');
+        tbody.innerHTML = '';
+        
+        if (!data.data || data.data.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="3" class="text-center">
+                        No attendance records found for the selected course.
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+        
+        data.data.forEach((record, index) => {
+            tbody.innerHTML += `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td>${record.student_name} (${record.matric_number || 'N/A'})</td>
+                    <td>${record.total_attendance}</td>
+                </tr>
+            `;
+        });
+    }
+      </script>
 </body>
 </html>

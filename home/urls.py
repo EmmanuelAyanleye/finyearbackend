@@ -80,7 +80,12 @@ urlpatterns = [
     path('modify_student_page/<int:student_id>/', views.modify_student_page, name='modify_student_page'),
 
     path('lecturer_report/', views.lecturer_report, name='lecturer_report'),
+    path('get_lecturer_attendance_data/', views.get_lecturer_attendance_data, name='get_lecturer_attendance_data'),
+    path('export_lecturer_attendance/', views.export_lecturer_attendance, name='export_lecturer_attendance'),
+    
     path('lecturer_summary/', views.lecturer_summary, name='lecturer_summary'),
+    path('get_lecturer_summary_data/', views.get_lecturer_summary_data, name='get_lecturer_summary_data'),
+    path('export_summary_pdf/', views.export_summary_pdf, name='export_summary_pdf'),
     path('profile/', views.profile, name='profile'),
     path('manage_class/', views.manage_class, name='manage_class'),
     path('modify_class/<int:course_id>/', views.modify_class, name='modify_class'),
