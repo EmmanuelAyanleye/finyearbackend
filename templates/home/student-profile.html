@@ -87,17 +87,6 @@
                     <span>Logout</span>
                 </a>
             </div>
-
-            <form method="POST" action="{% url 'logout' %}" id="logout-form" style="display: none;">
-                {% csrf_token %}
-            </form>
-            
-            <script>
-                document.getElementById('logout-link').addEventListener('click', function(event) {
-                    event.preventDefault();  // Prevents the default link behavior
-                    document.getElementById('logout-form').submit();  // Submit the hidden form
-                });
-            </script>
         </aside>
 
         <!-- Main Content -->
@@ -133,5 +122,53 @@
             </div>
         </main>
     </div>
+
+    <!-- Move these outside the sidebar but before closing body tag -->
+<form method="POST" action="{% url 'logout' %}" id="logout-form" style="display: none;">
+    {% csrf_token %}
+</form>
+
+<div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="logoutModalLabel">Confirm Logout</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to logout?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirm-logout">Logout</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Update the script -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const logoutLink = document.getElementById('logout-link');
+    const logoutForm = document.getElementById('logout-form');
+    const confirmLogout = document.getElementById('confirm-logout');
+    
+    if (logoutLink) {
+        logoutLink.addEventListener('click', function(event) {
+            event.preventDefault();
+            const logoutModal = new bootstrap.Modal(document.getElementById('logoutModal'));
+            logoutModal.show();
+        });
+    }
+    
+    if (confirmLogout) {
+        confirmLogout.addEventListener('click', function() {
+            if (logoutForm) {
+                logoutForm.submit();
+            }
+        });
+    }
+});
+</script>
 </body>
 </html>
