@@ -1,6 +1,7 @@
 from django.contrib.auth.models import AbstractUser, BaseUserManager, Group, Permission
 from django.db import models
 from django.utils import timezone
+from django.conf import settings
 
 # ================== Custom User Manager ==================
 class CustomUserManager(BaseUserManager):
@@ -54,7 +55,7 @@ class CustomUser(AbstractUser):
 
 # ================== Lecturer Model ==================
 class Lecturer(models.Model):
-    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     lecturer_id = models.CharField(max_length=20, unique=True)
     full_name = models.CharField(max_length=100)
     phone = models.CharField(max_length=15)
@@ -178,7 +179,7 @@ class Attendance(models.Model):
     )
 
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
-    course = models.ForeignKey(Course, on_delete=models.CASCADE)
+    course = models.ForeignKey(Course, on_delete=models.SET_NULL, null=True)
     semester = models.ForeignKey(Semester, on_delete=models.CASCADE)
     session = models.ForeignKey(AcademicSession, on_delete=models.CASCADE)
     date = models.DateField(auto_now_add=True)
@@ -187,6 +188,10 @@ class Attendance(models.Model):
 
     def __str__(self):
         return f"{self.student.full_name} - {self.course.course_code} - {self.status}"
+    
+    def __str__(self):
+        course_info = f"{self.course.course_code}" if self.course else "Deleted Course"
+        return f"{self.student.full_name} - {course_info} - {self.status}"
 
     @staticmethod
     def is_within_timeframe(course):

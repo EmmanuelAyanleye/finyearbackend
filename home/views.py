@@ -8,6 +8,7 @@ from django.contrib.auth.decorators import user_passes_test
 from .forms import StudentForm
 from django.contrib.sessions.models import Session
 from django.utils import timezone
+from django.urls import reverse
 
 from .models import Lecturer
 from .forms import CourseForm
@@ -471,15 +472,13 @@ def export_excel(request):
 
 
 
-# @user_passes_test(is_admin)
-# def settings(request):
-#     return render(request, 'home/settings.html')
-
-
 @login_required(login_url='login')
 @user_passes_test(is_admin, login_url='index')
 def admin_dashboard(request):
-    return render(request, 'home/admin_dashboard.html')
+    context = {
+        # other context variables...
+    }
+    return render(request, 'home/admin_dashboard.html', context)
 
 
 @user_passes_test(is_admin)
@@ -633,23 +632,42 @@ def modify_lecturer(request):
 def delete_lecturer(request, lecturer_id):
     if request.method == "POST":
         try:
-            # Fetch the Lecturer object
             lecturer = Lecturer.objects.get(id=lecturer_id)
             
-            # Fetch the associated User object and delete it
+            # Check if lecturer has assigned courses
+            assigned_courses = Course.objects.filter(lecturer=lecturer)
+            
+            if assigned_courses.exists():
+                # Get list of course codes
+                course_codes = [course.course_code for course in assigned_courses]
+                
+                return JsonResponse({
+                    "success": False,
+                    "message": f"Cannot delete lecturer. Please reassign these courses first: {', '.join(course_codes)}"
+                })
+            
+            # If no courses, proceed with deletion
             user = lecturer.user
+            lecturer.delete()
             user.delete()
             
-            # Now delete the Lecturer object
-            lecturer.delete()
-
             return JsonResponse({"success": True})
+            
         except Lecturer.DoesNotExist:
-            return JsonResponse({"success": False, "error": "Lecturer not found"})
+            return JsonResponse({
+                "success": False, 
+                "message": "Lecturer not found"
+            })
         except Exception as e:
-            return JsonResponse({"success": False, "error": str(e)})
+            return JsonResponse({
+                "success": False, 
+                "message": str(e)
+            })
     
-    return JsonResponse({"success": False, "error": "Invalid request"})
+    return JsonResponse({
+        "success": False, 
+        "message": "Invalid request method"
+    })
 
 
 @user_passes_test(is_admin)
@@ -706,12 +724,88 @@ def delete_course(request, course_id):
     if request.method == "POST":
         try:
             course = Course.objects.get(id=course_id)
-            course.delete()
-            return JsonResponse({"success": True})
+            course_code = course.course_code
+            
+            # Check if course has attendance records
+            attendance_count = Attendance.objects.filter(course=course).count()
+            
+            if attendance_count > 0:
+                # Set course to NULL in attendance records before deleting
+                Attendance.objects.filter(course=course).update(course=None)
+                
+                # Delete the course
+                course.delete()
+                
+                return JsonResponse({
+                    "success": True,
+                    "message": f"Course '{course_code}' deleted. {attendance_count} attendance records preserved."
+                })
+            else:
+                # If no attendance records, just delete the course
+                course.delete()
+                return JsonResponse({
+                    "success": True,
+                    "message": f"Course '{course_code}' deleted successfully."
+                })
+                
         except Course.DoesNotExist:
-            return JsonResponse({"success": False, "error": "Course not found"})
-    return JsonResponse({"success": False, "error": "Invalid request"})
+            return JsonResponse({
+                "success": False,
+                "message": "Course not found"
+            })
+        except Exception as e:
+            return JsonResponse({
+                "success": False,
+                "message": str(e)
+            })
+    
+    return JsonResponse({
+        "success": False,
+        "message": "Invalid request method"
+    })
 
+
+@login_required
+@user_passes_test(is_admin)
+def delete_session(request, pk):
+    if request.method == "POST":
+        try:
+            session = AcademicSession.objects.get(pk=pk)
+            session.delete()
+            return JsonResponse({"success": True})
+        except AcademicSession.DoesNotExist:
+            return JsonResponse({"success": False, "message": "Session not found"})
+        except Exception as e:
+            return JsonResponse({"success": False, "message": str(e)})
+    return JsonResponse({"success": False, "message": "Invalid request"})
+
+@login_required
+@user_passes_test(is_admin)
+def delete_semester(request, pk):
+    if request.method == "POST":
+        try:
+            semester = Semester.objects.get(pk=pk)
+            semester.delete()
+            return JsonResponse({"success": True})
+        except Semester.DoesNotExist:
+            return JsonResponse({"success": False, "message": "Semester not found"})
+        except Exception as e:
+            return JsonResponse({"success": False, "message": str(e)})
+    return JsonResponse({"success": False, "message": "Invalid request"})
+
+@login_required
+@user_passes_test(is_admin)
+def delete_department(request, pk):
+    if request.method == "POST":
+        try:
+            department = Department.objects.get(pk=pk)
+            department.delete()
+            return JsonResponse({"success": True})
+        except Department.DoesNotExist:
+            return JsonResponse({"success": False, "message": "Department not found"})
+        except Exception as e:
+            return JsonResponse({"success": False, "message": str(e)})
+    return JsonResponse({"success": False, "message": "Invalid request"})
 
 @user_passes_test(is_admin)
 def modify_course_page(request, course_id):
@@ -1687,48 +1781,50 @@ def add_lecturer(request):
 
 from .models import AcademicSession, Semester, Department
 from .forms import AcademicSessionForm, SemesterForm, DepartmentForm
+@login_required
 @user_passes_test(is_admin)
 def settings(request):
-    active_tab = 'sessions'  # Default tab
-    
     if request.method == "POST":
-        if 'add_session' in request.POST:
-            session_name = request.POST.get('session_name')
-            # Check for duplicates
-            if AcademicSession.objects.filter(name=session_name).exists():
-                messages.error(request, f"Session '{session_name}' already exists!")
-            else:
-                AcademicSession.objects.create(name=session_name)
-                messages.success(request, f"Session '{session_name}' added successfully!")
-            active_tab = 'sessions'
-
-        elif 'add_semester' in request.POST:
-            semester_name = request.POST.get('semester_name')
-            # Check for duplicates
-            if Semester.objects.filter(name=semester_name).exists():
-                messages.error(request, f"Semester '{semester_name}' already exists!")
-            else:
-                Semester.objects.create(name=semester_name)
-                messages.success(request, f"Semester '{semester_name}' added successfully!")
-            active_tab = 'semesters'
-
-        elif 'add_department' in request.POST:
-            department_name = request.POST.get('department_name')
-            # Check for duplicates
-            if Department.objects.filter(name=department_name).exists():
-                messages.error(request, f"Department '{department_name}' already exists!")
-            else:
-                Department.objects.create(name=department_name)
-                messages.success(request, f"Department '{department_name}' added successfully!")
-            active_tab = 'departments'
+        if "add_session" in request.POST:
+            session_name = request.POST.get("session_name")
+            try:
+                if AcademicSession.objects.filter(name=session_name).exists():
+                    messages.error(request, "This session already exists")
+                else:
+                    AcademicSession.objects.create(name=session_name)
+                    messages.success(request, "Session added successfully")
+            except Exception as e:
+                messages.error(request, str(e))
+                
+        elif "add_semester" in request.POST:
+            semester_name = request.POST.get("semester_name")
+            try:
+                if Semester.objects.filter(name=semester_name).exists():
+                    messages.error(request, "This semester already exists")
+                else:
+                    Semester.objects.create(name=semester_name)
+                    messages.success(request, "Semester added successfully")
+            except Exception as e:
+                messages.error(request, str(e))
+                
+        elif "add_department" in request.POST:
+            department_name = request.POST.get("department_name")
+            try:
+                if Department.objects.filter(name=department_name).exists():
+                    messages.error(request, "This department already exists")
+                else:
+                    Department.objects.create(name=department_name)
+                    messages.success(request, "Department added successfully")
+            except Exception as e:
+                messages.error(request, str(e))
 
     context = {
         'sessions': AcademicSession.objects.all().order_by('-name'),
-        'semesters': Semester.objects.all(),
-        'departments': Department.objects.all(),
-        'active_tab': active_tab
+        'semesters': Semester.objects.all().order_by('name'),
+        'departments': Department.objects.all().order_by('name'),
     }
     return render(request, 'home/settings.html', context)
+
 
 @csrf_exempt
 @require_http_methods(["POST"])

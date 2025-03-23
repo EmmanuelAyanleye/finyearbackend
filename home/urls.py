@@ -69,6 +69,10 @@ urlpatterns = [
     path('add_lecturer/', views.add_lecturer, name='add_lecturer'),
     path('modify_lecturer/', views.modify_lecturer, name='modify_lecturer'),
     
+    path('settings/delete_session/<int:pk>/', views.delete_session, name='delete_session'),
+    path('settings/delete_semester/<int:pk>/', views.delete_semester, name='delete_semester'),
+    path('settings/delete_department/<int:pk>/', views.delete_department, name='delete_department'),
+    
     path('delete_lecturer/<int:lecturer_id>/', views.delete_lecturer, name='delete_lecturer'),
     path('modify_lecturer_page/<str:lecturer_id>/', views.modify_lecturer_page, name='modify_lecturer_page'),
 
