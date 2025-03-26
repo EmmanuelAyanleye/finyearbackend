@@ -1,275 +1,547 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Attendance Dashboard</title>
 
     <!-- Bootstrap & Icons -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
     <link href="https://cdn.lineicons.com/4.0/lineicons.css" rel="stylesheet" />
 
     <!-- Custom Styles -->
-    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
-    
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}" />
+
     <!-- Scripts -->
-    <script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"
+    ></script>
     <script defer src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script defer src="{% static 'js/script.js' %}"></script>
-</head>
-<body class="d-flex flex-column vh-100">
+  </head>
+  <body class="d-flex flex-column vh-100">
     <!-- Navbar -->
     <header>
-        <nav class="navbar navbar-expand-sm bg-primary px-3" id="navbar-example2">
-          <div class="container-fluid">
-            <a href="#" class="navbar-brand text-light">
-              <img src="{% static 'images/Espam logo.png' %}" alt="SCHOOL LOGO">
-              <span>ESPAM-FORMATION <span class="d-none d-md-inline">ATTENDANCE SYSTEM</span></span>
-            </a>
-            <div class="justify-content-end">
-                <div class="d-flex">
-                    <div class="nav-item text-light pt-2 px-3 d-none d-md-inline">
-                        Welcome back, <span id="name">Admin</span>
-                    </div>
-                    <div class="d-none d-sm-inline">
-                        <ul class="navbar-nav ms-auto">
-                            <li class="nav-item">
-                                <a href="#" data-bs-toggle="dropdown" class="nav-icon pe-md-0">
-                                    <img src="{% static 'images/account.png' %}" class="avatar img-fluid" alt="User Account">
-                                </a>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
+      <nav class="navbar navbar-expand-sm bg-primary px-3" id="navbar-example2">
+        <div class="container-fluid">
+          <a href="#" class="navbar-brand text-light">
+            <img src="{% static 'images/Espam logo.png' %}" alt="SCHOOL LOGO" />
+            <span
+              >ESPAM-FORMATION
+              <span class="d-none d-md-inline">ATTENDANCE SYSTEM</span></span
+            >
+          </a>
+          <div class="justify-content-end">
+            <div class="d-flex">
+              <div class="nav-item text-light pt-2 px-3 d-none d-md-inline">
+                Welcome back, <span id="name">Admin</span>
+              </div>
+              <div class="d-none d-sm-inline">
+                <ul class="navbar-nav ms-auto">
+                  <li class="nav-item">
+                    <a
+                      href="#"
+                      data-bs-toggle="dropdown"
+                      class="nav-icon pe-md-0"
+                    >
+                      <img
+                        src="{% static 'images/account.png' %}"
+                        class="avatar img-fluid"
+                        alt="User Account"
+                      />
+                    </a>
+                  </li>
+                </ul>
+              </div>
             </div>
           </div>
-        </nav>
+        </div>
+      </nav>
     </header>
 
     <!-- Content Section -->
     <div class="d-flex flex-grow-1">
-        <!-- Sidebar -->
-        <aside id="sidebar">
-            <div class="d-flex">
-                <button class="toggle-btn" type="button">
-                    <i class="lni lni-grid-alt"></i>
-                </button>
-                <div class="sidebar-logo">
-                    <a href="#">Menu</a>
-                </div>
-            </div>
-            <ul class="sidebar-nav">
-                <li class="sidebar-item">
-                    <a href="{% url 'admin_dashboard' %}" class="sidebar-link">
-                        <i class="lni lni-home"></i>
-                        <span>Dashboard</span>
-                    </a>
-                </li>
-                <li class="sidebar-item">
-                    <a href="{% url 'report' %}" class="sidebar-link">
-                        <i class="lni lni-stats-up"></i>
-                        <span>View Reports</span>
-                    </a>
-                </li>
-                <li class="sidebar-item">
-                    <a href="{% url 'admin_summary' %}" class="sidebar-link">
-                        <i class="lni lni-bar-chart"></i>
-                        <span>Attendance Summary</span>
-                    </a>
-                </li>
-                <li class="sidebar-item">
-                    <a href="#" class="sidebar-link collapsed has-dropdown" data-bs-toggle="collapse"
-                        data-bs-target="#student" aria-expanded="false" aria-controls="student">
-                        <i class="lni lni-user"></i>
-                        <span>Manage Student</span>
-                    </a>
-                    <ul id="student" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
-                        <li class="sidebar-item">
-                            <a href="{% url 'add_student' %}" class="sidebar-link">Add student</a>
-                        </li>
-                        <li class="sidebar-item">
-                            <a href="{% url 'modify_student' %}" class="sidebar-link">Modify Students</a>
-                        </li>
-                    </ul>
-                </li>
-                <li class="sidebar-item">
-                    <a href="#" class="sidebar-link collapsed has-dropdown" data-bs-toggle="collapse"
-                        data-bs-target="#lecturer" aria-expanded="false" aria-controls="lecturer">
-                        <i class="lni lni-graduation"></i>
-                        <span>Manage Lecturer</span>
-                    </a>
-                    <ul id="lecturer" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
-                        <li class="sidebar-item">
-                            <a href="{% url 'add_lecturer' %}" class="sidebar-link">Add Lecturer</a>
-                        </li>
-                        <li class="sidebar-item">
-                            <a href="{% url 'modify_lecturer' %}" class="sidebar-link">Modify Lecturer</a>
-                        </li>
-                    </ul>
-                </li>
-                <li class="sidebar-item">
-                  <a href="#" class="sidebar-link collapsed has-dropdown" data-bs-toggle="collapse"
-                      data-bs-target="#course" aria-expanded="false" aria-controls="course">
-                      <i class="lni lni-book"></i>
-                      <span>Manage Course</span>
-                  </a>
-                  <ul id="course" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
-                      <li class="sidebar-item">
-                          <a href="{% url 'course' %}" class="sidebar-link">Add Course</a>
-                      </li>
-                      <li class="sidebar-item">
-                          <a href="{% url 'modify_course' %}" class="sidebar-link">Modify Course</a>
-                      </li>
-                  </ul>
+      <!-- Sidebar -->
+      <aside id="sidebar">
+        <div class="d-flex">
+          <button class="toggle-btn" type="button">
+            <i class="lni lni-grid-alt"></i>
+          </button>
+          <div class="sidebar-logo">
+            <a href="#">Menu</a>
+          </div>
+        </div>
+        <ul class="sidebar-nav">
+          <li class="sidebar-item">
+            <a href="{% url 'admin_dashboard' %}" class="sidebar-link">
+              <i class="lni lni-home"></i>
+              <span>Dashboard</span>
+            </a>
+          </li>
+          <li class="sidebar-item">
+            <a href="{% url 'report' %}" class="sidebar-link">
+              <i class="lni lni-stats-up"></i>
+              <span>View Reports</span>
+            </a>
+          </li>
+          <li class="sidebar-item">
+            <a href="{% url 'admin_summary' %}" class="sidebar-link">
+              <i class="lni lni-bar-chart"></i>
+              <span>Attendance Summary</span>
+            </a>
+          </li>
+          <li class="sidebar-item">
+            <a
+              href="#"
+              class="sidebar-link collapsed has-dropdown"
+              data-bs-toggle="collapse"
+              data-bs-target="#student"
+              aria-expanded="false"
+              aria-controls="student"
+            >
+              <i class="lni lni-user"></i>
+              <span>Manage Student</span>
+            </a>
+            <ul
+              id="student"
+              class="sidebar-dropdown list-unstyled collapse"
+              data-bs-parent="#sidebar"
+            >
+              <li class="sidebar-item">
+                <a href="{% url 'add_student' %}" class="sidebar-link"
+                  >Add student</a
+                >
               </li>
-                <li class="sidebar-item">
-                    <a href="{% url 'settings' %}" class="sidebar-link">
-                        <i class="lni lni-cog"></i>
-                        <span>Settings</span>
-                    </a>
-                </li>
+              <li class="sidebar-item">
+                <a href="{% url 'modify_student' %}" class="sidebar-link"
+                  >Modify Students</a
+                >
+              </li>
             </ul>
-            <div class="sidebar-footer">
-              <a href="#" class="sidebar-link" id="logout-link">
-                  <i class="lni lni-exit"></i>
-                  <span>Logout</span>
-              </a>
-            </div>
-        </aside>
+          </li>
+          <li class="sidebar-item">
+            <a
+              href="#"
+              class="sidebar-link collapsed has-dropdown"
+              data-bs-toggle="collapse"
+              data-bs-target="#lecturer"
+              aria-expanded="false"
+              aria-controls="lecturer"
+            >
+              <i class="lni lni-graduation"></i>
+              <span>Manage Lecturer</span>
+            </a>
+            <ul
+              id="lecturer"
+              class="sidebar-dropdown list-unstyled collapse"
+              data-bs-parent="#sidebar"
+            >
+              <li class="sidebar-item">
+                <a href="{% url 'add_lecturer' %}" class="sidebar-link"
+                  >Add Lecturer</a
+                >
+              </li>
+              <li class="sidebar-item">
+                <a href="{% url 'modify_lecturer' %}" class="sidebar-link"
+                  >Modify Lecturer</a
+                >
+              </li>
+            </ul>
+          </li>
+          <li class="sidebar-item">
+            <a
+              href="#"
+              class="sidebar-link collapsed has-dropdown"
+              data-bs-toggle="collapse"
+              data-bs-target="#course"
+              aria-expanded="false"
+              aria-controls="course"
+            >
+              <i class="lni lni-book"></i>
+              <span>Manage Course</span>
+            </a>
+            <ul
+              id="course"
+              class="sidebar-dropdown list-unstyled collapse"
+              data-bs-parent="#sidebar"
+            >
+              <li class="sidebar-item">
+                <a href="{% url 'course' %}" class="sidebar-link">Add Course</a>
+              </li>
+              <li class="sidebar-item">
+                <a href="{% url 'modify_course' %}" class="sidebar-link"
+                  >Modify Course</a
+                >
+              </li>
+            </ul>
+          </li>
+          <li class="sidebar-item">
+            <a href="{% url 'settings' %}" class="sidebar-link">
+              <i class="lni lni-cog"></i>
+              <span>Settings</span>
+            </a>
+          </li>
+        </ul>
+        <div class="sidebar-footer">
+          <a href="#" class="sidebar-link" id="logout-link">
+            <i class="lni lni-exit"></i>
+            <span>Logout</span>
+          </a>
+        </div>
+      </aside>
 
-        <!-- Main Content -->
-        <main class="flex-grow-1 overflow-auto">
-            <div class="container py-4" id="main-content">
-              <div class="container">
-                <h2 class="text-center">Add Course</h2>
-                <p class="text-muted text-center mb-2">
-                    Fill in the form below to add a new course to the system.
-                  </p>
-                
-                {% load form_tags %}
-                {% if messages %}
-                    <div>
-                        {% for message in messages %}
-                        <div class="message-{{ message.tags }}">{{ message }}</div>
-                        {% endfor %}
-                    </div>
-                {% endif %}
-                <!-- Add Course Form -->
-                <form method="POST" id="addCourseForm">
-                    {% csrf_token %}
-                    
-                    <!-- Course Code -->
-                    <div class="mb-3">
-                        <label for="{{ form.course_code.id_for_label }}" class="form-label">Course Code</label>
-                        {{ form.course_code|add_class:"form-control" }}
-                    </div>
-                    
-                    <!-- Course Title -->
-                    <div class="mb-3">
-                        <label for="{{ form.course_title.id_for_label }}" class="form-label">Course Title</label>
-                        {{ form.course_title|add_class:"form-control" }}
-                    </div>
-                    
-                    <!-- Department -->
-                    <div class="mb-3">
-                        <label for="{{ form.department.id_for_label }}" class="form-label">Department</label>
-                        {{ form.department|add_class:"form-select" }}
-                    </div>
-            
-                    <!-- Semester and Level -->
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="{{ form.semester.id_for_label }}" class="form-label">Semester</label>
-                            {{ form.semester|add_class:"form-select" }}
-                        </div>
-            
-                        <div class="col-md-6 mb-3">
-                            <label for="{{ form.level.id_for_label }}" class="form-label">Level</label>
-                            {{ form.level|add_class:"form-select" }}
-                        </div>
-                    </div>
-            
-                    <!-- Lecturer -->
-                    <div class="mb-3">
-                        <label for="{{ form.lecturer.id_for_label }}" class="form-label">Lecturer</label>
-                        {{ form.lecturer|add_class:"form-select" }}
-                    </div>
-            
-                    <!-- Attendance Time Range -->
-                    <div class="row">
-                        <div class="col-md-4 mb-3">
-                            <label for="{{ form.attendance_day.id_for_label }}" class="form-label">Select Day</label>
-                            {{ form.attendance_day|add_class:"form-select" }}
-                        </div>
-            
-                        <div class="col-md-4 mb-3">
-                            <label for="{{ form.attendance_start_time.id_for_label }}" class="form-label">Attendance Start Time</label>
-                            {{ form.attendance_start_time|add_class:"form-control" }}
-                        </div>
-            
-                        <div class="col-md-4 mb-3">
-                            <label for="{{ form.attendance_end_time.id_for_label }}" class="form-label">Attendance End Time</label>
-                            {{ form.attendance_end_time|add_class:"form-control" }}
-                        </div>
-                    </div>
-            
-                    <!-- Submit Button -->
-                    <button type="submit" class="btn btn-primary w-100">Add Course</button>
-                </form>
+      <!-- Main Content -->
+      <main class="flex-grow-1 overflow-auto">
+        <div class="container py-4" id="main-content">
+          <div class="container">
+            <h2 class="text-center">Add Course</h2>
+            <p class="text-muted text-center mb-2">
+              Fill in the form below to add a new course to the system.
+            </p>
+
+            {% load form_tags %} {% if messages %}
+            <div>
+              {% for message in messages %}
+              <div class="message-{{ message.tags }}">{{ message }}</div>
+              {% endfor %}
             </div>
-            
-              
+            {% endif %}
+            <!-- Add Course Form -->
+            <form method="POST" id="addCourseForm">
+              {% csrf_token %}
+
+              <!-- Course Code -->
+              <div class="mb-3">
+                <label
+                  for="{{ form.course_code.id_for_label }}"
+                  class="form-label"
+                  >Course Code</label
+                >
+                {{ form.course_code|add_class:"form-control" }}
+              </div>
+
+              <!-- Course Title -->
+              <div class="mb-3">
+                <label
+                  for="{{ form.course_title.id_for_label }}"
+                  class="form-label"
+                  >Course Title</label
+                >
+                {{ form.course_title|add_class:"form-control" }}
+              </div>
+
+              <!-- Department -->
+              <!-- Replace the department field in your form with this -->
+                <div class="mb-3">
+                    <label class="form-label">Departments</label>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-outline-primary" id="selectDepartmentsBtn">
+                            Select Departments
+                        </button>
+                        <input type="hidden" name="selected_departments" id="selectedDepartmentsInput">
+                        <input type="hidden" name="is_general_course" id="isGeneralInput">
+                    </div>
+                    <small id="selectedDepartmentsDisplay" class="text-muted"></small>
+                </div>
+
+              <!-- Semester and Level -->
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label
+                    for="{{ form.semester.id_for_label }}"
+                    class="form-label"
+                    >Semester</label
+                  >
+                  {{ form.semester|add_class:"form-select" }}
+                </div>
+
+                <div class="col-md-6 mb-3">
+                  <label for="{{ form.level.id_for_label }}" class="form-label"
+                    >Level</label
+                  >
+                  {{ form.level|add_class:"form-select" }}
+                </div>
+              </div>
+
+              <!-- Lecturer -->
+              <div class="mb-3">
+                <label for="{{ form.lecturer.id_for_label }}" class="form-label"
+                  >Lecturer</label
+                >
+                {{ form.lecturer|add_class:"form-select" }}
+              </div>
+
+              <!-- Attendance Time Range -->
+              <div class="row">
+                <div class="col-md-4 mb-3">
+                  <label
+                    for="{{ form.attendance_day.id_for_label }}"
+                    class="form-label"
+                    >Select Day</label
+                  >
+                  {{ form.attendance_day|add_class:"form-select" }}
+                </div>
+
+                <div class="col-md-4 mb-3">
+                  <label
+                    for="{{ form.attendance_start_time.id_for_label }}"
+                    class="form-label"
+                    >Attendance Start Time</label
+                  >
+                  {{ form.attendance_start_time|add_class:"form-control" }}
+                </div>
+
+                <div class="col-md-4 mb-3">
+                  <label
+                    for="{{ form.attendance_end_time.id_for_label }}"
+                    class="form-label"
+                    >Attendance End Time</label
+                  >
+                  {{ form.attendance_end_time|add_class:"form-control" }}
+                </div>
+              </div>
+
+              <!-- Submit Button -->
+              <button type="submit" class="btn btn-primary w-100">
+                Add Course
+              </button>
+            </form>
+          </div>
+
+          <!-- Add this after your form but before closing main -->
+          <div
+            class="modal fade"
+            id="departmentModal"
+            tabindex="-1"
+            aria-labelledby="departmentModalLabel"
+            aria-hidden="true"
+          >
+            <div class="modal-dialog modal-dialog-centered">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="departmentModalLabel">
+                    Select Departments
+                  </h5>
+                  <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="modal"
+                    aria-label="Close"
+                  ></button>
+                </div>
+                <div class="modal-body">
+                  <div class="form-check mb-3">
+                    <input
+                      class="form-check-input"
+                      type="checkbox"
+                      id="generalCourse"
+                      name="is_general"
+                    />
+                    <label class="form-check-label" for="generalCourse">
+                      General Course (All Departments)
+                    </label>
+                  </div>
+                  <hr />
+                  <div id="departmentsList">
+                    {% for dept in departments %}
+                    <div class="form-check">
+                      <input
+                        class="form-check-input department-checkbox"
+                        type="checkbox"
+                        name="departments"
+                        value="{{ dept.id }}"
+                        id="dept{{ dept.id }}"
+                      />
+                      <label class="form-check-label" for="dept{{ dept.id }}">
+                        {{ dept.name }}
+                      </label>
+                    </div>
+                    {% endfor %}
+                  </div>
+                </div>
+                <div class="modal-footer">
+                  <button
+                    type="button"
+                    class="btn btn-secondary"
+                    data-bs-dismiss="modal"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn-primary"
+                    id="confirmDepartments"
+                  >
+                    Confirm
+                  </button>
+                </div>
+              </div>
             </div>
-        </main>
+          </div>
+        </div>
+      </main>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const selectDepartmentsBtn = document.getElementById('selectDepartmentsBtn');
+            const departmentModal = new bootstrap.Modal(document.getElementById('departmentModal'));
+            const generalCheckbox = document.getElementById('generalCourse');
+            const departmentCheckboxes = document.querySelectorAll('.department-checkbox');
+            const confirmButton = document.getElementById('confirmDepartments');
+            const selectedDepartmentsInput = document.getElementById('selectedDepartmentsInput');
+            const isGeneralInput = document.getElementById('isGeneralInput');
+            const selectedDepartmentsDisplay = document.getElementById('selectedDepartmentsDisplay');
+        
+            selectDepartmentsBtn.addEventListener('click', () => {
+                departmentModal.show();
+            });
+        
+            generalCheckbox.addEventListener('change', function() {
+                departmentCheckboxes.forEach(checkbox => {
+                    checkbox.disabled = this.checked;
+                    if (this.checked) {
+                        checkbox.checked = false;
+                    }
+                });
+            });
+        
+            confirmButton.addEventListener('click', () => {
+                const selectedDepts = [];
+                let displayText = '';
+        
+                if (generalCheckbox.checked) {
+                    displayText = 'General Course (All Departments)';
+                    isGeneralInput.value = 'true';
+                    selectedDepartmentsInput.value = '';
+                } else {
+                    departmentCheckboxes.forEach(checkbox => {
+                        if (checkbox.checked) {
+                            selectedDepts.push(checkbox.value);
+                            displayText += (displayText ? ', ' : '') + 
+                                         checkbox.nextElementSibling.textContent.trim();
+                        }
+                    });
+                    isGeneralInput.value = 'false';
+                    selectedDepartmentsInput.value = selectedDepts.join(',');
+                }
+        
+                selectedDepartmentsDisplay.textContent = displayText || 'No departments selected';
+                departmentModal.hide();
+            });
+        });
+
+        // Add this to your existing JavaScript in course.html
+
+document.getElementById('courseForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    
+    // Add department data
+    const isGeneral = document.getElementById('generalCourse').checked;
+    formData.append('is_general_course', isGeneral);
+    
+    if (!isGeneral) {
+        const selectedDepts = document.getElementById('selectedDepartmentsInput').value;
+        formData.append('selected_departments', selectedDepts);
+    }
+
+    fetch(this.action, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+    })
+    .then(response => response.text())
+    .then(html => {
+        document.querySelector('main').innerHTML = html;
+        // Re-initialize any Bootstrap components
+        const alerts = document.querySelectorAll('.alert');
+        alerts.forEach(alert => new bootstrap.Alert(alert));
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error adding course. Please try again.');
+    });
+});
+        </script>
 
     <!-- Move these outside the sidebar but before closing body tag -->
-<form method="POST" action="{% url 'logout' %}" id="logout-form" style="display: none;">
-    {% csrf_token %}
-</form>
+    <form
+      method="POST"
+      action="{% url 'logout' %}"
+      id="logout-form"
+      style="display: none"
+    >
+      {% csrf_token %}
+    </form>
 
-<div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
+    <div
+      class="modal fade"
+      id="logoutModal"
+      tabindex="-1"
+      aria-labelledby="logoutModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="logoutModalLabel">Confirm Logout</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                Are you sure you want to logout?
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-danger" id="confirm-logout">Logout</button>
-            </div>
+          <div class="modal-header">
+            <h5 class="modal-title" id="logoutModalLabel">Confirm Logout</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">Are you sure you want to logout?</div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Cancel
+            </button>
+            <button type="button" class="btn btn-danger" id="confirm-logout">
+              Logout
+            </button>
+          </div>
         </div>
+      </div>
     </div>
-</div>
 
-<!-- Update the script -->
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const logoutLink = document.getElementById('logout-link');
-    const logoutForm = document.getElementById('logout-form');
-    const confirmLogout = document.getElementById('confirm-logout');
-    
-    if (logoutLink) {
-        logoutLink.addEventListener('click', function(event) {
+    <!-- Update the script -->
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const logoutLink = document.getElementById("logout-link");
+        const logoutForm = document.getElementById("logout-form");
+        const confirmLogout = document.getElementById("confirm-logout");
+
+        if (logoutLink) {
+          logoutLink.addEventListener("click", function (event) {
             event.preventDefault();
-            const logoutModal = new bootstrap.Modal(document.getElementById('logoutModal'));
+            const logoutModal = new bootstrap.Modal(
+              document.getElementById("logoutModal")
+            );
             logoutModal.show();
-        });
-    }
-    
-    if (confirmLogout) {
-        confirmLogout.addEventListener('click', function() {
+          });
+        }
+
+        if (confirmLogout) {
+          confirmLogout.addEventListener("click", function () {
             if (logoutForm) {
-                logoutForm.submit();
+              logoutForm.submit();
             }
-        });
-    }
-});
-</script>
-</body>
+          });
+        }
+      });
+    </script>
+  </body>
 </html>

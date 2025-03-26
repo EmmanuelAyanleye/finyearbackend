@@ -1,311 +1,489 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Attendance Dashboard</title>
 
     <!-- Bootstrap & Icons -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
     <link href="https://cdn.lineicons.com/4.0/lineicons.css" rel="stylesheet" />
 
     <!-- Custom Styles -->
-    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
-    
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}" />
+
     <!-- Scripts -->
-    <script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"
+    ></script>
     <script defer src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script defer src="{% static 'js/script.js' %}"></script>
-</head>
-<body class="d-flex flex-column vh-100">
+  </head>
+  <body class="d-flex flex-column vh-100">
     <!-- Navbar -->
     <header>
-        <nav class="navbar navbar-expand-sm bg-primary px-3" id="navbar-example2">
-          <div class="container-fluid">
-            <a href="#" class="navbar-brand text-light">
-              <img src="{% static 'images/Espam logo.png' %}" alt="SCHOOL LOGO">
-              <span>ESPAM-FORMATION <span class="d-none d-md-inline">ATTENDANCE SYSTEM</span></span>
-            </a>
-            <div class="justify-content-end">
-                <div class="d-flex">
-                    <div class="nav-item text-light pt-2 px-3 d-none d-md-inline">
-                        Welcome back, <span id="name">Admin</span>
-                    </div>
-                    <div class="d-none d-sm-inline">
-                        <ul class="navbar-nav ms-auto">
-                            <li class="nav-item">
-                                <a href="#" data-bs-toggle="dropdown" class="nav-icon pe-md-0">
-                                    <img src="{% static 'images/account.png' %}" class="avatar img-fluid" alt="User Account">
-                                </a>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
+      <nav class="navbar navbar-expand-sm bg-primary px-3" id="navbar-example2">
+        <div class="container-fluid">
+          <a href="#" class="navbar-brand text-light">
+            <img src="{% static 'images/Espam logo.png' %}" alt="SCHOOL LOGO" />
+            <span
+              >ESPAM-FORMATION
+              <span class="d-none d-md-inline">ATTENDANCE SYSTEM</span></span
+            >
+          </a>
+          <div class="justify-content-end">
+            <div class="d-flex">
+              <div class="nav-item text-light pt-2 px-3 d-none d-md-inline">
+                Welcome back, <span id="name">Admin</span>
+              </div>
+              <div class="d-none d-sm-inline">
+                <ul class="navbar-nav ms-auto">
+                  <li class="nav-item">
+                    <a
+                      href="#"
+                      data-bs-toggle="dropdown"
+                      class="nav-icon pe-md-0"
+                    >
+                      <img
+                        src="{% static 'images/account.png' %}"
+                        class="avatar img-fluid"
+                        alt="User Account"
+                      />
+                    </a>
+                  </li>
+                </ul>
+              </div>
             </div>
           </div>
-        </nav>
+        </div>
+      </nav>
     </header>
 
     <!-- Content Section -->
     <div class="d-flex flex-grow-1">
-        <!-- Sidebar -->
-        <aside id="sidebar">
-            <div class="d-flex">
-                <button class="toggle-btn" type="button">
-                    <i class="lni lni-grid-alt"></i>
-                </button>
-                <div class="sidebar-logo">
-                    <a href="#">Menu</a>
-                </div>
-            </div>
-            <ul class="sidebar-nav">
-                <li class="sidebar-item">
-                    <a href="{% url 'admin_dashboard' %}" class="sidebar-link">
-                        <i class="lni lni-home"></i>
-                        <span>Dashboard</span>
-                    </a>
-                </li>
-                <li class="sidebar-item">
-                    <a href="{% url 'report' %}" class="sidebar-link">
-                        <i class="lni lni-stats-up"></i>
-                        <span>View Reports</span>
-                    </a>
-                </li>
-                <li class="sidebar-item">
-                    <a href="{% url 'admin_summary' %}" class="sidebar-link">
-                        <i class="lni lni-bar-chart"></i>
-                        <span>Attendance Summary</span>
-                    </a>
-                </li>
-                <li class="sidebar-item">
-                    <a href="#" class="sidebar-link collapsed has-dropdown" data-bs-toggle="collapse"
-                        data-bs-target="#student" aria-expanded="false" aria-controls="student">
-                        <i class="lni lni-user"></i>
-                        <span>Manage Student</span>
-                    </a>
-                    <ul id="student" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
-                        <li class="sidebar-item">
-                            <a href="{% url 'add_student' %}" class="sidebar-link">Add student</a>
-                        </li>
-                        <li class="sidebar-item">
-                            <a href="{% url 'modify_student' %}" class="sidebar-link">Modify Students</a>
-                        </li>
-                    </ul>
-                </li>
-                <li class="sidebar-item">
-                    <a href="#" class="sidebar-link collapsed has-dropdown" data-bs-toggle="collapse"
-                        data-bs-target="#lecturer" aria-expanded="false" aria-controls="lecturer">
-                        <i class="lni lni-graduation"></i>
-                        <span>Manage Lecturer</span>
-                    </a>
-                    <ul id="lecturer" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
-                        <li class="sidebar-item">
-                            <a href="{% url 'add_lecturer' %}" class="sidebar-link">Add Lecturer</a>
-                        </li>
-                        <li class="sidebar-item">
-                            <a href="{% url 'modify_lecturer' %}" class="sidebar-link">Modify Lecturer</a>
-                        </li>
-                    </ul>
-                </li>
-                <li class="sidebar-item">
-                    <a href="#" class="sidebar-link collapsed has-dropdown" data-bs-toggle="collapse"
-                        data-bs-target="#course" aria-expanded="false" aria-controls="course">
-                        <i class="lni lni-book"></i>
-                        <span>Manage Course</span>
-                    </a>
-                    <ul id="course" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
-                        <li class="sidebar-item">
-                            <a href="{% url 'course' %}" class="sidebar-link">Add Course</a>
-                        </li>
-                        <li class="sidebar-item">
-                            <a href="{% url 'modify_course' %}" class="sidebar-link">Modify Course</a>
-                        </li>
-                    </ul>
-                </li>
-                <li class="sidebar-item">
-                    <a href="{% url 'settings' %}" class="sidebar-link">
-                        <i class="lni lni-cog"></i>
-                        <span>Settings</span>
-                    </a>
-                </li>
+      <!-- Sidebar -->
+      <aside id="sidebar">
+        <div class="d-flex">
+          <button class="toggle-btn" type="button">
+            <i class="lni lni-grid-alt"></i>
+          </button>
+          <div class="sidebar-logo">
+            <a href="#">Menu</a>
+          </div>
+        </div>
+        <ul class="sidebar-nav">
+          <li class="sidebar-item">
+            <a href="{% url 'admin_dashboard' %}" class="sidebar-link">
+              <i class="lni lni-home"></i>
+              <span>Dashboard</span>
+            </a>
+          </li>
+          <li class="sidebar-item">
+            <a href="{% url 'report' %}" class="sidebar-link">
+              <i class="lni lni-stats-up"></i>
+              <span>View Reports</span>
+            </a>
+          </li>
+          <li class="sidebar-item">
+            <a href="{% url 'admin_summary' %}" class="sidebar-link">
+              <i class="lni lni-bar-chart"></i>
+              <span>Attendance Summary</span>
+            </a>
+          </li>
+          <li class="sidebar-item">
+            <a
+              href="#"
+              class="sidebar-link collapsed has-dropdown"
+              data-bs-toggle="collapse"
+              data-bs-target="#student"
+              aria-expanded="false"
+              aria-controls="student"
+            >
+              <i class="lni lni-user"></i>
+              <span>Manage Student</span>
+            </a>
+            <ul
+              id="student"
+              class="sidebar-dropdown list-unstyled collapse"
+              data-bs-parent="#sidebar"
+            >
+              <li class="sidebar-item">
+                <a href="{% url 'add_student' %}" class="sidebar-link"
+                  >Add student</a
+                >
+              </li>
+              <li class="sidebar-item">
+                <a href="{% url 'modify_student' %}" class="sidebar-link"
+                  >Modify Students</a
+                >
+              </li>
             </ul>
-            <div class="sidebar-footer">
-                <a href="#" class="sidebar-link" id="logout-link">
-                    <i class="lni lni-exit"></i>
-                    <span>Logout</span>
-                </a>
+          </li>
+          <li class="sidebar-item">
+            <a
+              href="#"
+              class="sidebar-link collapsed has-dropdown"
+              data-bs-toggle="collapse"
+              data-bs-target="#lecturer"
+              aria-expanded="false"
+              aria-controls="lecturer"
+            >
+              <i class="lni lni-graduation"></i>
+              <span>Manage Lecturer</span>
+            </a>
+            <ul
+              id="lecturer"
+              class="sidebar-dropdown list-unstyled collapse"
+              data-bs-parent="#sidebar"
+            >
+              <li class="sidebar-item">
+                <a href="{% url 'add_lecturer' %}" class="sidebar-link"
+                  >Add Lecturer</a
+                >
+              </li>
+              <li class="sidebar-item">
+                <a href="{% url 'modify_lecturer' %}" class="sidebar-link"
+                  >Modify Lecturer</a
+                >
+              </li>
+            </ul>
+          </li>
+          <li class="sidebar-item">
+            <a
+              href="#"
+              class="sidebar-link collapsed has-dropdown"
+              data-bs-toggle="collapse"
+              data-bs-target="#course"
+              aria-expanded="false"
+              aria-controls="course"
+            >
+              <i class="lni lni-book"></i>
+              <span>Manage Course</span>
+            </a>
+            <ul
+              id="course"
+              class="sidebar-dropdown list-unstyled collapse"
+              data-bs-parent="#sidebar"
+            >
+              <li class="sidebar-item">
+                <a href="{% url 'course' %}" class="sidebar-link">Add Course</a>
+              </li>
+              <li class="sidebar-item">
+                <a href="{% url 'modify_course' %}" class="sidebar-link"
+                  >Modify Course</a
+                >
+              </li>
+            </ul>
+          </li>
+          <li class="sidebar-item">
+            <a href="{% url 'settings' %}" class="sidebar-link">
+              <i class="lni lni-cog"></i>
+              <span>Settings</span>
+            </a>
+          </li>
+        </ul>
+        <div class="sidebar-footer">
+          <a href="#" class="sidebar-link" id="logout-link">
+            <i class="lni lni-exit"></i>
+            <span>Logout</span>
+          </a>
+        </div>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="flex-grow-1 overflow-auto">
+        <div class="container py-4" id="main-content">
+          <div class="container">
+            <h2 class="text-center mb-4">Manage Courses</h2>
+
+            <!-- Search Bar -->
+            <div class="search-bar d-flex justify-content-end mb-3">
+              <input
+                type="text"
+                id="searchInput"
+                class="form-control w-25 me-2"
+                placeholder="Search for a course..."
+                name="search"
+                value="{{ request.GET.search }}"
+              />
+              <button class="btn btn-primary" id="searchButton">Search</button>
             </div>
-        </aside>
 
-        <!-- Main Content -->
-        <main class="flex-grow-1 overflow-auto">
-            <div class="container py-4" id="main-content">
-              <div class="container">
-                <h2 class="text-center mb-4">Manage Courses</h2>
-              
-                <!-- Search Bar -->
-                <div class="search-bar d-flex justify-content-end mb-3">
-                    <input type="text" id="searchInput" class="form-control w-25 me-2" placeholder="Search for a course..." name="search" value="{{ request.GET.search }}">
-                    <button class="btn btn-primary" id="searchButton">Search</button>
-                </div>
+            <script>
+              document.addEventListener("DOMContentLoaded", function () {
+                const searchButton = document.getElementById("searchButton");
+                const searchInput = document.getElementById("searchInput");
+                const courseTable = document.getElementById("courseTable");
 
-                <script>
-                    document.addEventListener("DOMContentLoaded", function() {
-                      const searchButton = document.getElementById("searchButton");
-                      const searchInput = document.getElementById("searchInput");
-                      const courseTable = document.getElementById("courseTable");
-                  
-                      // Search Button Click Event
-                      searchButton.addEventListener("click", function() {
-                        const searchTerm = searchInput.value.toLowerCase();
-                        const rows = courseTable.getElementsByTagName("tr");
-                  
-                        Array.from(rows).forEach(row => {
-                          const courseTitle = row.cells[1]?.textContent.toLowerCase();
-                          const courseCode = row.cells[2]?.textContent.toLowerCase();
-                          const lecturer = row.cells[6]?.textContent.toLowerCase();
-                  
-                          if (
-                            courseTitle.includes(searchTerm) ||
-                            courseCode.includes(searchTerm) ||
-                            lecturer.includes(searchTerm)
-                          ) {
-                            row.style.display = "";
-                          } else {
-                            row.style.display = "none";
-                          }
-                        });
-                      });
-                  
-                      // Optional: If you want to trigger the search on key press
-                      searchInput.addEventListener("input", function() {
-                        searchButton.click();
-                      });
-                    });
-                  </script>
-                  
-              
-                <!-- Table Wrapper -->
-                <div class="table-wrapper">
-                  <table class="table table-striped table-hover">
-                    <thead>
-                      <tr class="highlight">
-                        <th>#</th>
-                        <th>Course title</th>
-                        <th>Course code</th>
-                        <th>Level</th>
-                        <th>Day</th>
-                        <th>Time</th>
-                        <th>Lecturer</th>
-                        <th>Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody id="courseTable">
-                        {% for course in courses %}
-                        <tr id="courseRow_{{ course.id }}">
-                          <td>{{ forloop.counter }}</td>
-                          <td>{{ course.course_title }}</td>
-                          <td>{{ course.course_code }}</td>
-                          <td>{{ course.level }}</td>
-                          <td>{{ course.attendance_day }}</td>
-                          <td>{{ course.attendance_start_time }}</td>
-                          <td>{{ course.lecturer }}</td>
-                          <td>
-                            <a class="btn btn-sm btn-warning" href="{% url 'modify_course_page' course_id=course.id %}">Modify</a>
-                            <button class="btn btn-sm btn-danger delete-course" data-course-id="{{ course.id }}">Delete</button>
-                          </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                          <td colspan="7" class="text-center">No courses available.</td>
-                        </tr>
-                        {% endfor %}
-                      </tbody>
-                    
+                // Search Button Click Event
+                searchButton.addEventListener("click", function () {
+                  const searchTerm = searchInput.value.toLowerCase();
+                  const rows = courseTable.getElementsByTagName("tr");
 
-                      <script>
-                        document.addEventListener("DOMContentLoaded", function () {
-                            document.querySelectorAll(".delete-course").forEach(button => {
-                                button.addEventListener("click", function () {
-                                    let courseId = this.getAttribute("data-course-id");
-                        
-                                    if (confirm("Are you sure you want to delete this course?")) {
-                                        fetch(`/delete_course/${courseId}/`, {
-                                            method: "POST",
-                                            headers: {
-                                                "X-CSRFToken": "{{ csrf_token }}",
-                                                "Content-Type": "application/json"
-                                            }
-                                        })
-                                        .then(response => response.json())
-                                        .then(data => {
-                                            if (data.success) {
-                                                document.getElementById(`courseRow_${courseId}`).remove();
-                                            } else {
-                                                alert("Error deleting course.");
-                                            }
-                                        })
-                                        .catch(error => console.error("Error:", error));
-                                    }
-                                });
-                            });
-                        });
-                        </script>
-                        
-                  </table>
-                </div>
-              </div>
+                  Array.from(rows).forEach((row) => {
+                    const courseTitle = row.cells[1]?.textContent.toLowerCase();
+                    const courseCode = row.cells[2]?.textContent.toLowerCase();
+                    const lecturer = row.cells[6]?.textContent.toLowerCase();
+
+                    if (
+                      courseTitle.includes(searchTerm) ||
+                      courseCode.includes(searchTerm) ||
+                      lecturer.includes(searchTerm)
+                    ) {
+                      row.style.display = "";
+                    } else {
+                      row.style.display = "none";
+                    }
+                  });
+                });
+
+                // Optional: If you want to trigger the search on key press
+                searchInput.addEventListener("input", function () {
+                  searchButton.click();
+                });
+              });
+            </script>
+
+            <!-- Table Wrapper -->
+            <div class="table-wrapper">
+              <table class="table table-striped table-hover">
+                <thead>
+                  <tr class="highlight">
+                    <th>#</th>
+                    <th>Course title</th>
+                    <th>Course code</th>
+                    <th>Level</th>
+                    <th>Day</th>
+                    <th>Time</th>
+                    <th>Lecturer</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="courseTable">
+                  {% for course in courses %}
+                  <tr id="courseRow_{{ course.id }}">
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ course.course_title }}</td>
+                    <td>{{ course.course_code }}</td>
+                    <td>{{ course.level }}</td>
+                    <td>{{ course.attendance_day }}</td>
+                    <td>{{ course.attendance_start_time }}</td>
+                    <td>{{ course.lecturer }}</td>
+                    <td>
+                      <a
+                        class="btn btn-sm btn-warning"
+                        href="{% url 'modify_course_page' course_id=course.id %}"
+                        >Modify</a
+                      >
+                      <button
+                        class="btn btn-sm btn-danger delete-course"
+                        data-course-id="{{ course.id }}"
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                  {% empty %}
+                  <tr>
+                    <td colspan="7" class="text-center">
+                      No courses available.
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+
+                
+              </table>
             </div>
-        </main>
+          </div>
+        </div>
+      </main>
     </div>
 
     <!-- Move these outside the sidebar but before closing body tag -->
-<form method="POST" action="{% url 'logout' %}" id="logout-form" style="display: none;">
-    {% csrf_token %}
-</form>
+    <form
+      method="POST"
+      action="{% url 'logout' %}"
+      id="logout-form"
+      style="display: none"
+    >
+      {% csrf_token %}
+    </form>
 
-<div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
+    <div
+      class="modal fade"
+      id="logoutModal"
+      tabindex="-1"
+      aria-labelledby="logoutModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="logoutModalLabel">Confirm Logout</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                Are you sure you want to logout?
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-danger" id="confirm-logout">Logout</button>
-            </div>
+          <div class="modal-header">
+            <h5 class="modal-title" id="logoutModalLabel">Confirm Logout</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">Are you sure you want to logout?</div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Cancel
+            </button>
+            <button type="button" class="btn btn-danger" id="confirm-logout">
+              Logout
+            </button>
+          </div>
         </div>
+      </div>
     </div>
-</div>
 
-<!-- Update the script -->
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const logoutLink = document.getElementById('logout-link');
-    const logoutForm = document.getElementById('logout-form');
-    const confirmLogout = document.getElementById('confirm-logout');
-    
-    if (logoutLink) {
-        logoutLink.addEventListener('click', function(event) {
-            event.preventDefault();
-            const logoutModal = new bootstrap.Modal(document.getElementById('logoutModal'));
-            logoutModal.show();
+    <!-- Course Delete Confirmation Modal -->
+    <div
+      class="modal fade"
+      id="deleteCourseModal"
+      tabindex="-1"
+      aria-labelledby="deleteCourseModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="deleteCourseModalLabel">
+              Confirm Course Deletion
+            </h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <p class="text-danger">
+              <i class="lni lni-warning"></i> Warning: This action cannot be
+              undone!
+            </p>
+            <p>
+              Are you sure you want to delete this course? All attendance
+              records associated with this course will also be permanently
+              deleted.
+            </p>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              class="btn btn-danger"
+              id="confirm-delete-course"
+            >
+              Delete Course
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        let courseToDelete = null;
+        const deleteModal = new bootstrap.Modal(
+          document.getElementById("deleteCourseModal")
+        );
+
+        // Add click handlers to delete buttons
+        document.querySelectorAll(".delete-course").forEach((button) => {
+          button.addEventListener("click", function (e) {
+            e.preventDefault(); // Prevent any default action
+            courseToDelete = this.getAttribute("data-course-id");
+            deleteModal.show();
+          });
         });
-    }
-    
-    if (confirmLogout) {
-        confirmLogout.addEventListener('click', function() {
-            if (logoutForm) {
-                logoutForm.submit();
+
+        // Handle the confirmation click
+        document
+          .getElementById("confirm-delete-course")
+          .addEventListener("click", function () {
+            if (courseToDelete) {
+              fetch(`/delete_course/${courseToDelete}/`, {
+                method: "POST",
+                headers: {
+                  "X-CSRFToken": document.querySelector(
+                    "[name=csrfmiddlewaretoken]"
+                  ).value,
+                  "Content-Type": "application/json",
+                },
+              })
+                .then((response) => response.json())
+                .then((data) => {
+                  if (data.success) {
+                    const row = document.getElementById(
+                      `courseRow_${courseToDelete}`
+                    );
+                    if (row) {
+                      row.remove();
+                    }
+                    deleteModal.hide();
+                    // Show success message if needed
+                  } else {
+                    alert(
+                      "Error deleting course: " +
+                        (data.message || "Unknown error")
+                    );
+                  }
+                })
+                .catch((error) => {
+                  console.error("Error:", error);
+                  alert("Error deleting course. Please try again.");
+                });
             }
-        });
-    }
-});
-</script>
-</body>
+          });
+      });
+    </script>
+
+    <!-- Update the script -->
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const logoutLink = document.getElementById("logout-link");
+        const logoutForm = document.getElementById("logout-form");
+        const confirmLogout = document.getElementById("confirm-logout");
+
+        if (logoutLink) {
+          logoutLink.addEventListener("click", function (event) {
+            event.preventDefault();
+            const logoutModal = new bootstrap.Modal(
+              document.getElementById("logoutModal")
+            );
+            logoutModal.show();
+          });
+        }
+
+        if (confirmLogout) {
+          confirmLogout.addEventListener("click", function () {
+            if (logoutForm) {
+              logoutForm.submit();
+            }
+          });
+        }
+      });
+    </script>
+  </body>
 </html>

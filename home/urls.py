@@ -68,6 +68,8 @@ urlpatterns = [
     path('add_student/', views.add_student, name='add_student'),
     path('add_lecturer/', views.add_lecturer, name='add_lecturer'),
     path('modify_lecturer/', views.modify_lecturer, name='modify_lecturer'),
+
+    path('student/<int:student_id>/courses/', views.student_courses, name='student_courses'),
     
     path('settings/delete_session/<int:pk>/', views.delete_session, name='delete_session'),
     path('settings/delete_semester/<int:pk>/', views.delete_semester, name='delete_semester'),
@@ -94,7 +96,7 @@ urlpatterns = [
     
     path('lecturer_summary/', views.lecturer_summary, name='lecturer_summary'),
     path('get_lecturer_summary_data/', views.get_lecturer_summary_data, name='get_lecturer_summary_data'),
-    path('export_summary_pdf/', views.export_summary_pdf, name='export_summary_pdf'),
+    path('export_lecturer_summary_pdf/', views.export_lecturer_summary_pdf, name='export_lecturer_summary_pdf'),
     path('profile/', views.profile, name='profile'),
     path('manage_class/', views.manage_class, name='manage_class'),
     path('modify_class/<int:course_id>/', views.modify_class, name='modify_class'),
@@ -103,6 +105,9 @@ urlpatterns = [
     path('student_summary/', views.student_summary, name='student_summary'),
     path('student_modify/', views.student_modify, name='student_modify'),
     path('student_profile/', views.student_profile, name='student_profile'),
+    path('view_student_courses/<int:student_id>/', views.view_student_courses, name='view_student_courses'),
+    path('assign_courses/', views.assign_courses_to_student, name='assign_courses_to_student'),
+    path('remove_student_course/<int:student_id>/<int:course_id>/', views.remove_student_course, name='remove_student_course'),
 ]
 
 

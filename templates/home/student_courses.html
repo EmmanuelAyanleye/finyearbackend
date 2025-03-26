@@ -27,7 +27,6 @@
                         {% load custom_filters %}
                         Welcome back, <span id="name">{{ request.user.student.full_name|split:" " }} </span>
                     </div>
-                    
                     <div class="d-none d-sm-inline">
                         <ul class="navbar-nav ms-auto">
                             <li class="nav-item">
@@ -97,50 +96,52 @@
             </div>
         </aside>
 
-        
-
         <!-- Main Content -->
         <main class="flex-grow-1 overflow-auto">
             <div class="container py-4" id="main-content">
-                <h3 class="fw-bold">Student Dashboard</h3>
-                <div class="row g-3">
-                    <div class="col-md-4">
-                        <div class="card border-0 shadow-sm">
-                            <div class="card-body">
-                                <h5>Total Classes Attended</h5>
-                                <p>1</p>
+                <div class="container">
+                    <h2 class="text-center mb-4">View Courses</h2>
+                    <div class="card-body">
+                        {% if courses %}
+                        <div class="table-responsive" style="max-height: 460px;     overflow-y: auto;">
+                            <table class="table table-bordered table-hover">
+                                <thead class="table-dark sticky-top">
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Course Code</th>
+                                            <th>Course Title</th>
+                                            <th>Lecturer</th>
+                                            <th>Day</th>
+                                            <th>Time</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for course in courses %}
+                                        <tr>
+                                            <td>{{ forloop.counter }}</td>
+                                            <td>{{ course.course_code }}</td>
+                                            <td>{{ course.course_title }}</td>
+                                            <td>{{ course.lecturer.full_name }}</td>
+                                            <td>{{ course.attendance_day }}</td>
+                                            <td>{{ course.attendance_start_time|time:"H:i" }} - 
+                                                {{ course.attendance_end_time|time:"H:i" }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
                             </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="card border-0 shadow-sm">
-                            <div class="card-body">
-                                <h5>Attendance Percentage</h5>
-                                <p>100%</p>
+                        {% else %}
+                            <div class="alert alert-info">
+                                No courses assigned to this student yet.
                             </div>
-                        </div>
+                        {% endif %}
                     </div>
-                </div>
-
-                <h3 class="fw-bold mt-5">Quick Links</h3>
-                <div class="card-container">
-                    <a class="card-1" href="{% url 'student_report' %}">
-                        <i class="lni lni-stats-up card-icon"></i>
-                        <h2 class="card-title">View Reports</h2>
-                    </a>
-                    <a class="card-1" href="{% url 'student_summary' %}">
-                        <i class="lni lni-bar-chart card-icon"></i>
-                        <h2 class="card-title">Attendance Summary</h2>
-                    </a>
-                    <a class="card-1" href="{% url 'student_profile' %}">
-                        <i class="lni lni-user card-icon"></i>
-                        <h2 class="card-title">Profile</h2>
-                    </a>
                 </div>
             </div>
         </main>
     </div>
-<!-- Move these outside the sidebar but before closing body tag -->
+
+    <!-- Move these outside the sidebar but before closing body tag -->
 <form method="POST" action="{% url 'logout' %}" id="logout-form" style="display: none;">
     {% csrf_token %}
 </form>

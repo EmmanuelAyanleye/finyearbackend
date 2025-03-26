@@ -167,13 +167,23 @@
                     </div>
             
                     <div class="mb-3">
-                        <label for="department" class="form-label">Department</label>
-                        <select class="form-select" id="department" name="department" required>
-                            <option value="" disabled>Select a department</option>
-                            {% for department in departments %}
-                            <option value="{{ department.id }}" {% if department.id == course.department.id %}selected{% endif %}>{{ department.name }}</option>
-                            {% endfor %}
-                        </select>
+                        <label class="form-label">Departments</label>
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-outline-primary" id="selectDepartmentsBtn">
+                                Modify Departments
+                            </button>
+                            <input type="hidden" name="selected_departments" id="selectedDepartmentsInput">
+                            <input type="hidden" name="is_general_course" id="isGeneralInput" value="{{ course.is_general|yesno:'true,false' }}">
+                        </div>
+                        <small id="selectedDepartmentsDisplay" class="text-muted">
+                            {% if course.is_general %}
+                                General Course (All Departments)
+                            {% else %}
+                                {% for dept in course.departments.all %}
+                                    {{ dept.name }}{% if not forloop.last %}, {% endif %}
+                                {% endfor %}
+                            {% endif %}
+                        </small>
                     </div>
             
                     <div class="mb-3">
@@ -275,6 +285,46 @@
     </div>
 </div>
 
+<div class="modal fade" id="departmentModal" tabindex="-1" aria-labelledby="departmentModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="departmentModalLabel">Modify Departments</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" id="generalCourse" name="is_general" 
+                           {% if course.is_general %}checked{% endif %}>
+                    <label class="form-check-label" for="generalCourse">
+                        General Course (All Departments)
+                    </label>
+                </div>
+                <hr>
+                <div id="departmentsList">
+                    {% for dept in departments %}
+                    <div class="form-check">
+                        <input class="form-check-input department-checkbox" 
+                               type="checkbox" name="departments" 
+                               value="{{ dept.id }}" 
+                               id="dept{{ dept.id }}"
+                               {% if dept in course.departments.all %}checked{% endif %}
+                               {% if course.is_general %}disabled{% endif %}>
+                        <label class="form-check-label" for="dept{{ dept.id }}">
+                            {{ dept.name }}
+                        </label>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirmDepartments">Confirm</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Update the script -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -297,6 +347,58 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+
+    const selectDepartmentsBtn = document.getElementById('selectDepartmentsBtn');
+    const departmentModal = new bootstrap.Modal(document.getElementById('departmentModal'));
+    const generalCheckbox = document.getElementById('generalCourse');
+    const departmentCheckboxes = document.querySelectorAll('.department-checkbox');
+    const confirmButton = document.getElementById('confirmDepartments');
+    const selectedDepartmentsInput = document.getElementById('selectedDepartmentsInput');
+    const isGeneralInput = document.getElementById('isGeneralInput');
+    const selectedDepartmentsDisplay = document.getElementById('selectedDepartmentsDisplay');
+
+    // Initialize selected departments
+    const initialDepts = Array.from(departmentCheckboxes)
+        .filter(cb => cb.checked)
+        .map(cb => cb.value);
+    selectedDepartmentsInput.value = initialDepts.join(',');
+    
+    selectDepartmentsBtn.addEventListener('click', () => {
+        departmentModal.show();
+    });
+
+    generalCheckbox.addEventListener('change', function() {
+        departmentCheckboxes.forEach(checkbox => {
+            checkbox.disabled = this.checked;
+            if (this.checked) {
+                checkbox.checked = false;
+            }
+        });
+    });
+
+    confirmButton.addEventListener('click', () => {
+        const selectedDepts = [];
+        let displayText = '';
+
+        if (generalCheckbox.checked) {
+            displayText = 'General Course (All Departments)';
+            isGeneralInput.value = 'true';
+            selectedDepartmentsInput.value = '';
+        } else {
+            departmentCheckboxes.forEach(checkbox => {
+                if (checkbox.checked) {
+                    selectedDepts.push(checkbox.value);
+                    displayText += (displayText ? ', ' : '') + 
+                                 checkbox.nextElementSibling.textContent.trim();
+                }
+            });
+            isGeneralInput.value = 'false';
+            selectedDepartmentsInput.value = selectedDepts.join(',');
+        }
+
+        selectedDepartmentsDisplay.textContent = displayText || 'No departments selected';
+        departmentModal.hide();
+    });
 });
 </script>
 </body>

@@ -92,14 +92,21 @@ from .models import Course, Department, Semester, Lecturer
 class CourseForm(forms.ModelForm):
     class Meta:
         model = Course
-        fields = ['course_code', 'course_title', 'department', 'semester', 'level', 'lecturer', 'attendance_day', 'attendance_start_time', 'attendance_end_time']
+        fields = ['course_code', 'course_title', 'semester', 'level', 'lecturer', 'attendance_day', 'attendance_start_time', 'attendance_end_time']
+        exclude = ['departments']
         
-    department = forms.ModelChoiceField(queryset=Department.objects.all(), empty_label="Select a department", widget=forms.Select(attrs={'class': 'form-select'}))
+    
     semester = forms.ModelChoiceField(queryset=Semester.objects.all(), empty_label="Select a semester", widget=forms.Select(attrs={'class': 'form-select'}))
     lecturer = forms.ModelChoiceField(queryset=Lecturer.objects.all(), empty_label="Select a lecturer", widget=forms.Select(attrs={'class': 'form-select'}))
     attendance_day = forms.ChoiceField(choices=[('Monday', 'Monday'), ('Tuesday', 'Tuesday'), ('Wednesday', 'Wednesday'), ('Thursday', 'Thursday'), ('Friday', 'Friday')], widget=forms.Select(attrs={'class': 'form-select'}))
     attendance_start_time = forms.TimeField(widget=forms.TimeInput(attrs={'class': 'form-control', 'type': 'time'}))
     attendance_end_time = forms.TimeField(widget=forms.TimeInput(attrs={'class': 'form-control', 'type': 'time'}))
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # If the 'departments' field exists, then make it not required.
+        if 'departments' in self.fields:
+            self.fields['departments'].required = False
 
 
 

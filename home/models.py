@@ -3,6 +3,7 @@ from django.db import models
 from django.utils import timezone
 from django.conf import settings
 
+
 # ================== Custom User Manager ==================
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
@@ -126,7 +127,6 @@ class Student(models.Model):
 class Course(models.Model):
     course_code = models.CharField(max_length=20)
     course_title = models.CharField(max_length=100)
-    department = models.ForeignKey(Department, on_delete=models.CASCADE)
     semester = models.ForeignKey(Semester, on_delete=models.CASCADE)
     level = models.IntegerField(choices=[
         (100, '100 Level'),
@@ -134,11 +134,14 @@ class Course(models.Model):
         (300, '300 Level'),
         (400, '400 Level'),
     ])
+
     lecturer = models.ForeignKey(Lecturer, on_delete=models.CASCADE)
     students = models.ManyToManyField(Student, related_name='courses')
     attendance_day = models.CharField(max_length=10)
     attendance_start_time = models.TimeField()
     attendance_end_time = models.TimeField()
+    departments = models.ManyToManyField(Department, related_name='courses')
+    is_general = models.BooleanField(default=False)
 
     def get_enrolled_students_count(self):
         return self.students.count()
@@ -167,7 +170,28 @@ class Course(models.Model):
             'total_students': total_students,
             'total_attendance': total_attendance
         }
+    
+    def delete(self, *args, **kwargs):
+        try:
+            # First delete all related attendance records
+            self.attendances.all().delete()
+            # Then delete the course itself
+            super().delete(*args, **kwargs)
+            return True
+        except Exception as e:
+            print(f"Error deleting course: {str(e)}")
+            return False
 
+    def save(self, *args, **kwargs):
+        is_new = self.pk is None  # Check if this is a new course
+        super().save(*args, **kwargs)
+        
+        if is_new:
+            # This will trigger after the course is saved
+            if self.is_general:
+                # Add all departments if it's a general course
+                self.departments.set(Department.objects.all())
+            # For non-general courses, departments are handled by the form
 
 
 # ================== Attendance Model ==================
@@ -179,22 +203,58 @@ class Attendance(models.Model):
     )
 
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
-    course = models.ForeignKey(Course, on_delete=models.SET_NULL, null=True)
+    course = models.ForeignKey(
+        Course, 
+        on_delete=models.CASCADE,
+        related_name='attendances',
+        db_constraint=True  # Enforces database-level constraint
+    )
     semester = models.ForeignKey(Semester, on_delete=models.CASCADE)
     session = models.ForeignKey(AcademicSession, on_delete=models.CASCADE)
     date = models.DateField(auto_now_add=True)
     timestamp = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES)
 
+    class Meta:
+        # Add indexes and constraints
+        indexes = [
+            models.Index(fields=['course', 'student', 'date']),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=['student', 'course', 'date'], 
+                name='unique_attendance'
+            )
+        ]
+
     def __str__(self):
         return f"{self.student.full_name} - {self.course.course_code} - {self.status}"
-    
-    def __str__(self):
-        course_info = f"{self.course.course_code}" if self.course else "Deleted Course"
-        return f"{self.student.full_name} - {course_info} - {self.status}"
 
     @staticmethod
     def is_within_timeframe(course):
         """Checks if the current time is within the allowed timeframe for attendance"""
         now = timezone.now().time()
         return course.attendance_start_time <= now <= course.attendance_end_time
+    
+
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+
+@receiver(post_save, sender=Course)
+def assign_course_to_students(sender, instance, created, **kwargs):
+    """Automatically assign course to students based on departments and level"""
+    if created:  # Only run when a new course is created
+        # Get all departments for this course
+        if instance.is_general:
+            departments = Department.objects.all()
+        else:
+            departments = instance.departments.all()
+
+        # Get all students in the selected departments and level
+        students = Student.objects.filter(
+            department__in=departments,
+            level=instance.level
+        )
+
+        # Add course to each student
+        instance.students.add(*students)

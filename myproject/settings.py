@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'rest_framework.authtoken',
     'channels',
+    'django_celery_beat',
 ]
 
 MIDDLEWARE = [
@@ -201,6 +202,20 @@ CACHES = {
     }
 }
 
+# Celery Configuration
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+CELERY_TIMEZONE = 'Africa/Lagos'
+
+# Celery Beat Schedule
+from celery.schedules import crontab
+
+CELERY_BEAT_SCHEDULE = {
+    'mark-absent-students': {
+        'task': 'home.tasks.mark_absent_students',
+        'schedule': crontab(minute='*/15'),  # Run every 15 minutes
+    },
+}
 
 TIME_ZONE = 'Africa/Lagos'  # or your local timezone
 USE_TZ = True

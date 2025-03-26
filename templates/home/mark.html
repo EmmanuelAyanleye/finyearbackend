@@ -83,32 +83,36 @@
         <!-- jQuery for AJAX -->
         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
         <script>
-            $(document).ready(function () {
-                $('#department, #level').change(function () {
-                    var department = $('#department').val();
-                    var level = $('#level').val();
-        
-                    if (department && level) {
-                        $.ajax({
-                            url: "{% url 'get_courses' %}",
-                            data: {
-                                'department': department,
-                                'level': level
-                            },
-                            dataType: 'json',
-                            success: function (data) {
-                                $('#course').empty().append('<option selected disabled>Select your Course title...</option>');
-                                $.each(data, function (index, course) {
-                                    $('#course').append($('<option>', {
-                                        value: course.id,
-                                        text: course.course_title
-                                    }));
-                                });
-                            }
-                        });
-                    }
-                });
+            // Update the JavaScript in mark.html
+$(document).ready(function () {
+    $('#department, #level').change(function () {
+        var department = $('#department').val();
+        var level = $('#level').val();
+
+        if (department && level) {
+            $.ajax({
+                url: "{% url 'get_courses' %}",
+                data: {
+                    'department': department,
+                    'level': level
+                },
+                dataType: 'json',
+                success: function (data) {
+                    var courseSelect = $('#course');
+                    courseSelect.empty();
+                    courseSelect.append('<option selected disabled>Select your Course title...</option>');
+                    
+                    data.forEach(function(course) {
+                        courseSelect.append($('<option>', {
+                            value: course.id,
+                            text: course.course_title
+                        }));
+                    });
+                }
             });
+        }
+    });
+});
         </script>
         
         

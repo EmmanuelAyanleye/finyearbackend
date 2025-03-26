@@ -174,6 +174,7 @@
                                     <td>{{ student.level }}</td>
                                     <td>{{ student.session.name }}</td>
                                     <td>
+                                        <a class="btn btn-sm btn-secondary" href="{% url 'view_student_courses' student.id %}">View Courses</a>
                                         <a class="btn btn-sm btn-warning" href="{% url 'modify_student_page' student.id %}">Modify</a>
                                         <button class="btn btn-sm btn-danger delete-student" data-student-id="{{ student.id }}">Delete</button>
                                     </td>

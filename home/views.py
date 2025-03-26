@@ -118,15 +118,35 @@ def index(request):
 
 
 
+from django.db.models import Q
+
 def get_courses(request):
     department_id = request.GET.get('department')
     level = request.GET.get('level')
 
     if department_id and level:
-        courses = Course.objects.filter(department_id=department_id, level=level).values('id', 'course_title')
-        return JsonResponse(list(courses), safe=False)
+        # Get both department-specific and general courses
+        courses = Course.objects.filter(
+            (Q(departments__id=department_id) | Q(is_general=True)) & Q(level=level)
+        ).distinct().values('id', 'course_code', 'course_title')
+
+        # Debug print to check what courses are being returned
+        print(f"Found {len(courses)} courses for department {department_id} and level {level}")
+        for course in courses:
+            print(f"Course: {course['course_code']} - {course['course_title']}")
+
+        course_list = [
+            {
+                'id': course['id'],
+                'course_title': f"{course['course_code']} - {course['course_title']}"
+            }
+            for course in courses
+        ]
+        
+        return JsonResponse(course_list, safe=False)
 
     return JsonResponse([], safe=False)
+
 
 
 from django.shortcuts import render, redirect
@@ -283,31 +303,58 @@ def fingerprint(request):
 # home/views.py
 from django.shortcuts import render
 
-
-
+@login_required
 @user_passes_test(is_admin)
 def course(request):
     if request.method == 'POST':
         form = CourseForm(request.POST)
-        
         if form.is_valid():
-            course_code = form.cleaned_data.get('course_code')
-            
-            # Check if the course code already exists
-            if Course.objects.filter(course_code=course_code).exists():
-                form.add_error('course_code', 'Course code already exists!')
-                messages.error(request, 'Course code already exists!')  # Error message
-            else:
-                form.save()
-                messages.success(request, 'Course added successfully!')  # Success message
+            try:
+                # Check if course code already exists
+                course_code = form.cleaned_data['course_code']
+                if Course.objects.filter(course_code=course_code).exists():
+                    messages.error(request, f'Course code "{course_code}" already exists')
+                    return render(request, 'home/course.html', {
+                        'form': form,
+                        'departments': Department.objects.all()
+                    })
 
-                # Reset the form after success
-                form = CourseForm()  # Clear form after successful submission
+                # Create course without saving to DB
+                course = form.save(commit=False)
+                
+                # Set is_general flag
+                course.is_general = request.POST.get('is_general_course') == 'true'
+                
+                # Save the course to get an ID
+                course.save()
+
+                # Handle department assignments
+                if course.is_general:
+                    # Add all departments if it's a general course
+                    departments = Department.objects.all()
+                    course.departments.set(departments)
+                else:
+                    dept_ids = request.POST.get('selected_departments', '').split(',')
+                    if dept_ids and dept_ids[0]:  # Check if there are selected departments
+                        departments = Department.objects.filter(id__in=dept_ids)
+                        course.departments.set(departments)
+
+                messages.success(request, 'Course added successfully')
+                return redirect('course')
+            except Exception as e:
+                messages.error(request, f'There is an existing course code: {str(e)}')
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f'{field}: {error}')
     else:
         form = CourseForm()
-
-    return render(request, 'home/course.html', {'form': form})
-
+    
+    context = {
+        'form': form,
+        'departments': Department.objects.all()
+    }
+    return render(request, 'home/course.html', context)
 
 
 @user_passes_test(is_admin)
@@ -725,44 +772,16 @@ def delete_course(request, course_id):
         try:
             course = Course.objects.get(id=course_id)
             course_code = course.course_code
-            
-            # Check if course has attendance records
-            attendance_count = Attendance.objects.filter(course=course).count()
-            
-            if attendance_count > 0:
-                # Set course to NULL in attendance records before deleting
-                Attendance.objects.filter(course=course).update(course=None)
-                
-                # Delete the course
-                course.delete()
-                
-                return JsonResponse({
-                    "success": True,
-                    "message": f"Course '{course_code}' deleted. {attendance_count} attendance records preserved."
-                })
+
+            if course.delete():
+                return JsonResponse({"success": True})
             else:
-                # If no attendance records, just delete the course
-                course.delete()
-                return JsonResponse({
-                    "success": True,
-                    "message": f"Course '{course_code}' deleted successfully."
-                })
-                
+                return JsonResponse({"success": False, "message": "Error deleting course"})
         except Course.DoesNotExist:
-            return JsonResponse({
-                "success": False,
-                "message": "Course not found"
-            })
+            return JsonResponse({"success": False, "message": "Course not found"})
         except Exception as e:
-            return JsonResponse({
-                "success": False,
-                "message": str(e)
-            })
-    
-    return JsonResponse({
-        "success": False,
-        "message": "Invalid request method"
-    })
+            return JsonResponse({"success": False, "message": str(e)})
+    return JsonResponse({"success": False, "message": "Invalid request"})
 
 
 @login_required
@@ -807,57 +826,231 @@ def delete_department(request, pk):
             return JsonResponse({"success": False, "message": str(e)})
     return JsonResponse({"success": False, "message": "Invalid request"})
 
+
+
+from datetime import datetime, time
+from django.utils import timezone
+from .models import Course, Student, Attendance
+import pytz
+
+@user_passes_test(is_admin)
+@csrf_exempt
+def remove_student_course(request, student_id, course_id):
+    student = get_object_or_404(Student, id=student_id)
+    course = get_object_or_404(Course, id=course_id)
+
+    if request.method == "POST":
+        # Remove attendance records linked to this course
+        Attendance.objects.filter(student=student, course=course).delete()
+
+        # Remove the course from the student
+        student.courses.remove(course)
+
+        return JsonResponse({"success": True})
+
+    return JsonResponse({"success": False})
+
+
+
+@user_passes_test(is_admin)
+def view_student_courses(request, student_id):
+    student = get_object_or_404(Student, id=student_id)
+
+    # Get automatic courses (department + level)
+    department_courses = Course.objects.filter(
+        departments=student.department,
+        level=student.level,
+        is_general=False
+    )
+
+    # Get general courses for the student's level
+    general_courses = Course.objects.filter(
+        is_general=True,
+        level=student.level
+    )
+
+    # Get courses manually assigned by the admin
+    assigned_courses = student.courses.all()
+
+    # Merge all courses while avoiding duplicates
+    all_courses = list(set(department_courses) | set(general_courses) | set(assigned_courses))
+
+    # Fetch all courses that are NOT yet assigned to the student
+    available_courses = Course.objects.exclude(id__in=[course.id for course in all_courses])
+
+    context = {
+        "student": student,
+        "courses": all_courses,  # All courses the student is currently offering
+        "all_courses": available_courses,  # Courses available for assignment
+    }
+
+    return render(request, "home/view_student_courses.html", context)
+
+
+
+@csrf_exempt
+def assign_courses_to_student(request):
+    if request.method == "POST":
+        student_id = request.POST.get('student_id')
+        course_ids = request.POST.getlist('courses')
+
+        student = get_object_or_404(Student, id=student_id)
+
+        if course_ids:
+            courses = Course.objects.filter(id__in=course_ids)
+            student.courses.add(*courses)
+            return JsonResponse({'success': True})
+
+    return JsonResponse({'success': False})
+
+
+@login_required
+def student_courses(request, student_id):
+    student = get_object_or_404(Student, id=student_id)
+    
+    # Get courses specific to the student's department and level (compulsory courses)
+    department_courses = list(Course.objects.filter(
+        departments=student.department,
+        level=student.level,
+        is_general=False
+    ))
+
+    # Get general courses available for the student's level
+    general_courses = list(Course.objects.filter(
+        is_general=True,
+        level=student.level
+    ))
+
+    # Get courses manually assigned by the admin
+    assigned_courses = list(student.courses.all())  # Courses already assigned
+
+    # Merge all three lists and remove duplicates
+    all_courses = list({course.id: course for course in department_courses + general_courses + assigned_courses}.values())
+
+    # Sort by course code
+    all_courses.sort(key=lambda x: x.course_code)
+
+    context = {
+        'student': student,
+        'courses': all_courses,  # Display all relevant courses
+        'total_courses': len(all_courses)
+    }
+
+    return render(request, 'home/student_courses.html', context)
+
+
+
+
+def mark_absent_students():
+    lagos_tz = pytz.timezone('Africa/Lagos')
+    current_time = timezone.now().astimezone(lagos_tz)
+    current_day = current_time.strftime('%A')
+
+    today_courses = Course.objects.filter(attendance_day=current_day)
+
+    for course in today_courses:
+        if current_time.time() > course.attendance_end_time:
+            # Get all students for this course based on departments and general flag
+            if course.is_general:
+                enrolled_students = Student.objects.filter(level=course.level)
+            else:
+                enrolled_students = Student.objects.filter(
+                    department__in=course.departments.all(),
+                    level=course.level
+                ).distinct()
+
+            marked_students = Attendance.objects.filter(
+                course=course,
+                date=current_time.date()
+            ).values_list('student_id', flat=True)
+
+            for student in enrolled_students:
+                if student.id not in marked_students:
+                    Attendance.objects.create(
+                        student=student,
+                        course=course,
+                        status='absent',
+                        date=current_time.date(),
+                        semester=course.semester,
+                        session=student.session
+                    )
+
+
 @user_passes_test(is_admin)
 def modify_course_page(request, course_id):
-    course = get_object_or_404(Course, id=course_id)  # Get the course based on the ID
-
-    # Get the list of lecturers, departments, and semesters to populate the select fields
+    course = get_object_or_404(Course, id=course_id)
     lecturers = Lecturer.objects.all()
     departments = Department.objects.all()
     semesters = Semester.objects.all()
 
     if request.method == "POST":
-        # Handle form submission
-        course_code = request.POST.get('courseCode')
-        course_title = request.POST.get('courseTitle')
-        department_id = request.POST.get('department')
-        semester_id = request.POST.get('semester')
-        level = request.POST.get('level')
-        lecturer_id = request.POST.get('lecturers')
-        attendance_day = request.POST.get('attendanceDay')
-        attendance_start_time = request.POST.get('attendanceStartTime')
-        attendance_end_time = request.POST.get('attendanceEndTime')
-
         try:
-            # Update the course information
-            course.course_code = course_code
-            course.course_title = course_title
-            course.department = Department.objects.get(id=department_id)
-            course.semester = Semester.objects.get(id=semester_id)
-            course.level = level
-            course.lecturer = Lecturer.objects.get(id=lecturer_id)
-            course.attendance_day = attendance_day
-            course.attendance_start_time = attendance_start_time
-            course.attendance_end_time = attendance_end_time
+            # Update basic course information
+            course.course_code = request.POST.get('courseCode')
+            course.course_title = request.POST.get('courseTitle')
+            course.semester_id = request.POST.get('semester')
+            course.level = request.POST.get('level')
+            course.lecturer_id = request.POST.get('lecturers')
+            course.attendance_day = request.POST.get('attendanceDay')
+            course.attendance_start_time = request.POST.get('attendanceStartTime')
+            course.attendance_end_time = request.POST.get('attendanceEndTime')
+            
+            # Handle department assignments
+            is_general = request.POST.get('is_general_course') == 'true'
+            course.is_general = is_general
+            
+            if is_general:
+                # Add all departments if it's a general course
+                course.departments.set(departments)
+            else:
+                # Add selected departments
+                dept_ids = request.POST.get('selected_departments', '').split(',')
+                if dept_ids and dept_ids[0]:
+                    selected_departments = Department.objects.filter(id__in=dept_ids)
+                    course.departments.set(selected_departments)
+                else:
+                    messages.error(request, 'Please select at least one department')
+                    return render(request, 'home/modify-course-page.html', {
+                        'course': course,
+                        'lecturers': lecturers,
+                        'departments': departments,
+                        'semesters': semesters
+                    })
+
             course.save()
-
-            # Success message
             messages.success(request, 'Course updated successfully!')
+            
+            # Stay on the same page after success
+            return render(request, 'home/modify-course-page.html', {
+                'course': course,
+                'lecturers': lecturers,
+                'departments': departments,
+                'semesters': semesters
+            })
+            
         except Exception as e:
-            messages.error(request, f"Error: {e}")
-        
-        # Debugging: ensure course_id is passed correctly
-        print(f"Course ID after saving: {course.id}")
-        return redirect('modify_course_page', course_id=course.id)  # Redirect to the same page with updated course
-
-    # If not POST, return the modify course page with the existing data
-    return render(request, 'home/modify-course-page.html', {'course': course, 'lecturers': lecturers, 'departments': departments, 'semesters': semesters})
+            messages.error(request, f'Error updating course: {str(e)}')
+            return render(request, 'home/modify-course-page.html', {
+                'course': course,
+                'lecturers': lecturers,
+                'departments': departments,
+                'semesters': semesters
+            })
+            
+    context = {
+        'course': course,
+        'lecturers': lecturers,
+        'departments': departments,
+        'semesters': semesters
+    }
+    return render(request, 'home/modify-course-page.html', context)
 
 
 @user_passes_test(is_admin)
 def modify_student(request):
     students = Student.objects.select_related('user', 'department', 'session').all()
     return render(request, 'home/modify-student.html', {'students': students})
+
 
 
 @csrf_exempt
@@ -1211,27 +1404,85 @@ def get_lecturer_summary_data(request):
     
 
 
-@login_required
-@user_passes_test(is_lecturer)
-def export_summary_pdf(request):
+# @login_required
+# @user_passes_test(is_lecturer)
+def export_lecturer_summary_pdf(request):
     try:
-        # ...Similar logic as get_lecturer_summary_data...
-        response = HttpResponse(content_type='application/pdf')
-        response['Content-Disposition'] = 'attachment; filename="attendance_summary.pdf"'
-        
-        # Create PDF
-        doc = SimpleDocTemplate(response, pagesize=letter)
-        elements = []
-        
-        # Add content to PDF
-        # ...
-        
-        doc.build(elements)
-        return response
-        
-    except Exception as e:
-        return HttpResponse(str(e), status=500)
+        # Get the logged-in lecturer
+        lecturer = get_object_or_404(Lecturer, user=request.user)
 
+        # Create a file-like buffer to receive PDF data
+        buffer = io.BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=letter)
+        elements = []
+
+        # Get filter parameters
+        session_id = request.GET.get('session')
+        semester_id = request.GET.get('semester')
+        course_id = request.GET.get('course')
+
+        # Get only courses assigned to this lecturer
+        courses = Course.objects.filter(lecturer=lecturer)
+        if course_id:
+            courses = courses.filter(id=course_id)
+
+        # Get students with attendance records for courses assigned to this lecturer
+        students_with_attendance = Student.objects.filter(attendance__course__in=courses).distinct()
+
+        # Prepare summary data
+        summary_data = []
+
+        for student in students_with_attendance:
+            attendance_query = Attendance.objects.filter(
+                student=student,
+                course__in=courses,
+                status='present'
+            )
+
+            if session_id:
+                attendance_query = attendance_query.filter(session_id=session_id)
+            if semester_id:
+                attendance_query = attendance_query.filter(semester_id=semester_id)
+
+            total_attendance = attendance_query.count()
+
+            summary_data.append([
+                student.full_name,
+                student.matric_number,
+                total_attendance
+            ])
+
+        # Sort data by student name
+        summary_data.sort(key=lambda x: x[0])
+
+        # Create table data
+        table_data = [['S/N', 'Student Name', 'Matric Number', 'Total Attendance']]
+        for idx, data in enumerate(summary_data, start=1):
+            table_data.append([str(idx), data[0], data[1], str(data[2])])
+
+        # Create table
+        table = Table(table_data, colWidths=[40, 200, 100, 100])
+        table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black),
+        ]))
+
+        elements.append(table)
+        doc.build(elements)
+
+        # Return the PDF response
+        buffer.seek(0)
+        return FileResponse(buffer, as_attachment=True, filename='attendance_summary.pdf')
+
+    except Exception as e:
+        print(f"Error generating PDF: {str(e)}")
+        return HttpResponse(f"Error generating PDF: {str(e)}", status=500)
+    
 
 @user_passes_test(is_lecturer)
 def manage_class(request):
@@ -1327,9 +1578,9 @@ def student_summary(request):
         # Get available sessions, semesters and courses for filters
         sessions = AcademicSession.objects.all().order_by('-name')
         semesters = Semester.objects.all()
-        courses = Course.objects.filter(
-            attendance__student=student
+        courses = Course.objects.filter(student=student
         ).distinct().order_by('course_code')
+
         
         context = {
             'student': student,
@@ -1369,7 +1620,7 @@ def get_student_summary_data(request):
             
         # Get unique courses with attendance
         courses = Course.objects.filter(
-            attendance__in=attendance_query
+            attendances__in=attendance_query
         ).distinct()
         
         summary_data = []
@@ -1417,7 +1668,7 @@ def export_student_summary_pdf(request):
         semester_id = request.GET.get('semester')
         course_id = request.GET.get('course')
         
-        courses = Course.objects.filter(attendance__student=student).distinct()
+        courses = Course.objects.filter(attendances__student=student).distinct()
         
         # Apply filters
         if session_id:
@@ -1709,6 +1960,10 @@ def student_profile(request):
 @login_required(login_url='login')
 @user_passes_test(is_student, login_url='index') 
 def student_panel(request):
+    student = request.user.student  # Get the logged-in student
+    context = {
+        'student': student,
+    }
     return render(request, 'home/student-panel.html')
 
 
@@ -2074,74 +2329,8 @@ from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle
 
-def export_summary_pdf(request):
-    # Create a file-like buffer to receive PDF data
-    buffer = io.BytesIO()
-    
-    # Create the PDF object, using the buffer as its "file."
-    doc = SimpleDocTemplate(buffer, pagesize=letter)
-    elements = []
 
-    # Get filter parameters
-    department = request.GET.get('department', '')
-    level = request.GET.get('level', '')
-    course = request.GET.get('course', '')
-    semester = request.GET.get('semester', '')
-    session = request.GET.get('session', '')
 
-    # Get the filtered data
-    queryset = Attendance.objects.values(
-        'student__id',
-        'student__full_name'
-    ).annotate(
-        total_attendance=Count('id')
-    ).order_by('-total_attendance')
-
-    # Apply filters
-    if department:
-        queryset = queryset.filter(student__department__name=department)
-    if level:
-        queryset = queryset.filter(student__level=level)
-    if course:
-        queryset = queryset.filter(course__course_code=course)
-    if semester:
-        queryset = queryset.filter(semester__name=semester)
-    if session:
-        queryset = queryset.filter(session__name=session)
-
-    # Create table data
-    data = [['#', 'Student Name', 'Total Attendance']]
-    for idx, record in enumerate(queryset, 1):
-        data.append([
-            str(idx),
-            record['student__full_name'],
-            str(record['total_attendance'])
-        ])
-
-    # Create table
-    table = Table(data)
-    table.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
-        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-        ('FONTSIZE', (0, 0), (-1, 0), 14),
-        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-        ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
-        ('TEXTCOLOR', (0, 1), (-1, -1), colors.black),
-        ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
-        ('FONTSIZE', (0, 1), (-1, -1), 12),
-        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-        ('GRID', (0, 0), (-1, -1), 1, colors.black)
-    ]))
-    
-    elements.append(table)
-    doc.build(elements)
-
-    # FileResponse sets the Content-Disposition header so that browsers
-    # present the option to save the file.
-    buffer.seek(0)
-    return FileResponse(buffer, as_attachment=True, filename='attendance_summary.pdf')
 
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.pagesizes import letter

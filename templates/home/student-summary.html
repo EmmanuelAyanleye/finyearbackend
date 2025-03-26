@@ -76,6 +76,12 @@
                     </a>
                 </li>
                 <li class="sidebar-item">
+                    <a href="{% url 'student_courses' request.user.student.id %}" class="sidebar-link">
+                        <i class="lni lni-book"></i>
+                        <span>My Courses</span>
+                    </a>
+                </li>
+                <li class="sidebar-item">
                     <a href="{% url 'student_profile' %}" class="sidebar-link">
                         <i class="lni lni-user"></i>
                         <span>My Profile</span>
