@@ -108,6 +108,8 @@ urlpatterns = [
     path('view_student_courses/<int:student_id>/', views.view_student_courses, name='view_student_courses'),
     path('assign_courses/', views.assign_courses_to_student, name='assign_courses_to_student'),
     path('remove_student_course/<int:student_id>/<int:course_id>/', views.remove_student_course, name='remove_student_course'),
+    path('api/lecturer-stats/', views.get_lecturer_stats, name='lecturer-stats'),
+    path('api/student-stats/', views.get_student_stats, name='student-stats'),
 ]
 
 

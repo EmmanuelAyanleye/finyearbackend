@@ -1112,50 +1112,80 @@ def modify_student_page(request, student_id):
     return render(request, 'home/modify-student-page.html', context)
 
 
+from django.shortcuts import render, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.db.models import Count
+from .models import Lecturer, Course, Student, Attendance
 
+
+from django.shortcuts import render, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.db.models import Count
+from home.models import Course, Lecturer, Student, Attendance
+
+import logging
+
+logger = logging.getLogger(__name__)
 @login_required
-@user_passes_test(is_lecturer)
 def lecturer_panel(request):
     try:
         lecturer = get_object_or_404(Lecturer, user=request.user)
         
-        # Get courses taught by this lecturer
+        # Fetch courses assigned to the lecturer
         courses = Course.objects.filter(lecturer=lecturer)
-        total_courses = courses.count()
+        course_ids = courses.values_list('id', flat=True)  # Get course IDs
         
-        # Get total students who have marked attendance in any of lecturer's courses
-        total_students = Student.objects.filter(
-            attendance__course__in=courses
-        ).distinct().count()
+        # Get distinct students from the assigned courses
+        students = Student.objects.filter(courses__in=courses).distinct()
         
-        # Get total attendance records for all lecturer's courses
-        total_attendance = Attendance.objects.filter(
-            course__in=courses
-        ).count()
-        
+        # Count attendance records for courses under the lecturer
+        attendance = Attendance.objects.filter(course_id__in=course_ids)
+
         context = {
             'lecturer': lecturer,
-            'total_courses': total_courses,
-            'total_students': total_students,
-            'total_attendance': total_attendance,
+            'total_courses': courses.count(),
+            'total_students': students.count(),
+            'total_attendance': attendance.count(),
         }
-        
-        # Debug output
-        print(f"\nDebug - Stats for {lecturer.full_name}:")
-        print(f"Total Courses: {total_courses}")
-        print(f"Total Students: {total_students}")
-        print(f"Total Attendance: {total_attendance}\n")
-        
+
+        print("DEBUG: Lecturer Panel Context:", context)  # Debugging print statement
+
         return render(request, 'home/lecturer-panel.html', context)
-        
+
     except Exception as e:
         print(f"Error in lecturer_panel: {str(e)}")
         return render(request, 'home/lecturer-panel.html', {
+            'lecturer': None,
             'total_courses': 0,
             'total_students': 0,
             'total_attendance': 0
         })
-    
+
+
+
+@login_required
+def get_lecturer_stats(request):
+    try:
+        lecturer = get_object_or_404(Lecturer, user=request.user)
+        
+        # Fetch data
+        courses = Course.objects.filter(lecturer=lecturer)
+        students = Student.objects.filter(courses__in=courses).distinct()
+        attendance = Attendance.objects.filter(course__in=courses)
+
+        # Response Data
+        data = {
+            'total_courses': courses.count(),
+            'total_students': students.count(),
+            'total_attendance': attendance.count(),
+        }
+        
+        return JsonResponse(data)
+
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
 
 @login_required
 @user_passes_test(is_lecturer)
@@ -1404,85 +1434,6 @@ def get_lecturer_summary_data(request):
     
 
 
-# @login_required
-# @user_passes_test(is_lecturer)
-def export_lecturer_summary_pdf(request):
-    try:
-        # Get the logged-in lecturer
-        lecturer = get_object_or_404(Lecturer, user=request.user)
-
-        # Create a file-like buffer to receive PDF data
-        buffer = io.BytesIO()
-        doc = SimpleDocTemplate(buffer, pagesize=letter)
-        elements = []
-
-        # Get filter parameters
-        session_id = request.GET.get('session')
-        semester_id = request.GET.get('semester')
-        course_id = request.GET.get('course')
-
-        # Get only courses assigned to this lecturer
-        courses = Course.objects.filter(lecturer=lecturer)
-        if course_id:
-            courses = courses.filter(id=course_id)
-
-        # Get students with attendance records for courses assigned to this lecturer
-        students_with_attendance = Student.objects.filter(attendance__course__in=courses).distinct()
-
-        # Prepare summary data
-        summary_data = []
-
-        for student in students_with_attendance:
-            attendance_query = Attendance.objects.filter(
-                student=student,
-                course__in=courses,
-                status='present'
-            )
-
-            if session_id:
-                attendance_query = attendance_query.filter(session_id=session_id)
-            if semester_id:
-                attendance_query = attendance_query.filter(semester_id=semester_id)
-
-            total_attendance = attendance_query.count()
-
-            summary_data.append([
-                student.full_name,
-                student.matric_number,
-                total_attendance
-            ])
-
-        # Sort data by student name
-        summary_data.sort(key=lambda x: x[0])
-
-        # Create table data
-        table_data = [['S/N', 'Student Name', 'Matric Number', 'Total Attendance']]
-        for idx, data in enumerate(summary_data, start=1):
-            table_data.append([str(idx), data[0], data[1], str(data[2])])
-
-        # Create table
-        table = Table(table_data, colWidths=[40, 200, 100, 100])
-        table.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
-            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-            ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
-            ('GRID', (0, 0), (-1, -1), 1, colors.black),
-        ]))
-
-        elements.append(table)
-        doc.build(elements)
-
-        # Return the PDF response
-        buffer.seek(0)
-        return FileResponse(buffer, as_attachment=True, filename='attendance_summary.pdf')
-
-    except Exception as e:
-        print(f"Error generating PDF: {str(e)}")
-        return HttpResponse(f"Error generating PDF: {str(e)}", status=500)
-    
 
 @user_passes_test(is_lecturer)
 def manage_class(request):
@@ -1657,81 +1608,6 @@ def get_student_summary_data(request):
         }, status=500)
      
 
-@login_required
-@user_passes_test(is_student)
-def export_student_summary_pdf(request):
-    try:
-        student = get_object_or_404(Student, user=request.user)
-        
-        # Get filter parameters and query data similar to get_student_summary_data
-        session_id = request.GET.get('session')
-        semester_id = request.GET.get('semester')
-        course_id = request.GET.get('course')
-        
-        courses = Course.objects.filter(attendances__student=student).distinct()
-        
-        # Apply filters
-        if session_id:
-            courses = courses.filter(attendance__session_id=session_id)
-        if semester_id:
-            courses = courses.filter(attendance__semester_id=semester_id)
-        if course_id:
-            courses = courses.filter(id=course_id)
-            
-        # Create PDF
-        response = HttpResponse(content_type='application/pdf')
-        response['Content-Disposition'] = f'attachment; filename="attendance_summary_{student.matric_number}.pdf"'
-        
-        doc = SimpleDocTemplate(response, pagesize=letter)
-        elements = []
-        
-        # Add title
-        styles = getSampleStyleSheet()
-        elements.append(Paragraph(f"Attendance Summary - {student.full_name}", styles['Title']))
-        elements.append(Spacer(1, 20))
-        
-        # Create table data
-        data = [['Course', 'Total Classes', 'Classes Attended', 'Percentage']]
-        
-        for course in courses:
-            total_classes = Attendance.objects.filter(course=course, student=student).count()
-            present_count = Attendance.objects.filter(
-                course=course, student=student, status='present'
-            ).count()
-            percentage = (present_count / total_classes * 100) if total_classes > 0 else 0
-            
-            data.append([
-                f"{course.course_code} - {course.course_title}",
-                str(total_classes),
-                str(present_count),
-                f"{round(percentage, 1)}%"
-            ])
-        
-        # Create and style the table
-        table = Table(data)
-        table.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), colors.green),
-            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, 0), (-1, 0), 14),
-            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-            ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
-            ('TEXTCOLOR', (0, 1), (-1, -1), colors.black),
-            ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
-            ('FONTSIZE', (0, 1), (-1, -1), 12),
-            ('GRID', (0, 0), (-1, -1), 1, colors.black),
-            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-        ]))
-        
-        elements.append(table)
-        doc.build(elements)
-        return response
-        
-    except Exception as e:
-        print(f"Error generating PDF: {str(e)}")
-        return HttpResponse('Error generating PDF', status=500)
 
 
 @login_required
@@ -1917,9 +1793,11 @@ def export_student_attendance_excel(request):
         print(f"Error generating Excel: {str(e)}")
         return HttpResponse('Error generating Excel file', status=500)
 
+from django.contrib.auth import login
+
 @user_passes_test(is_student)
 def student_modify(request):
-    student = request.user.student  # Get the logged-in student's profile
+    student = request.user.student
 
     if request.method == "POST":
         form = StudentSelfUpdateForm(request.POST, request.FILES, instance=student)
@@ -1938,7 +1816,9 @@ def student_modify(request):
                 if new_password:
                     request.user.set_password(new_password)
                     request.user.save()
-                    messages.success(request, "Password updated successfully.")
+
+                    # Re-authenticate the user after password change
+                    login(request, request.user)
 
                 # Save profile picture if changed
                 form.save()
@@ -1949,7 +1829,6 @@ def student_modify(request):
         form = StudentSelfUpdateForm(instance=student, initial={'email': request.user.email})
 
     return render(request, 'home/student-modify.html', {'form': form, 'student': student})
-
 
 @user_passes_test(is_student)
 def student_profile(request):
@@ -1967,6 +1846,43 @@ def student_panel(request):
     return render(request, 'home/student-panel.html')
 
 
+@login_required
+def get_student_stats(request):
+    try:
+        student = get_object_or_404(Student, user=request.user)
+
+        # Get courses specific to the student's department and level (compulsory courses)
+        department_courses = Course.objects.filter(
+            departments=student.department,
+            level=student.level,
+            is_general=False
+        )
+
+        # Get general courses available for the student's level
+        general_courses = Course.objects.filter(
+            is_general=True,
+            level=student.level
+        )
+
+        # Get courses manually assigned by the admin (specially assigned)
+        assigned_courses = student.courses.all()  # Courses already manually assigned
+
+        # Merge all three sets of courses and remove duplicates
+        all_courses = list({course.id: course for course in department_courses | general_courses | assigned_courses}.values())
+
+        # Get the total attendance records the student has
+        total_attendance = Attendance.objects.filter(student=student).count()
+
+        # Return the data
+        data = {
+            'total_courses': len(all_courses),  # Total of all courses assigned (automatically and manually)
+            'total_attendance': total_attendance,
+        }
+
+        return JsonResponse(data)
+
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
 
 
 
@@ -2338,74 +2254,66 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, Tabl
 from reportlab.lib import colors
 from datetime import datetime
 
+import io
+import os
+from datetime import datetime
+from django.http import FileResponse
+from reportlab.lib.pagesizes import letter
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, Image
+from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+
 def export_summary_pdf(request):
-    # Create a file-like buffer
     buffer = io.BytesIO()
-    
-    # Create the PDF object
     doc = SimpleDocTemplate(
         buffer,
         pagesize=letter,
-        rightMargin=72,
-        leftMargin=72,
-        topMargin=72,
-        bottomMargin=72
+        rightMargin=50,
+        leftMargin=50,
+        topMargin=50,
+        bottomMargin=50
     )
-    
-    # Container for the 'Flowable' objects
     elements = []
-    
-    # Get styles
     styles = getSampleStyleSheet()
     
-    # Create custom header style
+    # School Header with Logo
+    logo_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "static", "Images", "Espam logo.png")
+
+    try:
+        elements.append(Image(logo_path, width=80, height=80))
+    except:
+        pass  # If the logo is not found, continue without it
+    
     header_style = ParagraphStyle(
-        'CustomHeader',
-        parent=styles['Heading1'],
-        fontSize=16,
-        spaceAfter=30,
-        alignment=1  # Center alignment
+        'Header', parent=styles['Title'], fontSize=16, alignment=1, spaceAfter=6
     )
-    
-    subheader_style = ParagraphStyle(
-        'CustomSubHeader',
-        parent=styles['Heading2'],
-        fontSize=14,
-        spaceAfter=20,
-        alignment=1
-    )
-
-    # Add the headers
     elements.append(Paragraph("ESPAM FORMATION UNIVERSITY", header_style))
-    elements.append(Paragraph("Attendance Summary Report", subheader_style))
     
-    # Add current date
-    date_style = ParagraphStyle(
-        'DateStyle',
-        parent=styles['Normal'],
-        fontSize=10,
-        alignment=1
+    subtext_style = ParagraphStyle(
+        'Subtext', parent=styles['Normal'], fontSize=10, alignment=1
     )
-    current_date = datetime.now().strftime("%d %B, %Y")
-    elements.append(Paragraph(f"Generated on: {current_date}", date_style))
-    elements.append(Spacer(1, 20))
-
-    # Get filter parameters and add them to the report
+    elements.append(Paragraph("Address: Sacouba Anavie Campus, Porto-Novo, Republic of Benin.", subtext_style))
+    elements.append(Paragraph("Phone: +22946436904, +2348035637035, +22956885802", subtext_style))
+    elements.append(Paragraph("Email: espamformationunicampus2@gmail.com", subtext_style))
+    elements.append(Spacer(1, 10))
+    
+    # Report Title
+    report_title_style = ParagraphStyle(
+        'ReportTitle', parent=styles['Heading2'], fontSize=14, alignment=1, spaceAfter=10
+    )
+    elements.append(Paragraph("ATTENDANCE SUMMARY REPORT", report_title_style))
+    elements.append(Paragraph(f"Generated on: {datetime.now().strftime('%d %B, %Y')}", subtext_style))
+    elements.append(Spacer(1, 10))
+    
+    # Report Filters
     department = request.GET.get('department', 'All Departments')
     level = request.GET.get('level', 'All Levels')
     course = request.GET.get('course', 'All Courses')
     semester = request.GET.get('semester', 'All Semesters')
     session = request.GET.get('session', 'All Sessions')
-
-    # Add filter information
-    filter_style = ParagraphStyle(
-        'FilterStyle',
-        parent=styles['Normal'],
-        fontSize=10,
-        spaceAfter=20
-    )
     
-    filter_info = [
+    filter_style = ParagraphStyle('FilterStyle', parent=styles['Normal'], fontSize=10, spaceAfter=5)
+    filters = [
         f"Department: {department}",
         f"Level: {level}",
         f"Course: {course}",
@@ -2413,22 +2321,20 @@ def export_summary_pdf(request):
         f"Session: {session}"
     ]
     
-    for info in filter_info:
+    for info in filters:
         elements.append(Paragraph(info, filter_style))
+    elements.append(Spacer(1, 10))
     
-    elements.append(Spacer(1, 20))
-
-    # Get the data
+    # Query Attendance Data
     queryset = Attendance.objects.values(
-        'student__id',
-        'student__full_name'
+        'student__full_name', 'student__matric_number', 'student__department__name', 'student__level'
     ).annotate(
         total_attendance=Count('id')
     ).order_by('-total_attendance')
-
+    
     # Apply filters
     if department != 'All Departments':
-        queryset = queryset.filter(student__department__name=department)
+        queryset = queryset.filter(student__department=department)
     if level != 'All Levels':
         queryset = queryset.filter(student__level=level)
     if course != 'All Courses':
@@ -2437,27 +2343,24 @@ def export_summary_pdf(request):
         queryset = queryset.filter(semester__name=semester)
     if session != 'All Sessions':
         queryset = queryset.filter(session__name=session)
-
-    # Create table data
-    data = [['#', 'Student Name', 'Total Attendance']]
+    
+    # Create Table Data
+    data = [['#', 'Student Name', 'Matric No', 'Department', 'Level', 'Total Attendance']]
     for idx, record in enumerate(queryset, 1):
         data.append([
-            str(idx),
-            record['student__full_name'],
-            str(record['total_attendance'])
+            str(idx), record['student__full_name'], record['student__matric_number'],
+            record['student__department__name'], record['student__level'], str(record['total_attendance'])
         ])
-
-    # Create table
+    
+    # Table Styling
     table = Table(data, repeatRows=1)
     table.setStyle(TableStyle([
-        # Header style
         ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
         ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
         ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
         ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
         ('FONTSIZE', (0, 0), (-1, 0), 12),
         ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-        # Data style
         ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
         ('TEXTCOLOR', (0, 1), (-1, -1), colors.black),
         ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
@@ -2467,14 +2370,217 @@ def export_summary_pdf(request):
     ]))
     
     elements.append(table)
-
-    # Build PDF
     doc.build(elements)
     buffer.seek(0)
     
-    # Create the response
     return FileResponse(
-        buffer, 
-        as_attachment=True, 
-        filename=f'attendance_summary_{datetime.now().strftime("%Y%m%d_%H%M")}.pdf'
+        buffer, as_attachment=True, filename=f'attendance_summary_{datetime.now().strftime("%Y%m%d_%H%M")}.pdf'
     )
+
+
+
+# @login_required
+# @user_passes_test(is_lecturer)
+import io
+import os
+from datetime import datetime
+from django.http import FileResponse, HttpResponse
+from django.shortcuts import get_object_or_404
+from django.db.models import Count
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import letter
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, Image
+from .models import Attendance, Lecturer, Student, Course
+
+def export_lecturer_summary_pdf(request):
+    try:
+        lecturer = get_object_or_404(Lecturer, user=request.user)
+        buffer = io.BytesIO()
+        doc = SimpleDocTemplate(
+            buffer,
+            pagesize=letter,
+            rightMargin=50,
+            leftMargin=50,
+            topMargin=50,
+            bottomMargin=50
+        )
+        elements = []
+        styles = getSampleStyleSheet()
+
+        # Load School Logo
+        logo_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "static", "Images", "Espam logo.png")
+        try:
+            elements.append(Image(logo_path, width=70, height=70))
+        except:
+            pass  # Continue if logo is missing
+
+        # School Header
+        header_style = ParagraphStyle('Header', parent=styles['Title'], fontSize=16, alignment=1, spaceAfter=6)
+        elements.append(Paragraph("ESPAM FORMATION UNIVERSITY", header_style))
+        subtext_style = ParagraphStyle('Subtext', parent=styles['Normal'], fontSize=10, alignment=1)
+        elements.append(Paragraph("Sacouba Anavie Campus, Porto-Novo, Republic of Benin", subtext_style))
+        elements.append(Paragraph("Phone: +22946436904, +2348035637035, +22956885802", subtext_style))
+        elements.append(Paragraph("Email: espamformationunicampus2@gmail.com", subtext_style))
+        elements.append(Spacer(1, 10))
+
+        # Report Title
+        report_title_style = ParagraphStyle('ReportTitle', parent=styles['Heading2'], fontSize=14, alignment=1, spaceAfter=10)
+        elements.append(Paragraph("ATTENDANCE SUMMARY REPORT", report_title_style))
+        elements.append(Paragraph(f"Generated on: {datetime.now().strftime('%d %B, %Y')}", subtext_style))
+        elements.append(Spacer(1, 10))
+
+        # Course Details
+        course_id = request.GET.get('course')
+        semester_id = request.GET.get('semester')
+        session_id = request.GET.get('session')
+
+        courses = Course.objects.filter(lecturer=lecturer)
+        if course_id:
+            courses = courses.filter(id=course_id)
+        course_name = courses.first().course_code if courses.exists() else "All Courses"
+
+        filter_style = ParagraphStyle('FilterStyle', parent=styles['Normal'], fontSize=10, spaceAfter=5)
+        elements.append(Paragraph(f"<b>Course:</b> {course_name}", filter_style))
+        elements.append(Paragraph(f"<b>Semester:</b> All Semesters", filter_style))
+        elements.append(Paragraph(f"<b>Session:</b> All Sessions", filter_style))
+        elements.append(Spacer(1, 10))
+
+        # Query Students with Attendance
+        students_with_attendance = Student.objects.filter(attendance__course__in=courses).distinct()
+        summary_data = []
+
+        for student in students_with_attendance:
+            attendance_query = Attendance.objects.filter(student=student, course__in=courses, status="present")
+            if session_id:
+                attendance_query = attendance_query.filter(session_id=session_id)
+            if semester_id:
+                attendance_query = attendance_query.filter(semester_id=semester_id)
+            total_attendance = attendance_query.count()
+            summary_data.append([
+                student.full_name,
+                student.matric_number,
+                student.department.name,
+                student.level,
+                total_attendance
+            ])
+
+        summary_data.sort(key=lambda x: x[0])  # Sort by student name
+
+        # Create Table Data
+        table_data = [["#", "Student Name", "Matric No", "Department", "Level", "Total Attendance"]]
+        for idx, data in enumerate(summary_data, start=1):
+            table_data.append([str(idx), data[0], data[1], data[2], data[3], str(data[4])])
+
+        # Table Styling
+        table = Table(table_data, colWidths=[30, 150, 100, 120, 50, 80])
+        table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black),
+        ]))
+        elements.append(table)
+        doc.build(elements)
+
+        buffer.seek(0)
+        return FileResponse(buffer, as_attachment=True, filename="attendance_summary.pdf")
+
+    except Exception as e:
+        return HttpResponse(f"Error generating PDF: {str(e)}", status=500)
+    
+
+
+
+@login_required
+@user_passes_test(is_student)
+def export_student_summary_pdf(request):
+    try:
+        student = get_object_or_404(Student, user=request.user)
+        buffer = io.BytesIO()
+        doc = SimpleDocTemplate(
+            buffer,
+            pagesize=letter,
+            rightMargin=50,
+            leftMargin=50,
+            topMargin=50,
+            bottomMargin=50
+        )
+        elements = []
+        styles = getSampleStyleSheet()
+
+        # Load School Logo
+        logo_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "static", "Images", "Espam logo.png")
+        try:
+            elements.append(Image(logo_path, width=70, height=70))
+        except:
+            pass  # Continue if logo is missing
+
+        # School Header
+        header_style = ParagraphStyle('Header', parent=styles['Title'], fontSize=16, alignment=1, spaceAfter=6)
+        elements.append(Paragraph("ESPAM FORMATION UNIVERSITY", header_style))
+        subtext_style = ParagraphStyle('Subtext', parent=styles['Normal'], fontSize=10, alignment=1)
+        elements.append(Paragraph("Sacouba Anavie Campus, Porto-Novo, Republic of Benin", subtext_style))
+        elements.append(Paragraph("Phone: +22946436904, +2348035637035, +22956885802", subtext_style))
+        elements.append(Paragraph("Email: espamformationunicampus2@gmail.com", subtext_style))
+        elements.append(Spacer(1, 10))
+
+        # Report Title
+        report_title_style = ParagraphStyle('ReportTitle', parent=styles['Heading2'], fontSize=14, alignment=1, spaceAfter=10)
+        elements.append(Paragraph("ATTENDANCE SUMMARY REPORT", report_title_style))
+        elements.append(Paragraph(f"Generated on: {datetime.now().strftime('%d %B, %Y')}", subtext_style))
+        elements.append(Spacer(1, 10))
+
+        # Student Details
+        student_details = [
+            ["Student Name:", student.full_name],
+            ["Matric Number:", student.matric_number],
+            ["Department:", student.department],
+            ["Level:", student.level]
+        ]
+        student_table = Table(student_details, colWidths=[133, 370])
+        student_table.setStyle(TableStyle([
+            ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 10),
+            ('ALIGN', (0, 0), (0, -1), 'LEFT'),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
+        ]))
+        elements.append(student_table)
+        elements.append(Spacer(1, 10))
+
+        # Courses Attended
+        courses = Course.objects.filter(attendances__student=student).distinct()
+        data = [["#", "Course Name", "Course Code", "Total Attendance"]]
+        for index, course in enumerate(courses, start=1):
+            total_attendance = Attendance.objects.filter(course=course, student=student).count()
+            data.append([index, course.course_title, course.course_code, total_attendance])
+
+        # Create and style table
+        table = Table(data, colWidths=[40, 200, 120, 120])
+        table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 14),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+            ('TEXTCOLOR', (0, 1), (-1, -1), colors.black),
+            ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+            ('FONTSIZE', (0, 1), (-1, -1), 12),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ]))
+
+        elements.append(table)
+        doc.build(elements)
+
+        buffer.seek(0)
+        return FileResponse(buffer, as_attachment=True, filename=f"attendance_summary_{student.matric_number}.pdf")
+
+    except Exception as e:
+        return HttpResponse(f"Error generating PDF: {str(e)}", status=500)

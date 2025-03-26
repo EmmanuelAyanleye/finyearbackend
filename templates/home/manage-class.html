@@ -122,7 +122,14 @@
                                     <td>{{ course.course_code }}</td>
                                     <td>{{ course.course_title }}</td>
                                     <td>{{ course.level }}</td>
-                                    <td>{{ course.department.name }}</td>
+                                    <td>{% if course.is_general %}
+                                        General
+                                    {% else %}
+                                        {% for department in course.departments.all %}
+                                            {{ department.name }}{% if not forloop.last %}, {% endif %}
+                                        {% endfor %}
+                                    {% endif %}
+                                    </td>
                                     <td>{{ course.attendance_day }}</td>
                                     <td>{{ course.attendance_start_time }} - {{ course.attendance_end_time }}</td>
                                     <td>

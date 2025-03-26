@@ -106,7 +106,7 @@
                         <div class="card border-0 shadow-sm">
                             <div class="card-body">
                                 <h5>Total Courses Assigned</h5>
-                                <p>{{ total_courses|default:"0" }}</p>
+                                <p id="totalCourses">Loading...</p>
                             </div>
                         </div>
                     </div>
@@ -114,7 +114,7 @@
                         <div class="card border-0 shadow-sm">
                             <div class="card-body">
                                 <h5>Total Attendance Records</h5>
-                                <p>{{ total_attendance|default:"0" }}</p>
+                                <p id="totalAttendance">Loading...</p>
                             </div>
                         </div>
                     </div>
@@ -122,11 +122,30 @@
                         <div class="card border-0 shadow-sm">
                             <div class="card-body">
                                 <h5>Total Students</h5>
-                                <p>{{ total_students|default:"0" }}</p> 
+                                <p id="totalStudents">Loading...</p> 
                             </div>
                         </div>
                     </div>
                 </div>
+                
+                <script>
+                document.addEventListener("DOMContentLoaded", function() {
+                    fetch("/api/lecturer-stats/")
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.error) {
+                            console.error("Error fetching stats:", data.error);
+                            return;
+                        }
+                        
+                        document.getElementById("totalCourses").textContent = data.total_courses;
+                        document.getElementById("totalAttendance").textContent = data.total_attendance;
+                        document.getElementById("totalStudents").textContent = data.total_students;
+                    })
+                    .catch(error => console.error("Fetch error:", error));
+                });
+                </script>
+                
 
                 <h3 class="fw-bold mt-5">Quick Links</h3>
                 <div class="card-container">

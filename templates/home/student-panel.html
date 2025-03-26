@@ -107,20 +107,40 @@
                     <div class="col-md-4">
                         <div class="card border-0 shadow-sm">
                             <div class="card-body">
-                                <h5>Total Classes Attended</h5>
-                                <p>1</p>
+                                <h5>Total Courses</h5>
+                                <p id="totalCourses">Loading...</p>
                             </div>
                         </div>
                     </div>
                     <div class="col-md-4">
                         <div class="card border-0 shadow-sm">
                             <div class="card-body">
-                                <h5>Attendance Percentage</h5>
-                                <p>100%</p>
+                                <h5>Total Attendance</h5>
+                                <p id="totalAttendance">Loading...</p>
                             </div>
                         </div>
                     </div>
                 </div>
+                
+                <script>
+                document.addEventListener("DOMContentLoaded", function() {
+                    fetch("/api/student-stats/")
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.error) {
+                            console.error("Error fetching stats:", data.error);
+                            return;
+                        }
+                        
+                        // Set student statistics dynamically
+                        document.getElementById("totalAttendance").textContent = data.total_attendance;
+                        document.getElementById("totalCourses").textContent = data.total_courses;
+                    })
+                    .catch(error => console.error("Fetch error:", error));
+                });
+                </script>
+                
+                
 
                 <h3 class="fw-bold mt-5">Quick Links</h3>
                 <div class="card-container">
