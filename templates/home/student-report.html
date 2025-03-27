@@ -104,7 +104,10 @@
               
                 <!-- Search Bar and Filters -->
                 <!-- Replace the search bar section -->
-                <div class="d-flex justify-content-between mb-3">
+                <div class="d-flex justify-content-end mb-3">
+                  <!-- <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#filtersModal">
+                      <i class="lni lni-funnel"></i> Filters
+                  </button> -->
                   <div class="input-group w-50">
                       <input type="text" 
                             id="courseSearch" 
@@ -115,9 +118,6 @@
                           <i class="lni lni-search-alt"></i> Search
                       </button>
                   </div>
-                  <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#filtersModal">
-                      <i class="lni lni-funnel"></i> Filters
-                  </button>
                 </div>
               
                 <!-- Attendance Table -->
@@ -131,7 +131,7 @@
                               <th>Session</th>
                               <th>Date</th>
                               <th>Time</th>
-                              <th>Status</th>
+                              <!-- <th>Status</th> -->
                           </tr>
                       </thead>
                       <tbody id="attendanceTable">
@@ -325,7 +325,6 @@
                         <td>${record.session}</td>
                         <td>${record.date}</td>
                         <td>${record.time}</td>
-                        <td><span class="badge ${statusClass}">${record.status}</span></td>
                     </tr>
                 `;
             });

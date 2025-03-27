@@ -58,75 +58,115 @@
             </div>
             <ul class="sidebar-nav">
                 <li class="sidebar-item">
-                    <a href="{% url 'admin_dashboard' %}" class="sidebar-link">
-                        <i class="lni lni-home"></i>
-                        <span>Dashboard</span>
-                    </a>
-                </li>
-                <li class="sidebar-item">
-                    <a href="{% url 'report' %}" class="sidebar-link">
-                        <i class="lni lni-stats-up"></i>
-                        <span>View Reports</span>
-                    </a>
-                </li>
-                <li class="sidebar-item">
-                    <a href="{% url 'admin_summary' %}" class="sidebar-link">
-                        <i class="lni lni-bar-chart"></i>
-                        <span>Attendance Summary</span>
-                    </a>
-                </li>
-                <li class="sidebar-item">
-                    <a href="#" class="sidebar-link collapsed has-dropdown" data-bs-toggle="collapse"
-                        data-bs-target="#student" aria-expanded="false" aria-controls="student">
-                        <i class="lni lni-user"></i>
-                        <span>Manage Student</span>
-                    </a>
-                    <ul id="student" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
-                        <li class="sidebar-item">
-                            <a href="{% url 'add_student' %}" class="sidebar-link">Add student</a>
-                        </li>
-                        <li class="sidebar-item">
-                            <a href="{% url 'modify_student' %}" class="sidebar-link">Modify Students</a>
-                        </li>
-                    </ul>
-                </li>
-                <li class="sidebar-item">
-                    <a href="#" class="sidebar-link collapsed has-dropdown" data-bs-toggle="collapse"
-                        data-bs-target="#lecturer" aria-expanded="false" aria-controls="lecturer">
-                        <i class="lni lni-graduation"></i>
-                        <span>Manage Lecturer</span>
-                    </a>
-                    <ul id="lecturer" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
-                        <li class="sidebar-item">
-                            <a href="{% url 'add_lecturer' %}" class="sidebar-link">Add Lecturer</a>
-                        </li>
-                        <li class="sidebar-item">
-                            <a href="{% url 'modify_lecturer' %}" class="sidebar-link">Modify Lecturer</a>
-                        </li>
-                    </ul>
-                </li>
-                <li class="sidebar-item">
-                  <a href="#" class="sidebar-link collapsed has-dropdown" data-bs-toggle="collapse"
-                      data-bs-target="#course" aria-expanded="false" aria-controls="course">
-                      <i class="lni lni-book"></i>
-                      <span>Manage Course</span>
+                  <a href="{% url 'admin_dashboard' %}" class="sidebar-link">
+                    <i class="lni lni-home"></i>
+                    <span>Dashboard</span>
                   </a>
-                  <ul id="course" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
-                      <li class="sidebar-item">
-                          <a href="{% url 'course' %}" class="sidebar-link">Add Course</a>
-                      </li>
-                      <li class="sidebar-item">
-                          <a href="{% url 'modify_course' %}" class="sidebar-link">Modify Course</a>
-                      </li>
-                  </ul>
-              </li>
-                <li class="sidebar-item">
-                    <a href="{% url 'settings' %}" class="sidebar-link">
-                        <i class="lni lni-cog"></i>
-                        <span>Settings</span>
-                    </a>
                 </li>
-            </ul>
+                <li class="sidebar-item">
+                  <a href="{% url 'report' %}" class="sidebar-link">
+                    <i class="lni lni-stats-up"></i>
+                    <span>View Reports</span>
+                  </a>
+                </li>
+                <li class="sidebar-item">
+                  <a href="{% url 'admin_summary' %}" class="sidebar-link">
+                    <i class="lni lni-bar-chart"></i>
+                    <span>Attendance Summary</span>
+                  </a>
+                </li>
+                <li class="sidebar-item">
+                  <a
+                    href="#"
+                    class="sidebar-link collapsed has-dropdown"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#student"
+                    aria-expanded="false"
+                    aria-controls="student"
+                  >
+                    <i class="lni lni-user"></i>
+                    <span>Manage Student</span>
+                  </a>
+                  <ul
+                    id="student"
+                    class="sidebar-dropdown list-unstyled collapse"
+                    data-bs-parent="#sidebar"
+                  >
+                    <li class="sidebar-item">
+                      <a href="{% url 'add_student' %}" class="sidebar-link"
+                        >Add student</a
+                      >
+                    </li>
+                    <li class="sidebar-item">
+                      <a href="{% url 'modify_student' %}" class="sidebar-link"
+                        >View Students</a
+                      >
+                    </li>
+                  </ul>
+                </li>
+                <li class="sidebar-item">
+                  <a
+                    href="#"
+                    class="sidebar-link collapsed has-dropdown"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#lecturer"
+                    aria-expanded="false"
+                    aria-controls="lecturer"
+                  >
+                    <i class="lni lni-graduation"></i>
+                    <span>Manage Lecturer</span>
+                  </a>
+                  <ul
+                    id="lecturer"
+                    class="sidebar-dropdown list-unstyled collapse"
+                    data-bs-parent="#sidebar"
+                  >
+                    <li class="sidebar-item">
+                      <a href="{% url 'add_lecturer' %}" class="sidebar-link"
+                        >Add Lecturer</a
+                      >
+                    </li>
+                    <li class="sidebar-item">
+                      <a href="{% url 'modify_lecturer' %}" class="sidebar-link"
+                        >View Lecturers</a
+                      >
+                    </li>
+                  </ul>
+                </li>
+                <li class="sidebar-item">
+                  <a
+                    href="#"
+                    class="sidebar-link collapsed has-dropdown"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#course"
+                    aria-expanded="false"
+                    aria-controls="course"
+                  >
+                    <i class="lni lni-book"></i>
+                    <span>Manage Course</span>
+                  </a>
+                  <ul
+                    id="course"
+                    class="sidebar-dropdown list-unstyled collapse"
+                    data-bs-parent="#sidebar"
+                  >
+                    <li class="sidebar-item">
+                      <a href="{% url 'course' %}" class="sidebar-link">Add Course</a>
+                    </li>
+                    <li class="sidebar-item">
+                      <a href="{% url 'modify_course' %}" class="sidebar-link"
+                        >View Courses</a
+                      >
+                    </li>
+                  </ul>
+                </li>
+                <li class="sidebar-item">
+                  <a href="{% url 'settings' %}" class="sidebar-link">
+                    <i class="lni lni-cog"></i>
+                    <span>Settings</span>
+                  </a>
+                </li>
+              </ul>
             <div class="sidebar-footer">
                 <a href="#" class="sidebar-link" id="logout-link">
                     <i class="lni lni-exit"></i>

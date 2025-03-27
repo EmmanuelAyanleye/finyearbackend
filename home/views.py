@@ -941,16 +941,31 @@ def student_courses(request, student_id):
 
 
 
+# home/tasks.py (Create this file)
+from celery import shared_task
+from django.utils import timezone
+from .models import Course, Student, Attendance
+import pytz
+from datetime import datetime
+
+@shared_task
 def mark_absent_students():
+    """
+    Marks students as 'absent' for courses where they didn't mark attendance.
+    This task should be scheduled to run periodically (e.g., daily).
+    """
     lagos_tz = pytz.timezone('Africa/Lagos')
     current_time = timezone.now().astimezone(lagos_tz)
     current_day = current_time.strftime('%A')
+    today_date = current_time.date()
 
-    today_courses = Course.objects.filter(attendance_day=current_day)
+    # Get all courses scheduled for today
+    today_courses = Course.objects.filter(attendance_day__iexact=current_day)
 
     for course in today_courses:
-        if current_time.time() > course.attendance_end_time:
-            # Get all students for this course based on departments and general flag
+        # Check if the course's end time has passed
+        if current_time.time() > course.attendance_end_time.time():
+            # Get all students enrolled in this course
             if course.is_general:
                 enrolled_students = Student.objects.filter(level=course.level)
             else:
@@ -959,20 +974,23 @@ def mark_absent_students():
                     level=course.level
                 ).distinct()
 
+            # Get students who have already marked attendance for this course today
             marked_students = Attendance.objects.filter(
                 course=course,
-                date=current_time.date()
+                date=today_date
             ).values_list('student_id', flat=True)
 
+            # Mark absent for students who haven't marked attendance
             for student in enrolled_students:
                 if student.id not in marked_students:
                     Attendance.objects.create(
                         student=student,
                         course=course,
                         status='absent',
-                        date=current_time.date(),
+                        date=today_date,
                         semester=course.semester,
-                        session=student.session
+                        session=student.session,
+                        timestamp=current_time
                     )
 
 
@@ -1997,6 +2015,15 @@ def settings(request):
     return render(request, 'home/settings.html', context)
 
 
+from django.http import JsonResponse, HttpResponse
+from openpyxl import Workbook
+from django.db.models import Q, Count
+import openpyxl
+from openpyxl.styles import PatternFill, Font
+from datetime import datetime
+from .models import Course, Student, Attendance #Added to the existing import
+from django.utils import timezone #Added to the existing import
+
 @csrf_exempt
 @require_http_methods(["POST"])
 def mark_attendance(request):
@@ -2010,11 +2037,37 @@ def mark_attendance(request):
         student = Student.objects.get(matric_number=matric_number)
         course = Course.objects.get(id=course_id)
 
+        # Check if student is enrolled in the course
+        
+        # Get courses specific to the student's department and level (compulsory courses)
+        department_courses = list(Course.objects.filter(
+            departments=student.department,
+            level=student.level,
+            is_general=False
+        ))
+
+        # Get general courses available for the student's level
+        general_courses = list(Course.objects.filter(
+            is_general=True,
+            level=student.level
+        ))
+
+        # Get courses manually assigned by the admin
+        assigned_courses = list(student.courses.all())  # Courses already assigned
+
+        # Merge all three lists and remove duplicates
+        all_courses = list({course.id: course for course in department_courses + general_courses + assigned_courses}.values())
+        
+        if course not in all_courses:
+            return JsonResponse({
+                "status": "error",
+                "message": "You are not enrolled in this course!"
+            })
+
         # Get the student's current academic session
         academic_session = student.session
 
         # Use local time for creating the attendance record
-         # Get local timezone
         local_tz = pytz.timezone('Africa/Lagos')
         current_time = timezone.localtime(timezone.now())
 
@@ -2070,8 +2123,8 @@ def mark_attendance(request):
             "status": "error",
             "message": str(e)
         })
-
-
+    
+    
 from django.http import JsonResponse, HttpResponse
 from openpyxl import Workbook
 from django.db.models import Q, Count
