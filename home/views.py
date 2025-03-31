@@ -993,6 +993,125 @@ def mark_absent_students():
                         timestamp=current_time
                     )
 
+import io
+import os
+from datetime import datetime, time, timedelta
+from django.http import FileResponse, HttpResponse
+from django.shortcuts import get_object_or_404
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import letter
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, Image
+from .models import Course, Department  # Import Course and Department models
+from django.db.models import Q
+
+def generate_timetable_pdf(request):
+    """
+    Generates a timetable PDF based on the courses in the database.
+    """
+    try:
+        buffer = io.BytesIO()
+        doc = SimpleDocTemplate(
+            buffer,
+            pagesize=letter,
+            rightMargin=50,
+            leftMargin=50,
+            topMargin=50,
+            bottomMargin=50
+        )
+        elements = []
+        styles = getSampleStyleSheet()
+
+        # --- School Header ---
+        logo_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "static", "Images", "Espam logo.png")
+        try:
+            elements.append(Image(logo_path, width=70, height=70))
+        except:
+            pass  # Continue if logo is missing
+
+        header_style = ParagraphStyle('Header', parent=styles['Title'], fontSize=16, alignment=1, spaceAfter=6)
+        elements.append(Paragraph("ESPAM FORMATION UNIVERSITY", header_style))
+        subtext_style = ParagraphStyle('Subtext', parent=styles['Normal'], fontSize=10, alignment=1)
+        elements.append(Paragraph("Sacouba Anavie Campus, Porto-Novo, Republic of Benin", subtext_style))
+        elements.append(Paragraph("Phone: +22946436904, +2348035637035, +22956885802", subtext_style))
+        elements.append(Paragraph("Email: espamformationunicampus2@gmail.com", subtext_style))
+        elements.append(Spacer(1, 10))
+
+        # --- Timetable Title ---
+        report_title_style = ParagraphStyle('ReportTitle', parent=styles['Heading2'], fontSize=14, alignment=1, spaceAfter=10)
+        elements.append(Paragraph("COURSE TIMETABLE", report_title_style))
+        elements.append(Paragraph(f"Generated on: {datetime.now().strftime('%d %B, %Y')}", subtext_style))
+        elements.append(Spacer(1, 20))
+
+        # --- Timetable Data ---
+        # Dynamically create time slots (only start times)
+        courses = Course.objects.all().order_by('attendance_day', 'attendance_start_time')
+        all_start_times = sorted(list(set([course.attendance_start_time for course in courses])))
+
+        # Use only start times for time slots
+        time_slots = all_start_times
+        time_slot_labels = [t.strftime("%I:%M %p") for t in time_slots]
+
+        # Define days of the week
+        days_of_week = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
+
+        # Create the timetable data structure
+        timetable_data = [["DAY/TIME"] + time_slot_labels]  # Header row
+        for day in days_of_week:
+            day_row = [day]
+            for time_slot in time_slots:
+                day_row.append("")  # Initialize empty cells
+            timetable_data.append(day_row)
+
+        # Populate the timetable
+        for course in courses:
+            day = course.attendance_day
+            start_time = course.attendance_start_time
+            end_time = course.attendance_end_time
+
+            # Find the correct row and column for the course
+            day_index = days_of_week.index(day) + 1  # +1 to account for the header row
+            try:
+                start_time_index = time_slots.index(start_time) + 1  # +1 to account for the "DAY/TIME" column
+            except ValueError:
+                print(f"Error: Start time {start_time} not found in time_slots.")
+                continue  # Skip this course if start time is not found
+
+            # Add course details to the cells
+            course_info = f"{course.course_code}"  # Only course code
+
+            # Add course to the start slot only
+            if timetable_data[day_index][start_time_index] == "":
+                timetable_data[day_index][start_time_index] = course_info
+            else:
+                timetable_data[day_index][start_time_index] += f"\n{course_info}"
+
+        # --- Create and Style the Table ---
+        table = Table(timetable_data, colWidths=[80] + [60] * len(time_slots))
+        table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),  # Header row background
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),  # Header row text color
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),  # Center align all cells
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),  # Header row font
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),  # Header row padding
+            ('BACKGROUND', (0, 1), (0, -1), colors.lightgrey), # Day column background
+            ('GRID', (0, 0), (-1, -1), 1, colors.black),  # Add grid lines
+            ('FONTSIZE', (0, 0), (-1, -1), 8),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ]))
+        elements.append(table)
+
+        # --- Build the PDF ---
+        doc.build(elements)
+        buffer.seek(0)
+
+        return FileResponse(
+            buffer, as_attachment=True, filename=f"timetable_{datetime.now().strftime('%Y%m%d_%H%M')}.pdf"
+        )
+
+    except Exception as e:
+        return HttpResponse(f"Error generating PDF: {str(e)}", status=500)
+
 
 @user_passes_test(is_admin)
 def modify_course_page(request, course_id):

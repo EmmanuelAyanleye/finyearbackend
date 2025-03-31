@@ -242,6 +242,7 @@
                     <th>Session</th>
                     <th>Date</th>
                     <th>Time</th>
+                    <th>Status</th>
                   </tr>
                 </thead>
                 <tbody id="attendanceTable">
@@ -429,6 +430,16 @@
                             <td>${record.session}</td>
                             <td>${record.date}</td>
                             <td>${record.timestamp}</td>
+                            <td>
+                              <span class="badge ${
+                                record.status.toLowerCase() === 'present' ? 'bg-success' :
+                                record.status.toLowerCase() === 'absent' ? 'bg-danger' :
+                                'bg-warning'
+                              }">
+                                ${record.status}
+                              </span>
+                            </td>
+
                         `;
               tbody.appendChild(row);
             });
@@ -489,11 +500,16 @@
     </script>
 
     <!-- Move these outside the sidebar but before closing body tag -->
-<form method="POST" action="{% url 'logout' %}" id="logout-form" style="display: none;">
-  {% csrf_token %}
-</form>
+    <form
+      method="POST"
+      action="{% url 'logout' %}"
+      id="logout-form"
+      style="display: none"
+    >
+      {% csrf_token %}
+    </form>
 
-<div
+    <div
       class="modal fade"
       id="logoutModal"
       tabindex="-1"
@@ -528,29 +544,31 @@
       </div>
     </div>
 
-<!-- Update the script -->
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-  const logoutLink = document.getElementById('logout-link');
-  const logoutForm = document.getElementById('logout-form');
-  const confirmLogout = document.getElementById('confirm-logout');
-  
-  if (logoutLink) {
-      logoutLink.addEventListener('click', function(event) {
-          event.preventDefault();
-          const logoutModal = new bootstrap.Modal(document.getElementById('logoutModal'));
-          logoutModal.show();
-      });
-  }
-  
-  if (confirmLogout) {
-      confirmLogout.addEventListener('click', function() {
-          if (logoutForm) {
+    <!-- Update the script -->
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const logoutLink = document.getElementById("logout-link");
+        const logoutForm = document.getElementById("logout-form");
+        const confirmLogout = document.getElementById("confirm-logout");
+
+        if (logoutLink) {
+          logoutLink.addEventListener("click", function (event) {
+            event.preventDefault();
+            const logoutModal = new bootstrap.Modal(
+              document.getElementById("logoutModal")
+            );
+            logoutModal.show();
+          });
+        }
+
+        if (confirmLogout) {
+          confirmLogout.addEventListener("click", function () {
+            if (logoutForm) {
               logoutForm.submit();
-          }
+            }
+          });
+        }
       });
-  }
-});
-</script>
+    </script>
   </body>
 </html>

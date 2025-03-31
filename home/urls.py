@@ -88,6 +88,7 @@ urlpatterns = [
     path('get_student_attendance_data/', views.get_student_attendance_data, name='get_student_attendance_data'),
     
     path('get_student_summary_data/', views.get_student_summary_data, name='get_student_summary_data'),
+    path('timetable/', views.generate_timetable_pdf, name='generate_timetable'),
     path('export_student_summary_pdf/', views.export_student_summary_pdf, name='export_student_summary_pdf'),
 
     path('lecturer_report/', views.lecturer_report, name='lecturer_report'),
