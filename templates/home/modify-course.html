@@ -4,7 +4,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Attendance Dashboard</title>
+    <title>List of Courses</title>
+    <link rel="icon" href="{% static 'images/Espam logo.png' %}" type="image/png">
 
     <!-- Bootstrap & Icons -->
     <link
@@ -250,7 +251,7 @@
             </script>
 
             <!-- Table Wrapper -->
-            <div class="table-wrapper">
+            <div class="table-wrapper" style="max-height: 460px; overflow-y: auto;">
               <table class="table table-striped table-hover">
                 <thead>
                   <tr class="highlight">
@@ -308,6 +309,9 @@
 
                 
               </table>
+            </div>
+            <div class="text-end mt-3">
+              <a href="{% url 'generate_timetable' %}" class="btn btn-primary">Generate Timetable</a>
             </div>
           </div>
         </div>
