@@ -2306,7 +2306,9 @@ def get_attendance_data(request):
             'student_name': attendance.student.full_name,
             'department': attendance.student.department.name,
             'level': attendance.student.level,
-            'course': f"{attendance.course.course_code} - {attendance.course.course_title}",
+            'course': attendance.course.course_code,
+            # Code with both Course title and course code
+            # 'course': f"{attendance.course.course_code} - {attendance.course.course_title}",
             'semester': attendance.semester.name,
             'session': attendance.session.name,
             'date': attendance.date.strftime('%Y-%m-%d'),
